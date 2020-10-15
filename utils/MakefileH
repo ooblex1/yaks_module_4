@@ -1,0 +1,15 @@
+CFLAGS=-Wall -pedantic -std=c11 -I. -g
+
+all:     	htest1 htest2
+
+%.o:     	%.c %.h
+					gcc $(CFLAGS) -c $<
+
+htest1: 	htest1.o hash.o queue.o
+					gcc $(CFLAGS) $^ -o $@
+
+htest2: 	htest2.o hash.o queue.o
+					gcc $(CFLAGS) $^ -o $@
+
+clean:
+					rm -f *.o htest1 htest2

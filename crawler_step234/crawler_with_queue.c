@@ -44,9 +44,6 @@ int main(){
 	if(! webpage_fetch(new_page)) {
 		exit(EXIT_FAILURE);
 	}
-    //char *html = webpage_getHTML(new_page);
-    //printf("Found html: %s\n", html);
-    //free(html); 
 
     int pos = 0;
     char *result;
@@ -54,7 +51,7 @@ int main(){
     webpage_t *current;
 
     queue_t* internal_q = qopen();
- 
+    
     while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
     	location = "external";
     	if (IsInternalURL(result)) {

@@ -8,6 +8,7 @@
  * Description: craws the web form a given seed to a given maxDepth and 
  * catches the content of the pages it finds, one page per file, 
  * in a given directory
+ * code for step 3
  * 
  */
 
@@ -20,73 +21,55 @@
 #include "queue.h"
 #include "hash.h"
 
+void printURL(void *p) {
+	webpage_t *wpp = (webpage_t *)p;
+	char *url = webpage_getURL(wpp);
+	
+	if (url != NULL) {
+		printf("%s\n", url);
+	} else{
+		printf("url is empty");
+	}
+
+}
 
 int main(){
 
 	//create new webpage
-	char *seedurl = "https://thayer.github.io/engs50/";
-	int maxdepth = 0;
-	webpage_t *new_page = webpage_new(seedurl, maxdepth, NULL);
-	
-    queue_t* internal_q = qopen();
-	hashtable_t* visited_url_ht = hopen(100);
+	webpage_t *new_page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
 
-	// put seedurl in queue and hashtable
-	if (webpage_fetch(new_page)){
-		hput(visited_url_ht,(void*)seedurl,seedurl,strlen(seedurl));
-		qput(internal_q,(void*)new_page);
-		//saving to dir here?
-	} else {
-		webpage_delete(new_page);
-		qclose(internal_q);
-		hclose(visited_url_ht);
+	if(! webpage_fetch(new_page)) {
 		exit(EXIT_FAILURE);
 	}
 
-	//loop through all URL's to put them into hash and queue
-	//only when webpage is not in queue or hash will it be put into both
-	int pos = 0;
-	char* result;
+    int pos = 0;
+    char *result;
+    char *location;
+    webpage_t *current;
 
-	while (webpage_getDepth(next)<maxdepth && (pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
+    queue_t* internal_q = qopen();
+    
+    while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
+    	location = "external";
+    	if (IsInternalURL(result)) {
+    		location = "internal";
+    		current = webpage_new(result, 1, NULL);
+    		qput(internal_q,(void*)current);
+    	}
+      	printf("Found %s url: %s\n", location, result);
+      	free(result);
+      	//webpage_delete(new_page);
+    }
 
-	}
+    //printing
+    qapply(internal_q, printURL);
 
-	webpage_t *next;
-	while ( ( next = (webpage_t*)qget(qp) )!=NULL ){
-
-		while (webpage_getDepth(next)<maxdepth && (pos = webpage_getNextURL(next, pos, &result)) > 0) {
-
-			printf("Found url: %s  \n", result);
-			if (IsInternalURL(result)){
-				
-				printf("Internal URL.\n");
-				
-				if(hsearch(visited_ht,searchurl,result,strlen(result))==NULL){
-					webpage_t* inter_web = webpage_new(result, webpage_getDepth(next)+1, NULL);
-					hput(visited_ht,(void*)result,result,strlen(result));
-					qput(qp,(void*)inter_web);
-				} else
-					free(result);
-			} else {
-				printf("External URL.\n");
-				free(result);
-			}
-		}
-		webpage_delete((void*)next);
-	}
-
-
-	free(result);
-    free(location);
-    free(key_word);
 
 	// free all the data structure
 	webpage_delete(new_page);
 
-	//hremove(visited_ht,searchurl,seedurl,strlen(seedurl));
-	hclose(visited_ht);
-	//qclose(internal_q);
+
+	qclose(internal_q);
 
 	exit(EXIT_SUCCESS);
 	

@@ -1,14 +1,14 @@
 /* crawler.c --- 
  * 
  * 
- * Author: Ye Zhang, (add yoru names here)
+ * Author: Ye Zhang, (add your names here)
  * Created: Thu Oct 15 16:40:16 2020 (-0400)
  * Version: 1
  * 
  * Description: craws the web form a given seed to a given maxDepth and 
  * catches the content of the pages it finds, one page per file, 
  * in a given directory
- * code for step 2 only
+ * 
  * 
  */
 
@@ -21,35 +21,51 @@
 #include "queue.h"
 #include "hash.h"
 
-//int main(int argc,char *argv[]) {
-int main(){
 
-	//create new webpage
-	webpage_t *new_page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
+//Notes from Ye: I took what's probablt useufl from step 234 and pasted here. 
+//The main function currently doesn't include any page save at all, and I have never compiled this
 
-	if(! webpage_fetch(new_page)) {
-		exit(EXIT_FAILURE);
-	}
-    //char *html = webpage_getHTML(new_page);
-    //printf("Found html: %s\n", html);
-    //free(html); 
+int main(int argc,char *argv[]) {
 
-    //printing URL
-    int pos = 0;
-    char *result;
-    char *location;
-    char *key_word = "engs50";
- 
-    while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
-    	location = "external";
-    	if (strstr(result, key_word) != NULL) {
-    		location = "internal";
-    	}
-      	printf("Found %s url: %s\n", location, result);
-      	free(result);
+	//check arguments
+    if(argc != 4){
+        printf("usage: crawler <seedurl> <pagedir> <maxdepth>\n");
+        printf("wrong argument number\n");
+        exit(EXIT_FAILURE);
     }
 
-	webpage_delete(new_page);
+    //no function to check if input is valid yet
+
+    
+    char* seedurl = argv[1];
+    char* pagedir = argv[2];
+    int maxdepth = atoi(argv[3]);
+
+    //new seed url webpage
+    webpage_t *new_page = webpage_new(seedurl, maxdepth, NULL);
+
+    //new queue and hash
+    queue_t* internal_q = qopen();
+    hashtable_t* visited_url_ht = hopen(100);
+
+    // put seedurl in queue and hashtable
+    if (webpage_fetch(new_page)){
+        hput(visited_url_ht,(void*)seedurl,seedurl,strlen(seedurl));
+        qput(internal_q,(void*)new_page);
+
+    } else {
+        webpage_delete(new_page);
+        qclose(internal_q);
+        hclose(visited_url_ht);
+        exit(EXIT_FAILURE);
+    }
+
+
+    //loop through all pages til maxdepth and a only when url different from hash
+    //below is the code that doesn not consider maxdepth, but hopefully does the rest of job
+
+
+
 
 	exit(EXIT_SUCCESS);
 	

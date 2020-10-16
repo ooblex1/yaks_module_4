@@ -1,3 +1,0 @@
-./runtest.sh "qtest1"
-./runtest.sh "qtest2"
-./runtest.sh "qtest3"

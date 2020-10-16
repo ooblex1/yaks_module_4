@@ -21,12 +21,34 @@
 #include "hash.h"
 
 
+//desice whether the given url is internal
+bool isInternal((char* url char*seedurl){
+	if (strstr(url, seedurl) != NULL) {
+    	return true;
+    }
+    return false;
+}
+
+
+//int main(int argc,char *argv[]) {
 int main(){
+
+	/* check arguments
+	if(argc != 4){
+		printf("usage: crawler <seedurl> <pagedir> <maxdepth>\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	char* seedurl = argv[1];
+	char* pagedir = argv[2];
+	int maxdepth = atoi(argv[3]);
+	*/
 
 	//create new webpage
 	char *seedurl = "https://thayer.github.io/engs50/";
 	int maxdepth = 0;
 	webpage_t *new_page = webpage_new(seedurl, maxdepth, NULL);
+
 	
     queue_t* internal_q = qopen();
 	hashtable_t* visited_url_ht = hopen(100);
@@ -34,11 +56,11 @@ int main(){
 	// put seedurl in queue and hashtable
 	if (webpage_fetch(new_page)){
 		hput(visited_url_ht,(void*)seedurl,seedurl,strlen(seedurl));
-		qput(internal_q,(void*)new_page);
+		//qput(internal_q,(void*)new_page);
 		//saving to dir here?
 	} else {
 		webpage_delete(new_page);
-		qclose(internal_q);
+		//qclose(internal_q);
 		hclose(visited_url_ht);
 		exit(EXIT_FAILURE);
 	}

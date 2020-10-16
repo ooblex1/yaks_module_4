@@ -1,8 +1,10 @@
-CFLAGS=-Wall -pedantic -std=c11 -I~/engs50/tse/utils/*.h -L~/engs50/tse/lib -g
+CFLAGS=-Wall -pedantic -std=c11 -I../utils -L../lib -g
 LIBS=-lutils -lcurl
 
-crawler:
+all: 				crawler
+
+crawler:			crawler.c
 					gcc $(CFLAGS) crawler.c $(LIBS) -o $@
 
 clean:
-				rm -f crawler.c
+				    rm -f crawler

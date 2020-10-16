@@ -1,14 +1,15 @@
 /* crawler.c --- 
  * 
  * 
- * Author: Ye Zhang, (add yoru names here)
+ * Author: Ye Zhang, (add names here)
  * Created: Thu Oct 15 16:40:16 2020 (-0400)
  * Version: 1
  * 
  * Description: craws the web form a given seed to a given maxDepth and 
  * catches the content of the pages it finds, one page per file, 
  * in a given directory
- * code for step 2 only
+ * 
+ * code for step 3: THIS CODE IS NOT TESTED, COMPILES, BUT QUEUE IS NOT PRINTED
  * 
  */
 
@@ -20,6 +21,19 @@
 #include "webpage.h"
 #include "queue.h"
 #include "hash.h"
+
+//print the URL for a page
+void printURL(void *p) {
+	webpage_t *wpp = (webpage_t *)p;
+	char *url = webpage_getURL(wpp);
+	
+	if (url != NULL) {
+		printf("%s\n", url);
+	} else{
+		printf("url is empty");
+	}
+
+}
 
 //int main(int argc,char *argv[]) {
 int main(){
@@ -34,22 +48,34 @@ int main(){
     //printf("Found html: %s\n", html);
     //free(html); 
 
-    //printing URL
     int pos = 0;
     char *result;
     char *location;
-    char *key_word = "engs50";
+    webpage_t *current;
+
+    queue_t* internal_q = qopen();
  
     while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
     	location = "external";
-    	if (strstr(result, key_word) != NULL) {
+    	if (IsInternalURL(result)) {
     		location = "internal";
+    		current = webpage_new(result, 1, NULL);
+    		qput(internal_q,(void*)current);
     	}
       	printf("Found %s url: %s\n", location, result);
       	free(result);
+      	//webpage_delete(new_page);
     }
 
+    //printing
+    qapply(internal_q, printURL);
+
+
+	// free all the data structure
 	webpage_delete(new_page);
+
+
+	qclose(internal_q);
 
 	exit(EXIT_SUCCESS);
 	

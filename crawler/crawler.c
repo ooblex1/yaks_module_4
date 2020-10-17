@@ -66,7 +66,14 @@ int main(int argc,char *argv[]) {
     }
 
     //no function to check if input is valid yet
-
+		if (!NormalizeURL(argc[2]) || !isInternalURL(argc[2])) {                                           
+			printf("usage: <seedurl> should be normalised and internal\n");                                  
+			return EXIT_FAILURE;                                                                             
+		}                                                                                                  
+                                                                                                     
+		if (arc[4]<0) {                                                                                    
+			printf("usage: <maxdepth> should be >= 0");                                                      
+		}
     
     char* seedurl = argv[1];
     char* pagedir = argv[2];

@@ -1,7 +1,7 @@
 /* crawler.c --- 
  * 
  * 
- * Author: Ye Zhang, (add yoru names here)
+ * Author: Ye Zhang
  * Created: Thu Oct 15 16:40:16 2020 (-0400)
  * Version: 1
  * 

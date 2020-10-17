@@ -150,7 +150,7 @@ void *hsearch(hashtable_t *htp, bool (*searchfn)(void* elementp, const void* sea
 	uint32_t index = SuperFastHash(key,keylen,ht->size);
 
 	if(ht->array[index]==NULL){
-		printf("Element not found\n");
+		//printf("Element not found\n");
 		return NULL;
 	}
 	

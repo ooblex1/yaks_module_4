@@ -1,7 +1,7 @@
 /* crawler.c --- 
  * 
  * 
- * Author: Ye Zhang, Kevin Larkin, Aadhya Kocha
+ * Author: Ye Zhang
  * Created: Thu Oct 15 16:40:16 2020 (-0400)
  * Version: 2
  * 
@@ -33,6 +33,33 @@ void printURL(void *p) {
 
 }
 
+void printHash(void *p){
+	char* urlp = (char *)p;
+	if (urlp != NULL) {
+		printf("%s\n", urlp);
+	} 
+}
+
+// helper function used to delete queue content
+void deletePagesQ(void* qp){
+    queue_t* queue = (queue_t*)qp;
+    webpage_t *current_page;
+    while ( ( current_page = (webpage_t*)qget(queue) )!=NULL ){
+        webpage_delete(current_page);
+    }
+}
+
+
+//used in h search, whether url is in the hash table
+bool inHash(void* elp, const void* keyp){
+	if (elp == NULL){
+		return NULL;
+	}
+	char* el = (char *)elp;
+	char* key = (char *)keyp;
+	return strcmp(el,key)==0;
+}
+
 int main(){
 
 	//create new webpage
@@ -44,32 +71,35 @@ int main(){
 
     int pos = 0;
     char *result;
-    char *location;
-    webpage_t *current;
 
     queue_t* internal_q = qopen();
-    
+    hashtable_t* visited_ht = hopen(30);
+
+    webpage_t *current;
     while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
-    	location = "external";
-    	if (IsInternalURL(result)) {
-    		location = "internal";
+    	if(IsInternalURL(result) && (hsearch(visited_ht,inHash,result,strlen(result))==NULL)){
+    		hput(visited_ht,result,result,strlen(result));
     		current = webpage_new(result, 1, NULL);
-    		qput(internal_q,(void*)current);
+    		qput(internal_q,current);
+    	} else{
+    		free(result);
     	}
-      	printf("Found %s url: %s\n", location, result);
-      	free(result);
-      	//webpage_delete(new_page);
     }
 
     //printing
-    qapply(internal_q, printURL);
+    printf("printing queue\n");
+    qapply(internal_q,printURL);
+
+    printf("printing hash\n");
+    happly(visited_ht, printHash);
 
 
 	// free all the data structure
 	webpage_delete(new_page);
-
+	deletePagesQ(internal_q);
 
 	qclose(internal_q);
+	hclose(visited_ht);
 
 	exit(EXIT_SUCCESS);
 	

@@ -23,7 +23,38 @@
 
 
 //Notes from Ye: I took what's probablt useufl from step 234 and pasted here. 
-//The main function currently doesn't include any page save at all, and I have never compiled this
+//The main function currently doesn't include any page save and maxstep at all, and I have never compiled this
+
+//print url given pointer to a webpage, delete if not needed
+void printURL(void *p) {
+    webpage_t *wpp = (webpage_t *)p;
+    char *url = webpage_getURL(wpp);
+    
+    if (url != NULL) {
+        printf("%s\n", url);
+    } else{
+        printf("url is empty");
+    }
+
+}
+
+//print urls in the hash table, delete if not needed
+void printHash(void *p){
+    char* urlp = (char *)p;
+    if (urlp != NULL) {
+        printf("%s\n", urlp);
+    } 
+}
+
+// helper function used to delete queue content
+void deletePagesQ(void* qp){
+    queue_t* queue = (queue_t*)qp;
+    webpage_t *current_page;
+    while ( ( current_page = (webpage_t*)qget(queue) )!=NULL ){
+        webpage_delete(current_page);
+    }
+}
+
 
 int main(int argc,char *argv[]) {
 
@@ -46,27 +77,56 @@ int main(int argc,char *argv[]) {
 
     //new queue and hash
     queue_t* internal_q = qopen();
-    hashtable_t* visited_url_ht = hopen(100);
+    hashtable_t* visited_ht = hopen(100);
 
     // put seedurl in queue and hashtable
     if (webpage_fetch(new_page)){
-        hput(visited_url_ht,(void*)seedurl,seedurl,strlen(seedurl));
+        hput(visited_ht,(void*)seedurl,seedurl,strlen(seedurl));
         qput(internal_q,(void*)new_page);
 
     } else {
         webpage_delete(new_page);
         qclose(internal_q);
-        hclose(visited_url_ht);
+        hclose(visited_ht);
         exit(EXIT_FAILURE);
     }
 
 
-    //loop through all pages til maxdepth and a only when url different from hash
+    //loop through all pages til maxdepth and add to queue+hash only when url different from hash
     //below is the code that doesn not consider maxdepth, but hopefully does the rest of job
+    int pos = 0;
+    char *result;
+
+    queue_t* internal_q = qopen();
+    hashtable_t* visited_ht = hopen(30);
+
+    webpage_t *current;
+    while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
+        if(IsInternalURL(result) && (hsearch(visited_ht,inHash,result,strlen(result))==NULL)){
+            hput(visited_ht,result,result,strlen(result));
+            current = webpage_new(result, 1, NULL);
+            qput(internal_q,current);
+        } else{
+            free(result);
+        }
+    }
 
 
+    //printing
+    printf("printing queue\n");
+    qapply(internal_q,printURL);
+
+    printf("printing hash\n");
+    happly(visited_ht, printHash);
 
 
-	exit(EXIT_SUCCESS);
+    // free all the data structure
+    webpage_delete(new_page);
+    deletePagesQ(internal_q);
+    qclose(internal_q);
+    hclose(visited_ht);
+
+
+    exit(EXIT_SUCCESS);
 	
 }

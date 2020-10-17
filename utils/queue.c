@@ -93,7 +93,7 @@ void* qget(queue_t *qp) {
 	guide_t *q = (guide_t *)qp;
 	
 	if (q == NULL || q->front == NULL) {
-		printf("Queue is empty, cannot apply qget.\n");
+		//printf("Queue is empty, cannot apply qget.\n");
 		return NULL;
 	}
 	
@@ -136,7 +136,7 @@ void* qsearch(queue_t *qp, bool (*searchfn)(void *ep, const void *keyp),
 	pivot_t *p;
 	
 	if (q == NULL || q->front == NULL || q->back == NULL) {
-		printf("Queue is empty.\n");
+		//printf("Queue is empty.\n");
 		return NULL;
 	}
 	
@@ -146,7 +146,7 @@ void* qsearch(queue_t *qp, bool (*searchfn)(void *ep, const void *keyp),
 		}
 	}
 
-	printf("Element not found in queue.\n");
+	//printf("Element not found in queue.\n");
 	return NULL;
 }
 

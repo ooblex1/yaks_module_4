@@ -26,62 +26,21 @@
 
 //Saves the passed webpage in a file with the passed id as its name, in a directory with the passed name
 int32_t pagesave(webpage_t *pagep, int id, char *dirname) {
-	char outn[5], *purl, *html;
-	FILE *outf;
-	int nlen = strlen(dirname) + 16, stat, pdep, plen;
-	int32_t result = 1;
-	char mdir[nlen], cmod[nlen], remv[nlen], path[nlen];
-	
-	purl = webpage_getURL(pagep);
-	pdep = webpage_getDepth(pagep);
-	plen = webpage_getHTMLlen(pagep);
-	html = webpage_getHTML(pagep);
-	
-	sprintf(outn, "%d", id);
-	strcpy(mdir, "mkdir ");
-	strcat(mdir, dirname);
-	strcpy(path, "./");
-	strcat(path, dirname);
-	strcat(path, "/");
-	strcat(path, outn);
-	strcpy(cmod, "chmod 700 ");
-	strcat(cmod, path);
-	strcpy(remv, "rm ");
-	strcat(remv, path);
-	
-	if (access(dirname, F_OK) != 0) {
-		stat = (int)WEXITSTATUS(system(mdir));
-	} else {
-		stat = 0;
+	if (pagep == NULL || id == NULL || dirname == NULL) {
+		printf("pagep, id or dirname is null! \n");
+		return 1;
 	}
-	
-	if (stat == 0) {
-		if ((outf = fopen(path, "w")) != NULL) {
-			system(cmod);
-			
-			if (access(path, W_OK) == 0 && purl != NULL && html != NULL) {
-				fprintf(outf, "%s\n", purl);
-				fprintf(outf, "%d\n", pdep);
-				fprintf(outf, "%d\n", plen);
-				fprintf(outf, "%s", html);
-				
-	 			result = 0;
-			} else {
-				system(remv);
-			}
-			
-			if (fclose(outf) == EOF) {
-				printf("ERROR: Error closing file %s\n", path);
-				result = 1;
-			}
-		} else {
-			printf("ERROR: Failed to make file %s\n", path);
-		}
-	} else {
-		printf("ERROR: Failed to make directory \"%s\"\n", dirname);
+	char* path = (char*)malloc(sizeof(strlen(dirname))+20);
+	sprintf(path,"%s/%d",dirname,id); //printing into file
+	FILE *fp = fopen(path,"w");
+	if (fp == NULL) {
+		printf("usage: directory not found");
+		return 2;
 	}
-	
-	return result;
+	fprintf(fp,"%s\n%d\n%d\n%s\n",webpage_getURL(pagep),webpage_getDepth(pagep),webpage_getHTMLlen(pagep),webpage_getHTML(pagep));
+	fclose(fp);
+	free(path);
+	return 0;
 }
 
 void printURL(void *p) {
@@ -93,7 +52,6 @@ void printURL(void *p) {
 	} else{
 		printf("url is empty");
 	}
-
 }
 
 void printHash(void *p){
@@ -111,7 +69,6 @@ void deletePagesQ(void* qp){
         webpage_delete(current_page);
     }
 }
-
 
 //used in h search, whether url is in the hash table
 bool inHash(void* elp, const void* keyp){
@@ -137,94 +94,71 @@ int main(int argc,char *argv[]) {
     int maxdepth = atoi(argv[3]);
 		
     //no function to check if input is valid yet
-		if (!NormalizeURL(seedurl) || !isInternalURL(seedurl)) {
+		if (!NormalizeURL(seedurl) || !IsInternalURL(seedurl)) {
 			printf("usage: <seedurl> should be normalised and internal\n");
-			return EXIT_FAILURE;
+			exit(EXIT_FAILURE);
 		}
 		
 		if (maxdepth<0) {
 			printf("usage: <maxdepth> should be >= 0");
-      return EXIT_FAILURE;
+      		exit(EXIT_FAILURE);
 		}
 
-		struct stat stats;
-    stat(pagedir, &stats);
-		if (!S_ISDIR(stats.st_mode)) {
-			printf("usage: <pagedir> should exist\n");  
-      return EXIT_FAILURE;
+		char* path = (char*)malloc(sizeof(strlen(pagedir))+20);
+		strcpy(path,pagedir);
+		strcpy(path,".crawler");
+		FILE *fp = fopen(path,"w");
+		if (fp == NULL) {
+			printf("usage: directory not found");
+      		exit(EXIT_FAILURE);
 		}
-
-		File f = new File(pagedir);
-		if(!f.canWrite()) {
-			printf("Ensure page writable\n");
-			return EXIT_FAILURE;
-		}
-
-		int32_t savestat = 1;
-		char dirname[10];
-		strcpy(dirname, "pages");
+		fclose(fp);
+		free(path);
 				
     //new seed url webpage
     webpage_t *new_page = webpage_new(seedurl, maxdepth, NULL);
 
-    // put seedurl in queue and hashtable
-    if (webpage_fetch(new_page)){
-        hput(visited_ht,(void*)seedurl,seedurl,strlen(seedurl));
-        qput(internal_q,(void*)new_page);
-    } else {
-        webpage_delete(new_page);
-        qclose(internal_q);
-        hclose(visited_ht);
-        exit(EXIT_FAILURE);
-    }
-
     //loop through all pages til maxdepth and add to queue+hash only when url different from hash
-    //below is the code that doesn not consider maxdepth, but hopefully does the rest of job
     int pos = 0;
     char *result;
 
     queue_t* internal_q = qopen();
-    hashtable_t* visited_ht = hopen(30);
+    hashtable_t* visited_ht = hopen(100);
 
-    webpage_t *current;
+    hput(visited_ht,(void*)seedurl,seedurl,strlen(seedurl));
+    qput(internal_q,(void*)new_page);
+	//pop it get webpage <- current and read through it
+
+    webpage_t *current = (webpage_t*)qget(internal_q);
+	int32_t savestat = 1;
+	int32_t status = 1;
+	while (status <= maxdepth) {
 		while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
 			if(IsInternalURL(result) && (hsearch(visited_ht,inHash,result,strlen(result))==NULL)){
-				hput(visited_ht,result,result,strlen(result));
+				hput(visited_ht,(void*)result,result,strlen(result));
 				current = webpage_new(result, 1, NULL);
-				if (!webpage_fetch(current)) {
-					printf("ERROR: Some error fetching page at position %d\n", pos);
-					exit(EXIT_FAILURE);
-				}
-				savestat = pagesave(current, pos, dirname);
-				if (savestat == 1) {
-					printf("Failed to save web page at position %d\n", pos);
-				} else {
-					printf("Successfully saved web page at position %d\n", pos);
-				}
-				//free(webpage_getHTML(current));
+				savestat = pagesave(current,pos,pagedir);
 				qput(internal_q,current);
-			} else{
+			} else {
 				free(result);
 			}
 		}
-
-		//savestat = pagesave(current, 1, dirname);
-	//if (savestat == 1) {
-	//	exit(EXIT_FAILURE);
-	//}
-
+		new_page = (webpage_t*)qget(internal_q);
+		pos = 0;
+		status++;
+	}
+//write a void fnc for close hashtable (input pointer) and free that element the pointer is pointing to
     //printing
     printf("printing queue\n");
     qapply(internal_q,printURL);
-
     printf("printing hash\n");
     happly(visited_ht, printHash);
 
     // free all the data structure
-    webpage_delete(new_page);
-    deletePagesQ(internal_q);
-    qclose(internal_q);
-    hclose(visited_ht);
+	webpage_delete(new_page);
+	deletePagesQ(internal_q);
+	hclose(visited_ht);
+	qclose(internal_q);
 
     exit(EXIT_SUCCESS);
 	

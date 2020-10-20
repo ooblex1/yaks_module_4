@@ -1,0 +1,109 @@
+https://thayer.github.io/engs50/Labs/Lab3/array-allocate.html
+3
+6166
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Allocating an array with calloc</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/Lab3/array-allocate.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Allocating an array with calloc</h1>
+  </header>
+
+  <div class="post-content">
+    <p>We’ve seen the use of a one-dimensional array of pointers to strings, in <a href="/engs50/Examples/names3.c">names3.c</a>.
+In that case, the number of slots in the array was a constant.
+What if we don’t know that number at compile time?</p>
+
+<p>Here’s a snippet of code to hint at how to allocate an array of <code class="highlighter-rouge">num</code> slots:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// the number of elements in the array
+</span><span class="kt">int</span> <span class="n">num</span> <span class="o">=</span> <span class="p">...;</span> <span class="c1">// somehow obtained; below we assume num&gt;=2
+</span><span class="p">...</span>
+<span class="c1">// array of ints
+</span><span class="kt">int</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+
+<span class="c1">// array of pointers to int
+</span><span class="kt">int</span> <span class="o">**</span><span class="n">array</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">));</span>
+<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+<span class="o">*</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+
+<span class="c1">// for other types, the process is analogous
+</span><span class="k">struct</span> <span class="n">foo</span> <span class="o">**</span><span class="n">array</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="o">*</span><span class="p">);</span>
+<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="p">));</span>
+<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">foomember</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span> <span class="c1">// assuming foomember is an integer member of struct foo
+</span>
+<span class="c1">// or, sometimes, you don't know how to initialize the structure
+// because it provides a 'constructor' function. first step is the same:
+</span><span class="k">struct</span> <span class="n">foo</span> <span class="o">**</span><span class="n">array</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">foo</span><span class="o">*</span><span class="p">);</span>
+<span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">foo_new</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span> <span class="c1">// let the constructor allocate and initialize a new foo.
+</span></code></pre></div></div>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

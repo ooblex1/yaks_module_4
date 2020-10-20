@@ -1,0 +1,198 @@
+https://thayer.github.io/engs50/Notes/indexer/
+2
+8883
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>TSE Indexer</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/indexer/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">TSE Indexer</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<ul>
+  <li>to reflect on our design principles and the Crawler</li>
+  <li>to review the specs for the Indexer</li>
+  <li>to explore the design of data structures for a search-engine index</li>
+</ul>
+
+<h2 id="key-points-in-the-crawler-design">Key points in the Crawler design</h2>
+
+<p>What are some of the key ideas in the crawler design?</p>
+
+<p>First, we <strong><em>separate application-specific logic from general-purpose utility modules.</em></strong>  By leveraging general-purpose modules from Lab 3, coding the crawler-specfic logic is much cleaner and simpler than if it were woven in with the data-structure code.</p>
+
+<blockquote>
+  <p>If your crawler weaves the logic of web crawling into the details of any of your data structures, you’ve missed this opportunity - your code is likely more complicated, more buggy, harder to debug, harder to test, harder to maintain, and much harder to reuse and extend.</p>
+</blockquote>
+
+<p>Second, we note <strong><em>good data-structure design is key to successful projects.</em></strong></p>
+
+<p>The design of the crawler remains simple because we chose two data structures - a <em>bag</em> for the set of pages yet to crawl, and a <em>hashtable</em> for the set of URLs already seen - that support the overall control flow.</p>
+
+<p>On the other hand, when we get to the indexer and querier we may find that we need to adjust the code to provide slightly different functionality, or to factor out code that needs to be used by multiple components.
+It’s hard to have perfect foresight.</p>
+
+<p><a href="http://pragprog.com/the-pragmatic-programmer/extracts/tips">Pragmatic Programmer Tip</a>:</p>
+<blockquote>
+  <p><strong>There are no final decisions</strong>
+ No decision is cast in stone.
+Instead, consider each as being written in the sand at the beach, and plan for change.</p>
+</blockquote>
+
+<p>Not all of the design decisions we made at the beginning of crawler made it through the implementation and testing to the final code.
+Many times you’ll say “it sounded like a good idea (design) at the time.” The software development process is precisely that: a process.
+It is not a programmer on a one-way street, but more like a chef crafting a new dish.
+You have a plan that everyone agrees on, you begin to execute on that plan, and sometimes conditions change and unexpected interactions arise.
+You have to handle them and and still get to the goal.</p>
+
+<p>Finally, many of you have found that <strong><em>shell scripts can automate testing.</em></strong> It’s far easier to test your crawler by writing a bash script to drive various test cases, or to examine the output for correctness, than to manually run a variety of tests for each new version of the code.
+Even better, now’s the time to use your <code class="highlighter-rouge">regress.sh</code> script from <a href="/engs50/Labs/Lab2">Lab2</a>.</p>
+
+<blockquote>
+  <p><strong>“Use the Shell, Luke”</strong>.
+ Know and use your tools.</p>
+</blockquote>
+
+<h2 id="on-to-the-indexer">On to the Indexer!</h2>
+
+<p>The job of the <code class="highlighter-rouge">indexer</code> is to read the documents in the <code class="highlighter-rouge">pageDirectory</code> output by the <code class="highlighter-rouge">crawler</code>, build an inverted index mapping from words to documents, and write that index to a file.
+(Later, the <code class="highlighter-rouge">querier</code> will read the index and use it to answer queries.)</p>
+
+<p>Now is a good time to read Section 4 in <em><a href="/engs50/Reading/searchingtheweb.pdf">Searching the Web</a></em>, the paper about search engines.</p>
+
+<p>Today’s Terminal <a href="/engs50/Notes/indexer/script1.txt">script</a> shows some of my classroom demos; it lists the files and structure of a complete and clean TSE directory.
+Another Terminal <a href="/engs50/Notes/indexer/script2.txt">script</a> is a recreation of an <code class="highlighter-rouge">indexer</code> demo I ran in class; it shows how an <code class="highlighter-rouge">indextest.sh</code> might look.</p>
+
+<h3 id="indexer-requirements">Indexer requirements</h3>
+
+<p>See the <a href="/engs50/Labs/Lab5/REQUIREMENTS.html">Requirements spec</a>.</p>
+
+<h3 id="activity">Activity</h3>
+
+<p>In today’s <a href="activity.html">activity</a> your group will discuss ideas for the indexer design.</p>
+
+<!-- Hide the rest of this page until activity period is over.-->
+
+<h3 id="indexer-design">Indexer design</h3>
+
+<p>You’ll be writing out the Design Specs as part of Lab 5.
+To help you get started, in this lecture we sketch out the key data structure and some high-level pseudo code.</p>
+
+<h4 id="data-structure-inverted-index">Data structure: Inverted index</h4>
+
+<p>We need a data structure to represent the inverted index.
+It’s called an <em>inverted</em> index because it maps from words to documents, the opposite of a document (itself a sequence of words).</p>
+
+<p>A hashtable is a great start, because we can look up a word in a hashtable in O(1) time.
+But what is in the hashtable?
+For each word, we need a list of documents.
+(Not the documents themselves, silly, just the document IDs.) Actually, to enable us to later <em>rank</em> the matches, we’d also like to record how many times the given word appears in each document.</p>
+
+<p>Consider the data structures we have handy: hashtable, set, bag, and counters.
+(Oh, and tree.)  A <em>hashtable of countersets</em> is perfect to map from a word to a list of (docID, count) pairs.
+See the diagram below:</p>
+
+<p><img src="/engs50/Notes/indexer/data-model.png" alt="Indexer data flow" /></p>
+
+<p>We get to use three out of our four data structures: hashtable, set, and counters!</p>
+
+<p>When processing a given document (identified by docID), consider each word; look up that word in the hashtable and retrieve a pointer to a <code class="highlighter-rouge">counters_t*</code> item; then use <code class="highlighter-rouge">counters_add()</code> on that item, using the docID as a key.</p>
+
+<p>Your data-set iterators (like <code class="highlighter-rouge">hashtable_iterate()</code>) should be very useful for saving an index to a file, or for later loading an index from a file.</p>
+
+<h4 id="indexer-pseudocode">Indexer pseudocode</h4>
+
+<p>Very high-level description of the indexer and indextest.</p>
+
+<p><code class="highlighter-rouge">indexer</code>:</p>
+
+<ol>
+  <li>Process and validate command-line parameters</li>
+  <li>Initialize data structure <em>index</em></li>
+  <li>index_build(directory, <em>index</em>)</li>
+  <li>index_save(file, <em>index</em>);</li>
+  <li>clean up data structures</li>
+</ol>
+
+<p><code class="highlighter-rouge">indextest</code>:</p>
+
+<ol>
+  <li>Process and validate command-line parameters</li>
+  <li>Initialize data structure <em>index</em></li>
+  <li>index_load(file1, <em>index</em>)</li>
+  <li>index_save(file2, <em>index</em>)</li>
+  <li>clean up data structures</li>
+</ol>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

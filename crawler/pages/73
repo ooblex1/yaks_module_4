@@ -1,0 +1,297 @@
+https://thayer.github.io/engs50/Notes/design/makefiles.html
+3
+17825
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>More about Makefiles</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/design/makefiles.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">More about Makefiles</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<ul>
+  <li>Another look at Makefiles</li>
+  <li>Producing and using library archives</li>
+</ul>
+
+<p>For a deeper dive into <code class="highlighter-rouge">make</code>, recall the <a href="/makefiles/extra/">lecture extra</a>.</p>
+
+<!-- See today's terminal [script](/engs50/Notes/design/script.txt). -->
+
+<h2 id="makefiles">Makefiles</h2>
+
+<p>Recall the Makefile we wrote in <a href="/makefiles/">Lecture</a> – available as <a href="/engs50/Examples/names-Makefile">names-Makefile</a> in our examples directory.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Makefile for the "names" program that uses the "bag" module.
+#
+# David Kotz - April 2017
+</span>
+<span class="nv">CC</span><span class="o">=</span>gcc
+<span class="nv">CFLAGS</span><span class="o">=</span><span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>
+<span class="nv">PROG</span> <span class="o">=</span> names
+<span class="nv">OBJS</span> <span class="o">=</span> names.o bag.o readlinep.o
+<span class="nv">LIBS</span> <span class="o">=</span> <span class="nt">-lm</span>
+
+<span class="nl">.PHONY</span><span class="o">:</span> <span class="nf">all clean</span>
+
+<span class="nl">all</span><span class="o">:</span> <span class="nf">names</span>
+
+<span class="c"># executable depends on object files
+</span><span class="nl">$(PROG)</span><span class="o">:</span> <span class="nf">$(OBJS)</span>
+	<span class="nv">$(CC)</span> <span class="nv">$(CFLAGS)</span> <span class="nv">$(OBJS)</span> <span class="nv">$(LIBS)</span> <span class="nt">-o</span> <span class="nv">$(PROG)</span>
+
+<span class="c"># object files depend on include files
+</span><span class="nl">names.o</span><span class="o">:</span> <span class="nf">bag.h readlinep.h</span>
+<span class="nl">bag.o</span><span class="o">:</span> <span class="nf">bag.h</span>
+<span class="nl">readlinep.o</span><span class="o">:</span> <span class="nf">readlinep.h</span>
+
+<span class="nl">clean</span><span class="o">:</span>
+	rm <span class="nt">-f</span> <span class="nv">$(PROG)</span>
+	rm <span class="nt">-f</span> <span class="k">*</span>~ <span class="k">*</span>.o
+	rm <span class="nt">-rf</span> <span class="k">*</span>.dSYM
+</code></pre></div></div>
+
+<p>Let’s modify the Makefile to leverage our new <code class="highlighter-rouge">libcs50</code> library from the <a href="https://gitlab.cs.dartmouth.edu/CS50/tse">Lab4 starter kit</a>.</p>
+
+<p>I adapted the <code class="highlighter-rouge">names9.c</code> for use with a library-provided <em>bag</em>, resulting in file <code class="highlighter-rouge">names.c</code> one directory, and dropped in the <code class="highlighter-rouge">libcs50</code> directory as a peer.
+(This program is now available as <a href="/engs50/Examples/namesB.c">namesB.c</a>.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[cs50@flume ~/demo]$ tree lecture libcs50/
+lecture
+├── Makefile
+└── names.c
+libcs50/
+├── bag.c
+├── bag.h
+├── counters.c
+├── counters.h
+├── file.c
+├── file.h
+├── file.md
+├── hashtable.c
+├── hashtable.h
+├── jhash.c
+├── jhash.h
+├── Makefile
+├── memory.c
+├── memory.h
+├── memory.md
+├── README.md
+├── set.c
+├── set.h
+├── webpage.c
+├── webpage_fetch.c
+├── webpage.h
+├── webpage_internal.h
+└── webpage.md
+</code></pre></div></div>
+
+<p>The new Makefile for <em>names</em> follows.
+Notice several important features:</p>
+
+<ul>
+  <li>
+    <p>definition of macro <code class="highlighter-rouge">L</code> as a shorthand for the directory name (not the library name) where the library lives.
+Make allows us to substitute the value of single-letter macro names without using parens; thus, I can use <code class="highlighter-rouge">$L</code> to substitute this directory name.</p>
+  </li>
+  <li>
+    <p>addition of <code class="highlighter-rouge">-I$L</code> to the <code class="highlighter-rouge">CFLAGS</code>, which tells the compiler to look for <code class="highlighter-rouge">include</code> files in the directory <code class="highlighter-rouge">$L</code></p>
+  </li>
+  <li>
+    <p>the existing <code class="highlighter-rouge">LIBS</code> macro, meaning “libraries”, used to tell the linker to link with the <em>math library</em>; <code class="highlighter-rouge">-lm</code></p>
+  </li>
+  <li>
+    <p>the new <code class="highlighter-rouge">LLIBS</code> macro, by which I mean “local libraries”, used to tell the linker to link with the libcs50 library; I keep this separate from <code class="highlighter-rouge">LIBS</code> because I want to inform Make that the program depends on this library in <em>my</em> directories.</p>
+  </li>
+  <li>
+    <p>the default <code class="highlighter-rouge">all</code> rule, just to be clear</p>
+  </li>
+  <li>
+    <p>the updated <code class="highlighter-rouge">$(PROG)</code> general rule, which indicates dependence on <code class="highlighter-rouge">$(LLIBS)</code> and also provides them to the linker command (the next line).</p>
+  </li>
+  <li>
+    <p>the <code class="highlighter-rouge">names.o</code> rule, which uses <code class="highlighter-rouge">$L</code> to refer to the include files needed by this program.</p>
+  </li>
+  <li>
+    <p>the lack of any rule to build the library <code class="highlighter-rouge">libcs50.a</code>; it is not the job of this Makefile to build that library.</p>
+  </li>
+</ul>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Makefile for the "names" program that uses the "bag" module.
+#
+# David Kotz - April 2017
+</span>
+<span class="nv">L</span> <span class="o">=</span> ../libcs50
+
+<span class="nv">CC</span><span class="o">=</span>gcc
+<span class="nv">CFLAGS</span><span class="o">=</span><span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span> <span class="nt">-I</span><span class="nv">$L</span>
+<span class="nv">PROG</span> <span class="o">=</span> names
+<span class="nv">OBJS</span> <span class="o">=</span> names.o
+<span class="nv">LIBS</span> <span class="o">=</span> <span class="nt">-lm</span>
+<span class="nv">LLIBS</span> <span class="o">=</span> <span class="nv">$L</span>/libcs50.a
+
+<span class="nl">.PHONY</span><span class="o">:</span> <span class="nf">all clean</span>
+
+<span class="nl">all</span><span class="o">:</span> <span class="nf">$(PROG)</span>
+
+<span class="c"># executable depends on object files
+</span><span class="nl">$(PROG)</span><span class="o">:</span> <span class="nf">$(OBJS) $(LLIBS)</span>
+	<span class="nv">$(CC)</span> <span class="nv">$(CFLAGS)</span> <span class="nv">$(OBJS)</span> <span class="nv">$(LLIBS)</span> <span class="nv">$(LIBS)</span> <span class="nt">-o</span> <span class="nv">$(PROG)</span>
+
+<span class="c"># object files depend on include files
+</span><span class="nl">names.o</span><span class="o">:</span> <span class="nf">$L/bag.h $L/file.h</span>
+
+<span class="nl">clean</span><span class="o">:</span>
+	rm <span class="nt">-f</span> <span class="nv">$(PROG)</span>
+	rm <span class="nt">-f</span> <span class="k">*</span>~ <span class="k">*</span>.o
+	rm <span class="nt">-rf</span> <span class="k">*</span>.dSYM
+</code></pre></div></div>
+
+<h2 id="producing-library-archives">Producing library archives</h2>
+
+<p>What is a “library” file and how do you make one?</p>
+
+<p>A <em>library file</em> is simply an <em>archive of object files.</em>
+An <em>archive</em> is a single file that contains a collection of other files; you’ve probably downloaded <code class="highlighter-rouge">.zip</code>, <code class="highlighter-rouge">.tgz</code>, or <code class="highlighter-rouge">.dmg</code> files before; those are various forms of archive.
+Inside those files is some metadata describing the enclosed files, as well as the (often compressed) data of the original files.</p>
+
+<p>In Unix, there is a specific type of archive used for coalescing object <code class="highlighter-rouge">.o</code> files into a single <code class="highlighter-rouge">.a</code> file, for convenience.
+The linker <code class="highlighter-rouge">ld</code> knows how to read <code class="highlighter-rouge">.a</code> files.
+It links in any <code class="highlighter-rouge">.o</code> files that contain symbols that are as-yet unresolved when it reaches that point in its argument list of files; when it pulls in a <code class="highlighter-rouge">.o</code> file it pulls in that whole <code class="highlighter-rouge">.o</code> file.
+That file may, in turn, reference other symbols - if those are in another <code class="highlighter-rouge">.o</code> file in the same archive, the linker loads them too.
+Any symbols still unresolved after the current <code class="highlighter-rouge">.a</code> file is exhausted better be in another <code class="highlighter-rouge">.o</code> or <code class="highlighter-rouge">.a</code> file later in the argument list.
+<em>Thus, the order of arguments to the linker is important.</em></p>
+
+<p>Anyway, a peek inside <code class="highlighter-rouge">libcs50/Makefile</code> shows how to build an archive:</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># object files, and the target library
+</span><span class="nv">OBJS</span> <span class="o">=</span> bag.o counters.o file.o hashtable.o jhash.o memory.o <span class="se">\</span>
+       set.o webpage.o webpage_fetch.o
+<span class="nv">LIB</span> <span class="o">=</span> libcs50.a
+<span class="err">...</span>
+<span class="c"># Build the library by archiving object files
+</span><span class="nl">$(LIB)</span><span class="o">:</span> <span class="nf">$(OBJS)</span>
+        <span class="err">ar</span> <span class="err">cr</span> <span class="err">$(LIB)</span> <span class="err">$(OBJS)</span>
+
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">ar</code> command manipulates an archive <code class="highlighter-rouge">.a</code> file; specifically, <code class="highlighter-rouge">ar cr</code> creates the <code class="highlighter-rouge">.a</code> file (if needed) and replaces the enclosed <code class="highlighter-rouge">.o</code> files with those on its command line.
+Thus, <code class="highlighter-rouge">libcs50.a</code> holds all those <code class="highlighter-rouge">.o</code> files, which we can show with <code class="highlighter-rouge">ar t</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[cs50@flume ~/demo/libcs50]$ ar t libcs50.a
+bag.o
+counters.o
+file.o
+hashtable.o
+jhash.o
+memory.o
+set.o
+webpage.o
+webpage_fetch.o
+[cs50@flume ~/demo/libcs50]$
+</code></pre></div></div>
+
+<h2 id="building-it-all">Building it all</h2>
+
+<p>To build the whole program, we need to build the library and then the program.
+We could do so, from the directory above, with two calls to Make:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>cs50@flume ~/demo]<span class="nv">$ </span>make <span class="nt">-C</span> libcs50
+make: Entering directory <span class="s1">'/net/class/cs50/demo/libcs50'</span>
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> bag.o bag.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> counters.o counters.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> file.o file.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> hashtable.o hashtable.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> jhash.o jhash.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> memory.o memory.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> set.o set.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> webpage.o webpage.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>    <span class="nt">-c</span> <span class="nt">-o</span> webpage_fetch.o webpage_fetch.c
+ar cr libcs50.a bag.o counters.o file.o hashtable.o jhash.o memory.o set.o webpage.o webpage_fetch.o
+make: Leaving directory <span class="s1">'/net/class/cs50/demo/libcs50'</span>
+<span class="o">[</span>cs50@flume ~/demo]<span class="nv">$ </span>make <span class="nt">-C</span> lecture
+make: Entering directory <span class="s1">'/net/class/cs50/demo/lecture'</span>
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span> <span class="nt">-I</span>../libcs50   <span class="nt">-c</span> <span class="nt">-o</span> names.o names.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span> <span class="nt">-I</span>../libcs50 names.o  ../libcs50/libcs50.a <span class="nt">-lm</span> <span class="nt">-o</span> names
+make: Leaving directory <span class="s1">'/net/class/cs50/demo/lecture'</span>
+<span class="o">[</span>cs50@flume ~/demo]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>Notice that <em>all but one</em> of the <code class="highlighter-rouge">gcc</code> commands are executed by Make’s implicit rule for producing a <code class="highlighter-rouge">.o</code> file from a <code class="highlighter-rouge">.c</code> file; the final <code class="highlighter-rouge">gcc</code> command is actually running the linker and not the C compiler; its arguments include <code class="highlighter-rouge">names.o</code>, <code class="highlighter-rouge">libcs50.a</code> and the math library <code class="highlighter-rouge">-lm</code>.
+(In this final command most of the CFLAGS are irrelevant, including the <code class="highlighter-rouge">-I</code> directive - that’s only for include files - but we include $(CFLAGS) on the command line just for completeness.)</p>
+
+<p>Indeed, we could write a top-level Makefile that makes those calls to Make, as shown in the the <a href="https://gitlab.cs.dartmouth.edu/CS50/tse">Lab4 starter kit</a>.</p>
+
+<p>You may want to use similar techniques in building <code class="highlighter-rouge">common.a</code> in Lab4; just arrange your files in an appropriate directory structure and think carefully about the include path (specified with <code class="highlighter-rouge">-I</code>) and the way you list dependencies.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

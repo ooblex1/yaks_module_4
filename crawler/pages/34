@@ -1,0 +1,271 @@
+https://thayer.github.io/engs50/Notes/cohesion/
+2
+11260
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Cohesion and coupling</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/cohesion/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Cohesion and coupling</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<p>to discuss</p>
+
+<ul>
+  <li><em>routines</em> - types and names</li>
+  <li><em>cohesion</em> - and why we want strong cohesion</li>
+  <li><em>coupling</em> - and why we want weak coupling</li>
+</ul>
+
+<p>The concepts in today’s lecture come from chapter 5 of <em>Code Complete</em> by Steve McConnell. [Microsoft Press, 1993.]</p>
+
+<h2 id="routines">Routines</h2>
+
+<p>We often use the word <em>routine</em> as a general concept, to refer to  a <em>function</em> or a <em>procedure</em>.
+We typically use the word <em>procedure</em> to refer to a function with no return value.
+In other languages, routines might be called <em>subroutines</em> or <em>methods</em>.</p>
+
+<p>There are many reasons to break a program into <em>routines</em>:</p>
+
+<ul>
+  <li>Reduce complexity</li>
+  <li>Avoid duplicate code</li>
+  <li>Limit effects of changes (narrow scope of change to a routine)</li>
+  <li>Hide sequences (a form of information hiding)</li>
+  <li>Improve performance (optimize in one place)</li>
+  <li>Centralize control (e.g., controlling devices, files, data structures… more information hiding)</li>
+  <li>Hide data structures (ADTs)</li>
+  <li>Hide global data (access routines centralize control of globals)</li>
+  <li>Hide pointer operations (makes it easier to read)</li>
+  <li>Promote code reuse (easier to reuse code in a routine)</li>
+  <li>Plan for a family of programs (isolate parts that may change in a few routines)</li>
+  <li>Improve readability (named routine is more readable; avoid deep nesting, etc)</li>
+  <li>Improve portability (isolate nonportable features)</li>
+  <li>Isolate complex operations (algorithm, protocols, etc)</li>
+  <li>Isolate use of nonstandard language functions (isolate nonportable features)</li>
+  <li>Simplify complicated boolean tests (inlines are great here)</li>
+</ul>
+
+<p>Routines should be well named:</p>
+
+<ul>
+  <li>a <em>procedure</em> name should be a strong verb followed by object (like <em>printCalendar()</em>).</li>
+  <li>a <em>function</em> name should describe its return value (like <em>numberOfNonzeros()</em>).</li>
+  <li>a <em>boolean function</em> name should sound like a question (like <em>IsInternalURL()</em>).</li>
+</ul>
+
+<p>A good routine name</p>
+
+<ul>
+  <li>avoids meaningless verbs (like <em>do</em>, <em>perform</em>)</li>
+  <li>describes everything the routine does</li>
+  <li>is as long as necessary</li>
+  <li>follows naming conventions!</li>
+</ul>
+
+<p>A routine’s body should not be <strong>too long</strong>.
+If you find your routine approaching 200 lines, you should break it up - or have a darn good reason you should not break it up.</p>
+
+<h3 id="cohesion">Cohesion</h3>
+
+<blockquote>
+  <p>“Cohesion refers to how closely [or strongly] the operations in a routine are related.” – McConnell</p>
+</blockquote>
+
+<p>One study found that 50% of high-cohesion routines were fault-free, while 18% of low-cohesion routines were fault-free.</p>
+
+<p>Good routines have <strong><em>strong cohesion</em></strong>.</p>
+
+<p><strong>Acceptable cohesion</strong>:</p>
+
+<ul>
+  <li><strong>Functional cohesion</strong> (strongest and best kind): performs one and only one operation.</li>
+  <li><strong>Sequential cohesion</strong>: contains operations that must be performed in a sequential order.</li>
+  <li><strong>Communicational cohesion</strong>: contains operations that make use of the same data, but are not otherwise related.</li>
+  <li><strong>Temporal cohesion</strong>: contains operations that do several things, because all are done at the same time.</li>
+</ul>
+
+<p><strong>Unacceptable cohesion</strong>:</p>
+
+<ul>
+  <li><strong>Procedural cohesion</strong>: contains operations that must be performed in a sequential order, but don’t share the same data.</li>
+  <li><strong>Logical cohesion</strong>: several things in a routine, only one executed, depending on a flag parameter.
+(Exception - it can be  ok if using a <code class="highlighter-rouge">switch</code> statement to call one of many other (cohesive) functions.)</li>
+  <li><strong>Coincidental cohesion</strong>: no apparent reason for things to be together in a routine!</li>
+</ul>
+
+<h3 id="coupling">Coupling</h3>
+
+<blockquote>
+  <p>“The degree of coupling refers to the strength of a connection between two routines. Coupling is a complement to cohesion.” – McConnell</p>
+</blockquote>
+
+<p>Good code has <strong><em>loose coupling</em></strong> among routines.</p>
+
+<blockquote>
+  <p>“Make the coupling of routines as simple as possible.”</p>
+</blockquote>
+
+<p><strong>Criteria</strong> for evaluating coupling between routines:</p>
+
+<ul>
+  <li><strong>size</strong> (number of connections)</li>
+  <li><strong>intimacy</strong> (directness of connection; better to use direct parameter passing than indirect global variables)</li>
+  <li><strong>visibility</strong> (best if connection is obvious)</li>
+  <li><strong>flexibility</strong> (how easily you can change connections)</li>
+</ul>
+
+<p>Go for minimal interconnectedness, and make what interconnections you have simple and obvious.
+“If a program were a piece of wood, you’d try to split it with the grain.”</p>
+
+<h4 id="kinds-of-coupling">Kinds of coupling</h4>
+
+<ul>
+  <li><strong>Simple-data coupling</strong>: the only data passed from one routine to another is through parameters, and is nonstructured.</li>
+  <li><strong>Data-structure coupling</strong>: one routine passes a data structure to another; best if it really needs the whole data structure.</li>
+  <li><strong>Control coupling</strong>: one routine tells the other what to do.</li>
+  <li><strong>Global-data coupling</strong>: two routines use the same global data; may be tolerable if read-only.</li>
+  <li><strong>Pathological coupling</strong>: one routine uses the data inside the other routine. (Somewhat hard to do in C and C++.)</li>
+</ul>
+
+<blockquote>
+  <p>“Try to create routines that depend little on other routines.”</p>
+</blockquote>
+
+<h4 id="defensive-programming">Defensive programming</h4>
+
+<p>Best practices:</p>
+
+<ul>
+  <li>Use assert() or other tests to insert sanity checks into your code.</li>
+  <li>Be particularly suspicious of parameters and input values that come from another module (including the user!), i.e., data that crosses a module interface.</li>
+</ul>
+
+<h4 id="routine-parameters">Routine parameters</h4>
+
+<p>Best practices:</p>
+
+<ul>
+  <li>Put parameters in input-modify-output order; put “status” or “error” variables last.</li>
+  <li>Use all the parameters.</li>
+  <li>Use a consistent order among similar routines.</li>
+  <li>Document assumptions about parameters: <em>Preconditions</em> are assumptions about the parameters (or internal data-structure state) before the routine executes, and <em>postconditions</em> are assumptions about the parameters, data structure, and return value after the routine exits.</li>
+</ul>
+
+<h4 id="macros">Macros</h4>
+
+<p>You can write <em>macros</em> in C with #define - these are handled by the C preprocessor.
+Macros can be handy, on occasion, but it is usually better to use <code class="highlighter-rouge">inline</code> functions or <code class="highlighter-rouge">const</code> variables for these purposes.
+You get better syntax, type checking, and better debugger support.</p>
+
+<h2 id="modules">Modules</h2>
+
+<p>A <em>module</em> is a collection of related routines that, together, encapsulate a data structure, subsystem, or task.
+In object-oriented programming, a module is typically called a <em>class</em>.</p>
+
+<p>Why modules?</p>
+
+<ul>
+  <li>It is sometimes necessary to have strong coupling between routines.</li>
+  <li>In that case you should group those routines into a <em>module</em>; the module has strong cohesion.</li>
+  <li>Strive for strong intra-module cohesion and loose inter-module coupling.</li>
+  <li>A well-designed module (in C) or class (in C++ or Java) encourages <em>information hiding</em>.</li>
+</ul>
+
+<h4 id="information-hiding">Information hiding</h4>
+
+<p>A good module serves to “hide” implementation details inside the module, providing a clean abstraction and clear interface to other modules.</p>
+
+<p>Each module programmer makes many implementation decisions, which should largely be unknown to code outside the module.
+Thus the module is</p>
+
+<ul>
+  <li>less coupled to others,</li>
+  <li>more maintainable,</li>
+  <li>more self-testable,</li>
+  <li>more replacable,</li>
+  <li>more debuggable (can insert debugging code easily),</li>
+  <li>more reliable (can insert checks in a few places),</li>
+  <li>more understandable (hides complexity).</li>
+</ul>
+
+<h4 id="collaborative-work">Collaborative work</h4>
+
+<p>Modules (classes) are an excellent mechanism for dividing work among programmers, because module boundaries and interfaces are clear, and there is otherwise little coupling.
+Thus, the module programmer has wide flexibility and authority on the implementation details of her module, as long as she sticks to the agreed-upon interface for the module and clearly documents the interface.</p>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a> your group will look at some <a href="/engs50/Notes/cohesion/example.c">example</a> code and comment on its naming, cohesion, and coupling.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

@@ -1,0 +1,147 @@
+https://thayer.github.io/engs50/Notes/git/tags.html
+3
+6902
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Extra - Using Git Tags</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/git/tags.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Extra - Using Git Tags</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="students">Students:</h3>
+
+<p>As a member of some project, you can add tags to your repository.
+Tags are nice for adding annotations to your history.
+Tags don’t change your commit history but they can be used as a sort of bookmark.
+I often use tags for highlighting new versions or milestones in my projects.
+When you submit <code class="highlighter-rouge">lab4</code> (the crawler), that is a sort of milestone that says “OK, I’ve finished the Crawler.
+I’m ready to move on to the Indexer!” A couple of weeks (or months or years) from now you might be interested in revisiting the state of your code when you had finished the crawler, for example.
+Rather than trying to remember some long git hash for your last commit of <code class="highlighter-rouge">lab4</code>, and to help us (and your future selves), we want you to add a <code class="highlighter-rouge">tag</code> to the project to indicate when the work is complete for <code class="highlighter-rouge">lab4</code>.
+By default <code class="highlighter-rouge">git tag TAGNAME</code> will add a tag to the current <code class="highlighter-rouge">HEAD</code> of your working tree.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git tag lab4submit
+</code></pre></div></div>
+
+<p>You can also add a <code class="highlighter-rouge">tag</code> to a previous commit – this might be useful if you charged ahead and made a few commits but want to go back and mark some commit in the past with a <code class="highlighter-rouge">tag</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git tag oops d4fd63a
+</code></pre></div></div>
+
+<p>If you accidentally add a <code class="highlighter-rouge">tag</code> or add a <code class="highlighter-rouge">tag</code> to the wrong commit, you can always delete a <code class="highlighter-rouge">tag</code> by using the -d flag and identifying the <code class="highlighter-rouge">tag</code> by the name you gave it.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git tag -d oops
+</code></pre></div></div>
+
+<p><em>This method only affects the local repository.</em>
+If you have already pushed a tag to the remote, you need to run a specific command to remove that tag from the remote.
+To remove tag <code class="highlighter-rouge">oops</code>,</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git push --delete origin oops
+</code></pre></div></div>
+
+<p>Once you’ve pushed your tags to the remote, you should go to GitLab and verify that you can see any tags that you’ve created and pushed.
+On the main page of your project (in GitLab) you should see buttons for <em>commits</em>, <em>branches</em>, and <em>tags</em>.
+Click on <em>tags</em>.
+Alternatively, you can click on the <em>commits</em> icon in the left navbar and it will take you to a screen where you can browse things like commits, branches, and tags.</p>
+
+<p>An alternative way to delete an already-pushed tag is to visit the <em>tags</em> page in Gitlab and click on the trash-can icon to delete that tag.
+That change affects the remote repo, but not your local repo, so you need to <code class="highlighter-rouge">git pull</code> in your Terminal to update your local repo from the remote.</p>
+
+<p>To learn more about <code class="highlighter-rouge">git tag</code>, run <code class="highlighter-rouge">git help tag</code>.
+It actually has a nice section about how to delete already-pushed tags or to ‘move’ a tag to a newer commit.</p>
+
+<h3 id="graders">Graders:</h3>
+
+<p>For the sake of transparency, let’s take a quick look at how we, as graders, will use the tags you create to checkout appropriate versions of your code.
+For example, we will do something akin to the following when we go to grade your lab4 submission (the crawler):</p>
+
+<p>Clone the student repo.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git clone URL
+</code></pre></div></div>
+
+<p>List any/all existing tags—we should hopefully see the appropriate submission tag (e.g., lab4submit)</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git tag -l
+</code></pre></div></div>
+
+<p>Now we can checkout the code that was in the repo at the time of that tag (i.e., the state of the code at the time of submitting lab4).</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git checkout tags/lab4submit
+</code></pre></div></div>
+
+<p>We can create a new branch from the code base at the point of the specified tag; the grader can now freely edit the code and there are no concerns about messing up anything on the master branch.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git checkout tags/lab4submit -b lab4testing
+</code></pre></div></div>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

@@ -1,0 +1,784 @@
+https://thayer.github.io/engs50/Notes/git/
+2
+51900
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>The git source code management system</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/git/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">The git source code management system</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<ul>
+  <li>explore version control</li>
+  <li>learn to use <strong>Git</strong></li>
+  <li>learn to use <strong>Gitlab</strong></li>
+</ul>
+
+<!-- Today's Terminal [script](/engs50/Notes/git/script.txt) shows some of the live examples - though only the Terminal side of the demo. -->
+
+<h2 id="version-control-systems">Version control systems</h2>
+
+<p>Up to this point in your software engineering career, many of your programming projects will have been small, individual endeavors.
+As software matures it often grows in complexity, as bugs are fixed, features are added, and the number of contributing developers increases.
+Managing this complexity becomes a mammoth task that crushes many fledgling startups.
+A similar fate is in store for projects that lack reliable version control (<em>we received a bug report on version 1.1 … what WAS in version 1.1?</em>).
+The ability to easily back out changes, or to accept only a subset of a group of changes, especially in a team environment, is also essential and it encourages experimentation.
+Another software development practice that version control aids is <em>code reviews:</em> proposed changes may be examined before being incorporated into the master source code repository.
+Tools like Git give programmers the ability to branch away from the main development track to try out a new feature or debug a quick fix, and later merge in the changes later or abandon them entirely.
+Finally, Version Control Systems also serve as a form of backup … just in case.</p>
+
+<p>Some solo programmers might feel they don’t need version control.
+This is shortsighted … as the sole person doing the work, with no support or backup team, these folks need version control even more!</p>
+
+<p>Version control systems (VCS) come in many flavors.
+You may have heard of some of the open-source incarnations, such as <a href="http://cvs.nongnu.org">Concurrent Versions System</a> (<code class="highlighter-rouge">cvs</code>), <a href="http://mercurial.selenic.com">Mercurial</a> (<code class="highlighter-rouge">hg</code>), or <a href="http://subversion.apache.org">Subversion</a>  (<code class="highlighter-rouge">svn</code>).
+While these systems differ in implementation, they all provide methods to manage resources, such as tracking, reverting, and merging changes.
+<strong>Git</strong> is an open-source distributed version control system (DVCS).</p>
+
+<p>Any text-based files can be managed by a VCS.
+Source code, configuration files, SQL scripts, test scripts, documentation written using LaTeX or Markdown, XML, web pages, and more assets are easily maintained in a VCS.
+(I store this website in Gitlab using git!) Files that are not human-readable (like Word or PDF files, or images) can be problematic, but can sometimes be stored in a VCS, without the benefit of some of the text-based tools.</p>
+
+<p>There are two primary groups of Version Control Systems:</p>
+
+<ul>
+  <li>centralized, such as Subversion and ClearCase, which generally require a network connection for operation, and</li>
+  <li>decentralized, such as Mercurial and git, which do not require a network connection.
+In fact, these systems <em>always</em> have a complete local version of the repository.</li>
+</ul>
+
+<p>We will be using <a href="http://git-scm.com">Git</a>.
+The Git project was originally developed by (and <a href="http://en.wikipedia.org/wiki/Git_(slang)">somewhat named after</a>) Linus Torvalds to manage the Linux kernel (15 million LOC).
+Many open-source and commercial projects currently rely on Git, including the Linux kernel, Google’s Android OS, and the MacOSX package manager Homebrew.</p>
+
+<p>We will be using Git on the CS systems machines using a CS-managed Git server called Gitlab.
+We will not cover installation and setup of Git on your personal laptop or the use of third-party Git-related applications such as <a href="https://github.com">Github</a>, <a href="https://bitbucket.org">BitBucket</a>, or <a href="https://www.sourcetreeapp.com/">SourceTree</a>.
+The enterprising student may explore these (and other advanced) topics on their own.
+You will find several free books and interactive tutorials on the <a href="/engs50/Resources">resources page</a>.
+I particularly recommend <em>Pro Git</em> by Scott Chacon and Ben Straub (available free <a href="http://git-scm.com/book/en/v2">online</a>).</p>
+
+<h2 id="why-version-control">Why Version Control</h2>
+
+<p>Imagine the following scenario: You have a term paper to write.
+So, being a diligent student, you start early by writing a rough draft, saved as <code class="highlighter-rouge">paper.doc</code>.
+As you explore your topic, you think, “I like what I have, but what if I added…” You do not want to lose your current progress, so you copy your paper to a new file <code class="highlighter-rouge">paper2.doc</code> and begin exploring new ideas.
+As ideas come and go, you continue to replicate and rename your files.
+You reach the final week of classes with 5 different documents, each containing something you want to keep.
+You create a new file, named <code class="highlighter-rouge">final.doc</code>, that will contain all of the disparate pieces of thought linked together.
+Before the deadline, you realize you want to rework the intro, and thus create <code class="highlighter-rouge">final2.doc</code>.
+In the end, you submit something that looks like <code class="highlighter-rouge">final2-good-final.doc</code>.
+Now imagine you had to write this paper together with others?</p>
+
+<p>Version control systems are designed to alleviate the hardships of managing resources, like source code files or term papers.
+When using a VCS, files are tracked so that any changes can be recorded.
+In the simple example above, you ended up with multiple files, some likely sharing large portions of the same text.
+In some VCS, storage space is saved by only saving changes, or “deltas”, to files.
+These changes can be logged and timestamped, so that going back to the version last Tuesday before 9 PM would be very easy.
+In the previous example, you wanted to combine parts of multiple files.
+This concept is known as <em>merging</em>.
+In addition to tracking files, and allowing easy reversion, VCS often have capabilities for easy merging.</p>
+
+<p>When collaborating with multiple users, VCS come in two varieties: client-server and distributed.
+In the client-server model, the central repository is shared amongst all users.
+Here terms like “checkout” and “lock” come into play.
+When a user wants to edit a file, they checkout that file.
+This locks the file from being edited by any other users at the same time.
+Some VCS allow “stealing” of files for urgent or priority changes, but in general if a user has control, then no one else can have that file until they check it in.
+A common complaint with client-server systems is their being slow, because every operation must communicate with the central server and it is not generally safe for multiple users to modify the same files.
+CVS and SVN are examples of the client-server model.
+In distributed version-control systems, each user maintains their own local repository and changes are shared periodically amongst all other users.
+Merge conflicts can arise when multiple users modify the same file, and many VCS provide advanced features to simplify this process.
+Mercurial and Git are among the more popular distributed version control systems, both known for their speed and flexibility.</p>
+
+<h2 id="git-configuration">Git Configuration</h2>
+
+<p>Before you can start using Git, you will need to configure your development environment.
+Git stores environment settings in three different files:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">/etc/gitconfig</code> — contains settings for all users on a system</li>
+  <li><code class="highlighter-rouge">~/.gitconfig</code> — contains user-specific settings</li>
+  <li><code class="highlighter-rouge">project/.git/config</code> — contains project-specific settings</li>
+</ul>
+
+<p>Project settings override user settings, which in turn override system settings.
+There are many configuration options, but at a minimum you need to tell Git who you are (your name) and how to contact you (your email).
+Although you can edit those files with an editor, Git provides a command <code class="highlighter-rouge">config</code> for setting common parameters, as shown below.
+Here I also set my preferred editor to <code class="highlighter-rouge">emacs</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~]<span class="nv">$ </span>git config <span class="nt">--global</span> user.name <span class="s2">"David Kotz"</span>
+<span class="o">[</span>kotz@flume ~]<span class="nv">$ </span>git config <span class="nt">--global</span> user.email <span class="s2">"kotz@cs.dartmouth.edu"</span>
+<span class="o">[</span>kotz@flume ~]<span class="nv">$ </span>git config <span class="nt">--global</span> core.editor emacs <span class="c"># or vim, BBedit, ...</span>
+<span class="o">[</span>kotz@flume ~]<span class="nv">$ </span>git config <span class="nt">--global</span> color.ui <span class="nb">true</span>  <span class="c">#if you like colors</span>
+<span class="o">[</span>kotz@flume ~]<span class="nv">$ </span>git config <span class="nt">--global</span> push.default simple
+</code></pre></div></div>
+
+<p>You can view your current settings with the <code class="highlighter-rouge">--list</code> option.
+The last two options may be useful if you want certain commands to color their output.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~]<span class="nv">$ </span>git config <span class="nt">--list</span>
+user.name<span class="o">=</span>David Kotz
+user.email<span class="o">=</span>kotz@cs.dartmouth.edu
+core.editor<span class="o">=</span>emacs
+color.ui<span class="o">=</span><span class="nb">true
+</span>push.default<span class="o">=</span>simple
+<span class="o">[</span>kotz@flume ~]<span class="nv">$ </span>
+</code></pre></div></div>
+<p>As you can see, the <code class="highlighter-rouge">--global</code> option writes your user specific settings to <code class="highlighter-rouge">~/.gitconfig</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~]<span class="nv">$ </span><span class="nb">cat</span> ~/.gitconfig
+<span class="o">[</span>user]
+	name <span class="o">=</span> David Kotz
+	email <span class="o">=</span> kotz@cs.dartmouth.edu
+<span class="o">[</span>core]
+	editor <span class="o">=</span> emacs
+<span class="o">[</span>color]
+	ui <span class="o">=</span> <span class="nb">true</span>
+<span class="o">[</span>kotz@flume ~]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>If you want to dig further, a self-documenting <code class="highlighter-rouge">.gitconfig</code> starting point may be found <a href="https://gist.github.com/rab/4067067">here</a>.</p>
+
+<h2 id="gitting-help">Gitting Help</h2>
+
+<p>You can always get help:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~]<span class="nv">$ </span> man git
+<span class="o">[</span>kotz@flume ~]<span class="nv">$ </span> git <span class="nb">help</span> &lt;<span class="nb">command</span><span class="o">&gt;</span>
+</code></pre></div></div>
+
+<p>and there are many tutorials and references on the Internet; see our <a href="/engs50/Resources#git">Git Resources</a> page.</p>
+
+<h2 id="creating-a-repository">Creating a repository</h2>
+
+<p>A <em>repository</em>, called <em>repo</em> for short, is a data structure that contains all of the information needed to manage a project.
+This often includes the project files and resources themselves, as well as any meta-data used by the VCS to manage them.
+Let’s see how to create a Git repo.</p>
+
+<h3 id="create-a-new-empty-local-repository">create a new (empty) local repository</h3>
+
+<p>You always need a local repository to work with git.
+When starting a new project from the beginning, you can either create a repo and fill it up or create a repo in an existing directory that already contains files.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~]<span class="nv">$ </span><span class="nb">cd </span>cs50/labs
+<span class="o">[</span>kotz@flume ~/cs50/labs]<span class="nv">$ </span>mkdir labx
+<span class="o">[</span>kotz@flume ~/cs50/labs]<span class="nv">$ </span><span class="nb">cd </span>labx
+<span class="o">[</span>kotz@flume ~/cs50/labs/labx]<span class="nv">$ </span>git init
+Initialized empty Git repository <span class="k">in</span> /net/nusers/kotz/cs50/labs/labx/.git/
+<span class="o">[</span>kotz@flume ~/cs50/labs/labx]<span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-a</span>
+./  ../  .git/
+<span class="o">[</span>kotz@flume ~/cs50/labs/labx]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>Notice that Git created a hidden directory <code class="highlighter-rouge">.git</code> - you should not mess with any of its contents.</p>
+
+<h3 id="create-a-repository-in-an-existing-development-directory">create a repository in an existing development directory</h3>
+
+<p>Suppose you want to begin using a VCS after a project already had a lot of files in an existing directory tree.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~]<span class="nv">$ </span><span class="nb">cd </span>cs50/labs/tree6
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git init   <span class="c"># initialize the repo</span>
+Initialized empty Git repository <span class="k">in</span> /net/nusers/kotz/cs50/labs/tree6/.git/
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git add <span class="nb">.</span>  <span class="c"># recursively add the current directory</span>
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status <span class="c"># print current status</span>
+On branch master
+
+Initial commit
+
+Changes to be committed:
+  <span class="o">(</span>use <span class="s2">"git rm --cached &lt;file&gt;..."</span> to unstage<span class="o">)</span>
+
+	new file:   Makefile
+	new file:   tree.c
+	new file:   tree.h
+	new file:   treetest.c
+
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"Initial commit of tree code"</span>
+<span class="o">[</span>master <span class="o">(</span>root-commit<span class="o">)</span> ef37181] Initial commit of tree code
+ 4 files changed, 285 insertions<span class="o">(</span>+<span class="o">)</span>
+ create mode 100644 Makefile
+ create mode 100644 tree.c
+ create mode 100644 tree.h
+ create mode 100644 treetest.c
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status  <span class="c"># print current status</span>
+On branch master
+nothing to commit, working directory clean
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git <span class="nt">--no-pager</span> log <span class="nt">--oneline</span> <span class="nt">--decorate</span> <span class="nt">--graph</span> <span class="nt">--all</span>  <span class="c"># pretty-print the history of commits</span>
+<span class="k">*</span> ef37181 <span class="o">(</span>HEAD -&gt; master<span class="o">)</span> Initial commit of tree code
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<h2 id="files-in-git">Files in git</h2>
+
+<p>git treats all content as being in one of three states:</p>
+
+<ul>
+  <li>ignored - git never even looks at it</li>
+  <li>untracked - git reports its presence but doesn’t track its changes</li>
+  <li>tracked - git tracks everything that happens to it</li>
+</ul>
+
+<p>Content that is being tracked is always in one of four states:</p>
+
+<ul>
+  <li>changed</li>
+  <li>staged</li>
+  <li>committed</li>
+  <li>pushed</li>
+</ul>
+
+<h2 id="workflow">Workflow</h2>
+
+<p><img src="/engs50/Notes/git/git-states.png" alt="git states" /></p>
+
+<p>Git workflow figure from Jason Taylor <em>Git Complete</em>.</p>
+
+<p>The general workflow in git is to (1) add/modify files, (2) stage the changes,  (3) commit those staged changes to the repo, and sometimes (4) push the changes to a remote repository.
+Files that are newly created are referred to as “untracked” until they are added to Git.
+When files added to git are then changed they must be staged before they are committed.
+You add/modify files in your “working directory.” Git stages files by recording changes in a special file, often called the “index” or “staging area.” When you commit your changes the staged changes become permanently recorded in the Git repository.</p>
+
+<h3 id="checking-git-status">Checking git status</h3>
+
+<p>At times during your development, it may be helpful to determine the status (untracked, modified, staged, committed, etc.) of the files within your directory and repo.
+As shown below, nothing has been added, staged, or committed to the repository.
+You can check the current state with the <code class="highlighter-rouge">git status</code> command.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status
+On branch master
+nothing to commit, working directory clean
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>
+</code></pre></div></div>
+<p>The status command will often give you hints; Watch for them - these tips can be very helpful.</p>
+
+<h3 id="staging-files">Staging Files</h3>
+
+<p>To move files from your working directory to the staging area, you use the <code class="highlighter-rouge">git add</code> command.
+Below we create a <code class="highlighter-rouge">README.md</code> (as in all good projects) and stage it.
+The <code class="highlighter-rouge">git status</code> command shows the file has been staged, according to the “Changes to be committed” heading.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span><span class="nb">cat</span> <span class="o">&gt;</span> README.md
+<span class="c"># Binary-tree demo code</span>
+<span class="c">## Version 6: use function pointers and add tree_print()</span>
+ <span class="k">*</span> demonstrates use of <span class="k">function </span>pointers
+ <span class="k">*</span> adds tree_print<span class="o">()</span> <span class="k">function</span>
+ <span class="k">*</span> hints at how one might support tree_delete<span class="o">()</span> <span class="k">function</span>
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span><span class="nb">ls
+</span>Makefile  README.md  tree.c  tree.h  treetest.c
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status
+On branch master
+Untracked files:
+  <span class="o">(</span>use <span class="s2">"git add &lt;file&gt;..."</span> to include <span class="k">in </span>what will be committed<span class="o">)</span>
+
+	README.md
+
+nothing added to commit but untracked files present <span class="o">(</span>use <span class="s2">"git add"</span> to track<span class="o">)</span>
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git add README.md
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status
+On branch master
+Changes to be committed:
+  <span class="o">(</span>use <span class="s2">"git reset HEAD &lt;file&gt;..."</span> to unstage<span class="o">)</span>
+
+	new file:   README.md
+
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"Added README"</span>
+<span class="o">[</span>master 330e2e1] Added README
+ 1 file changed, 5 insertions<span class="o">(</span>+<span class="o">)</span>
+ create mode 100644 README.md
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="err">$</span>
+</code></pre></div></div>
+
+<p><strong>Hint:</strong> If you have several new, modified, or deleted files to <code class="highlighter-rouge">git add</code>, you can use <code class="highlighter-rouge">git add --all</code></p>
+
+<blockquote>
+  <p>Notice that I used <code class="highlighter-rouge">README.md</code> rather than <code class="highlighter-rouge">README</code> above.
+A file with extension <code class="highlighter-rouge">.md</code> is assumed to be a text file in Markdown syntax, which provides very simple (and readable) markup for headings, lists, italics, bold, and code snippets.
+(This course website is written in Markdown.) Many VCS web portals (like our Gitlab and the popular Github) allow you to browse the files in your repository and render Markdown format, making such files much nicer to look at.
+Markdown is easy to learn; see <a href="/engs50/Resources/#markdown">Markdown resources</a>.</p>
+</blockquote>
+
+<h3 id="recovering-files">Recovering files</h3>
+
+<p>Git has some characteristics of a backup system.
+If you accidentally remove a file, you can recover it from the most recent commit by asking Git to check it out from that commit:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>rm program.c  <span class="c"># oops! I meant to rm program.c~</span>
+<span class="nv">$ </span>git checkout program.c  <span class="c"># as of the last commit</span>
+</code></pre></div></div>
+
+<p>For more about how you can use this feature to “roll back” to an earlier version of the code, see below.</p>
+
+<h3 id="ignoring-files">Ignoring Files</h3>
+
+<p>Git works well with normal files, but executables and binary-format files (like images) can present a challenge.
+In addition, there are often certain files that you do not want to be under version control, like temporary files from your favorite editor.
+(As a general rule, you should not commit any <em>derived files</em> to a repo; for example, any files built by a Makefile; the source files live in the repo, and the derived files are rebuilt by anyone using the repo.) You should configure Git to ignore those files, so they will not be added to your repo.</p>
+
+<p>Some filename extensions are so commonly used to refer to derived files that we configure Git to ignore them in all of our repos.
+<strong>Do it now!</strong>  Create a file <code class="highlighter-rouge">~/.gitignore_global</code> with the following contents:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Object files and libraries
+*.o
+*.a
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# debugger symbols
+*.dSYM
+
+# MacOS X
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V*
+.Trashes
+</code></pre></div></div>
+
+<p>To make it easy, just copy our file:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cp ~cs50/.gitignore ~
+</code></pre></div></div>
+
+<p>Github maintains a list of common <a href="https://github.com/github/gitignore">ignore files</a>, if you want to get more ideas.</p>
+
+<p>Then you should tell Git about project-specific files that should be ignored.
+At a minimum, this list would include the ‘executable binary’ file that is produced as a result of compiling your program.
+As a rule of thumb, you should tell Git to ignore anything that <code class="highlighter-rouge">make</code> builds and <code class="highlighter-rouge">make clean</code> deletes.</p>
+
+<p>We’ll create a <code class="highlighter-rouge">.gitignore</code> file for our new repo.
+Below, I focus on the need to ignore the executable file <code class="highlighter-rouge">treetest</code> that builds with <code class="highlighter-rouge">make</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span><span class="nb">echo </span>treetest <span class="o">&gt;</span> .gitignore
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status
+On branch master
+Untracked files:
+  <span class="o">(</span>use <span class="s2">"git add &lt;file&gt;..."</span> to include <span class="k">in </span>what will be committed<span class="o">)</span>
+
+	.gitignore
+
+nothing added to commit but untracked files present <span class="o">(</span>use <span class="s2">"git add"</span> to track<span class="o">)</span>
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git add .gitignore
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"ignore executable"</span>
+<span class="o">[</span>master 9f01c00] ignore executable
+ 1 file changed, 1 insertion<span class="o">(</span>+<span class="o">)</span>
+ create mode 100644 .gitignore
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>I didn’t have to add and commit the <code class="highlighter-rouge">.gitignore</code> file for Git to make use of it; I just didn’t want to forget to put it into the repo.
+That way, anyone else who later uses this project repo will also get the same <code class="highlighter-rouge">.gitignore</code> file.</p>
+
+<p>Now let’s make the executable and see whether Git ignores it.
+[Not shown: I first made a small change to <code class="highlighter-rouge">treetest.c</code>].</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>make
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>   <span class="nt">-c</span> <span class="nt">-o</span> treetest.o treetest.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>   <span class="nt">-c</span> <span class="nt">-o</span> tree.o tree.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span> treetest.o tree.o  <span class="nt">-o</span> treetest
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span><span class="nb">ls
+</span>Makefile  README.md  tree.c  tree.h  tree.o  treetest<span class="k">*</span>	treetest.c  treetest.o
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status
+On branch master
+Changes not staged <span class="k">for </span>commit:
+  <span class="o">(</span>use <span class="s2">"git add &lt;file&gt;..."</span> to update what will be committed<span class="o">)</span>
+  <span class="o">(</span>use <span class="s2">"git checkout -- &lt;file&gt;..."</span> to discard changes <span class="k">in </span>working directory<span class="o">)</span>
+
+	modified:   treetest.c
+
+Untracked files:
+  <span class="o">(</span>use <span class="s2">"git add &lt;file&gt;..."</span> to include <span class="k">in </span>what will be committed<span class="o">)</span>
+
+	tree.o
+	treetest.o
+
+no changes added to commit <span class="o">(</span>use <span class="s2">"git add"</span> and/or <span class="s2">"git commit -a"</span><span class="o">)</span>
+</code></pre></div></div>
+
+<p>Uh-oh.
+It looks like Git properly ignored <code class="highlighter-rouge">treetest</code> but did not ignore the <code class="highlighter-rouge">.o</code> files.
+I must have skipped over the <a href="#ignoring-files">directions above</a>.
+We can explicitly ignore them in this directory:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span><span class="nb">cat</span> <span class="o">&gt;&gt;</span> .gitignore
+<span class="k">*</span>.o
+^D
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status
+On branch master
+Changes not staged <span class="k">for </span>commit:
+  <span class="o">(</span>use <span class="s2">"git add &lt;file&gt;..."</span> to update what will be committed<span class="o">)</span>
+  <span class="o">(</span>use <span class="s2">"git checkout -- &lt;file&gt;..."</span> to discard changes <span class="k">in </span>working directory<span class="o">)</span>
+
+	modified:   .gitignore
+	modified:   treetest.c
+
+no changes added to commit <span class="o">(</span>use <span class="s2">"git add"</span> and/or <span class="s2">"git commit -a"</span><span class="o">)</span>
+</code></pre></div></div>
+
+<p>It worked; now I will commit all modified files with <code class="highlighter-rouge">commit -a</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git commit <span class="nt">-a</span> <span class="nt">-m</span> <span class="s2">"tweak the test script"</span>
+<span class="o">[</span>master 153995e] tweak the <span class="nb">test </span>script
+ 2 files changed, 5 insertions<span class="o">(</span>+<span class="o">)</span>, 4 deletions<span class="o">(</span>-<span class="o">)</span>
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<h3 id="removing-files">Removing Files</h3>
+
+<p>The <code class="highlighter-rouge">git rm</code> command is the command to remove files from the repository.
+For example, you may rearrange your code and some source files are no longer needed; instead of <code class="highlighter-rouge">rm</code> you use <code class="highlighter-rouge">git rm</code> to remove the file from both your working directory and from the repository.
+(Prior versions of the file(s) are still in the repository, so you can always get the file back.)</p>
+
+<blockquote>
+  <p>As git-status output sometimes suggests, if you want to remove something from the staging area you use the <code class="highlighter-rouge">git rm --cached &lt;file&gt;</code> command to remove staged files.
+This command doesn’t remove the file from your directory, or from the repository - it’s just the opposite of <code class="highlighter-rouge">git add</code>.</p>
+</blockquote>
+
+<h3 id="committing-changes">Committing Changes</h3>
+
+<p>When you have made some changes and staged them, then you are ready to commit those changes (roughly) permanently.
+Each commit should be accompanied by a message explaining what changes have been made.
+The command to accomplish this is <code class="highlighter-rouge">git commit -m "&lt;message&gt;"</code>, as we saw in the examples above.</p>
+
+<p>If you run the <code class="highlighter-rouge">git commit</code> command without the <code class="highlighter-rouge">-m</code> option, you will be taken to your default editor to enter a commit message.
+If you commit too early and want to add something to the same commit, then you can use the <code class="highlighter-rouge">git commit --amend</code> command.</p>
+
+<p>The commit message is very important, both to you and to your colleagues working with you.
+Your commits should be fairly granular with a straightforward <em>present tense</em> commit message.
+We encourage the use of <em>present tense</em> since you should think of the commit message as describing what the commit does.
+The commit messages become even more important as you work with a team, particularly when the members are geographically distributed.</p>
+
+<h3 id="best-practice-make-atomic-changes">Best Practice: Make atomic changes</h3>
+
+<p>Git doesn’t care why files are changing.
+It just tracks the content as it changes, allowing you to choose how to use it the best way.
+Git actions are atomic, and your changes should be also.
+If you move a function from one file to another that could be two commits: one to delete it in file A, and another to add it to file B.
+This is ok with Git, but between the two commits the function is missing entirely, so a later build based on that the code base at the first commit would not work.
+Instead, commit the new version of both files in the same commit.</p>
+
+<p>Similarly, if you need to make several unrelated changes to various files in your project, run <code class="highlighter-rouge">git commit</code> separately for each set of changes, each commit with a different message, so that the message is relevant to the files being committed.</p>
+
+<h3 id="git-diff">git diff</h3>
+
+<p>How can you tell what has changed since your last commit?
+With <code class="highlighter-rouge">git diff</code>!
+Below, I edit the <code class="highlighter-rouge">README.md</code> file and then use <code class="highlighter-rouge">git diff</code> to show me what changed.
+Just like <code class="highlighter-rouge">diff</code>, it prints a little bit of context and then uses lines beginning with <code class="highlighter-rouge">+</code> and <code class="highlighter-rouge">-</code> to show added and removed lines, respectively.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>emacs README.md
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git diff
+diff <span class="nt">--git</span> a/README.md b/README.md
+index ce0057f..4eb3662 100644
+<span class="nt">---</span> a/README.md
++++ b/README.md
+@@ <span class="nt">-4</span>,5 +4,8 @@
+  <span class="k">*</span> adds tree_print<span class="o">()</span> <span class="k">function</span>
+  <span class="k">*</span> hints at how one might support tree_delete<span class="o">()</span> <span class="k">function</span>
+
+-# This code is now on Gitlab!
++I removed a line and added this paragraph instead.
++It will demonstrate how <span class="sb">`</span>diff<span class="sb">`</span> can show you the differences
++between the current version and the last-committed version.
++
+</code></pre></div></div>
+
+<p>You can also add a specific filename, like <code class="highlighter-rouge">git diff Makefile</code> if you just want to see differences for one file rather than all files in the repo.</p>
+
+<blockquote>
+  <p>If you find the output of <code class="highlighter-rouge">git diff</code> mangled, it could be because of an incompatibility between <code class="highlighter-rouge">git</code>, the ‘pager’ program (<code class="highlighter-rouge">less</code>), the <code class="highlighter-rouge">ssh</code> connection, and your terminal program.</p>
+</blockquote>
+
+<blockquote>
+  <p>I worked around it by telling git to use cat as my pager:</p>
+</blockquote>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>	git config <span class="nt">--global</span> core.pager <span class="nb">cat</span>
+</code></pre></div></div>
+
+<h3 id="git-tags">git tags</h3>
+
+<p><em>Beginners can ignore this feature for now.</em></p>
+
+<p>Once you’ve achieved some milestone, such as a deliverable or release, you need some mechanism for marking it in your get log history.
+If you print the Git log you’ll see the hash codes on the left side that are used to identify each commit.
+Clearly, it would be unreasonable to expect everyone to remember that 5ba4851 was release 1.0.
+for this purpose you use the <code class="highlighter-rouge">git tag</code> command.
+This places a marker in the get log with the name you specify.
+You should try to use this command only when you’re in a committed, up-to-date state.
+Later, when you need to reconstruct a particular release, you can use this tag in the <code class="highlighter-rouge">git checkout</code> command.</p>
+
+<blockquote>
+  <p>The example above is for a “lightweight” tag - one that is just a name and a location in the Git history.
+Another is the “annotated tag” just like the commit command does.
+These are generally used to note major releases since the annotation can include the release name, release notes, and other information related to the release.</p>
+</blockquote>
+
+<p>For a nice overview of how to use this feature, please see the <a href="tags.html">“Git Tag Extra”</a> that we’ve added.</p>
+
+<h3 id="git-stashes">git stashes</h3>
+
+<p><em>Beginners can ignore this feature for now.</em></p>
+
+<p>It’s a common occurrence to be happily working on the next release of the code when a high-priority critical situation comes up with an important customer.
+The boss wants you to stop what you’re doing and fix the problem.
+You’re anxious to fix it, but what about all the work you have in your working directory?
+Where should you save it so that you can do a <code class="highlighter-rouge">git checkout</code> of the code that corresponds to the release the customer is running?
+The answer is to do a <code class="highlighter-rouge">git stash</code>, which will save everything that isn’t committed, and reset the directory to the most recent committed version.</p>
+
+<p>Once the high priority work is completed, you can restore what you had with <code class="highlighter-rouge">git stash apply</code> and your previous work will reappear.
+Once you’re finished with a stash, you should delete it using <code class="highlighter-rouge">git stash drop</code> which will delete the last stash.
+You may have multiple stashes saved (see them using the <code class="highlighter-rouge">git stash list</code> command), but <strong>do not</strong> use the stash for version control or backup!</p>
+
+<h3 id="rolling-back-to-a-previous-commit">Rolling back to a previous commit</h3>
+
+<p><em>Beginners should ignore this feature for now.</em></p>
+
+<p><em>Thanks to Travis Peters for this tip.</em></p>
+
+<p>To “roll back” your repository to a specified state (i.e., a particular commit) you’ll need to use the <code class="highlighter-rouge">git reset</code> command.</p>
+
+<p><strong>WARNING:</strong> Please exercise caution when running these commands as this is not something you can undo later if you don’t follow these instructions!
+This tutorial assumes you are currently on the <code class="highlighter-rouge">master</code> branch.</p>
+
+<p>First, we want to ensure that we can come back to this state of our repository at a later point should we need to do so.
+A commit and its predecessors are always accessible so long as we have a pointer to the most recent commit in that “branch”.
+So, we first create a branch that points to the most recent commit in our current branch (ideally you are on the “master” branch right now):</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git branch myoldhead
+</code></pre></div></div>
+
+<p>Next, we use the <code class="highlighter-rouge">git reset</code> command which allows you to <em>reset</em> your current <code class="highlighter-rouge">HEAD</code> to some specified state.
+According to the man page (<code class="highlighter-rouge">git help reset</code>), the <code class="highlighter-rouge">--hard</code> flag does the following:</p>
+<blockquote>
+  <p>Resets the index and working tree.
+Any changes to tracked files in the working tree since <commit> are discarded.</commit></p>
+</blockquote>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git reset --hard &lt;tag/branch/commit hash-id&gt;
+</code></pre></div></div>
+<p>Running this command effectively sets your <code class="highlighter-rouge">HEAD</code> back to the tag/branch/commit that you specify and completely clears out your working directory and index (i.e., staging area).</p>
+
+<p>Finally, if you wish to commit this state of your local repository so that your remote repository is synchronized (i.e., the remote repository also points back to the commit that you just reset your local repository back to), you need to <code class="highlighter-rouge">git push</code> with the <code class="highlighter-rouge">-f</code> flag which will forcefully overwrite your remote repository (without the <code class="highlighter-rouge">-f</code> flag, git will complain about your current branch being “behind”; this is expected in our case).</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git push -f
+</code></pre></div></div>
+
+<p><strong>A Couple of Notes:</strong></p>
+
+<ul>
+  <li>If you decide that the <code class="highlighter-rouge">myoldhead</code> branch is no longer needed and you really don’t want to keep the changes, you can delete the branch (<code class="highlighter-rouge">git branch -D</code>) and all of the commits that go with it by running the following command:</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch -D myoldhead
+</code></pre></div></div>
+
+<ul>
+  <li>When referencing commits, such as in the <code class="highlighter-rouge">git reset</code> command above, you don’t have to copy/paste (or write out!) the whole commit.
+Large (cryptographic) hashes are used by git for data integrity purposes (the details of which beyond the scope of these notes).
+What we are concerned with, however, is <em>uniqueness</em> of these commits.
+While not guaranteed, it is extremely unlikely that the (SHA-1) hashes that are generated for different commits will be the same.
+Thus, when referring to commits, we need only tell Git enough of the commit hash that it can be confident that you have uniquely identified a specific commit.
+<strong><em>In practice, you’ll see people only use the first 7-10 characters of a git hash to uniquely identify some tag/branch/commit</em></strong>.</li>
+</ul>
+
+<h2 id="other-handy-git-features">Other handy git features</h2>
+
+<p>Git has many, many more features than we have detailed here.
+We have only scratched the surface with the commands necessary to work collaboratively on your class project.
+The interested student is encouraged to explore the provided resources.
+Keywords/commands to investigate: <em>show</em>, <em>diff</em>, <em>branch</em>, and <em>rebase</em>.
+For example, here’s a git <em>branch/merge</em> example, from the folks who brought you <a href="http://gitgraphjs.com/"><em>gitgraph.js</em></a>: <a href="/engs50/Notes/git/gitgraph-sample.pdf">PDF</a>.</p>
+
+<h2 id="cs-gitlab">CS Gitlab Server</h2>
+
+<p>The CS GitLab server is hosted at: <a href="https://gitlab.cs.dartmouth.edu/"><code class="highlighter-rouge">https://gitlab.cs.dartmouth.edu/</code></a>.
+We’re using GitLab (instead of public servers elsewhere on the Internet) because it allows you to maintain your own private repositories and because it provides cool tools.
+For example, GitLab includes a graphical, web-based way of exploring your repositories as shown below.</p>
+
+<p>You must register for a userid and then create a repository for Lab4 using the instructions that follow.</p>
+
+<p>To get started with GitLab, follow these steps:</p>
+
+<ol>
+  <li>Use a browser to go to <a href="https://gitlab.cs.dartmouth.edu/"><code class="highlighter-rouge">https://gitlab.cs.dartmouth.edu/</code></a></li>
+  <li>If you don’t already have a GitLab userid, <strong><em>create one that is identical to your CS login name</em></strong>.</li>
+  <li>
+    <p>When the GitLab userid is created, go back and login.
+Here is the opening screen when a new user logs in<br />
+<img src="gitlab-newuser.png" alt="" />
+and here’s what my opening screen looks like. <br />
+<img src="gitlab-veteran.png" alt="" /></p>
+  </li>
+  <li>
+    <p>All of our repositories are in a Gitlab Group.  Click on the Groups tab near the top.</p>
+  </li>
+  <li>
+    <p>Click on our group <em>CS50-S18</em> to expand it.
+<img src="gitlabgroup2.jpeg" alt="" /></p>
+  </li>
+  <li>
+    <p>Click on the <em>TSE</em> subgroup to open it.
+<img src="gitlabgroup3.jpeg" alt="" /></p>
+  </li>
+  <li>
+    <p>Click on the green “New Project” button.
+<img src="gitlabgroup4.jpeg" alt="" /></p>
+  </li>
+  <li>
+    <p>Fill out the form by giving the project a name (required) and description (optional).
+<strong>Ensure the project is marked Private.</strong> <img src="gitlabgroup5.jpeg" alt="" /></p>
+  </li>
+  <li>
+    <p>Now the project has been successfully created and appears like this: <img src="gitlabgroup6.jpeg" alt="" /></p>
+  </li>
+  <li>
+    <p>Click on the <code class="highlighter-rouge">SSH</code> pop-up to change it to <code class="highlighter-rouge">HTTPS</code>.</p>
+  </li>
+  <li>
+    <p>Scroll down to see the command-line instructions for using this project: <img src="gitlab4.png" alt="" /></p>
+  </li>
+  <li>Let’s assume you had already created a local git repository using the lecture notes above. Look at the instructions under <em>Existing Git repository.</em>
+Copy the <code class="highlighter-rouge">git remote add origin</code> command you see there.</li>
+  <li>Go to your Terminal window, and <code class="highlighter-rouge">cd</code> to the directory where you had earlier set up a local repository.
+Paste the <code class="highlighter-rouge">git remote add origin</code> command.
+This command ties your local repository to the new ‘remote’ you created on Gitlab, giving this relationship the name ‘origin’.</li>
+  <li>Then copy and paste the command <code class="highlighter-rouge">git push -u origin master</code>.
+This pushes your local repository’s ‘master’ branch to the remote known as ‘origin’.</li>
+  <li>Enter your Gitlab username and password.</li>
+  <li>Back in the Gitlab browser window, let’s explore the files now there.
+Click on the little ‘home’ icon on the left side, then on the little ‘files’ icon.
+You should see the files of your new project.
+Notice, below, that it renders the <code class="highlighter-rouge">README.md</code> file nicely.
+<img src="gitlab5.png" alt="" /></li>
+</ol>
+
+<p>Suppose the first thing you want to do is update the README.md file.
+So you edit it, <code class="highlighter-rouge">git add</code>, and <code class="highlighter-rouge">git commit</code> it.
+Now a git status shows you’re ready to push to the remote.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span><span class="nb">cat</span> <span class="o">&gt;&gt;</span> README.md
+
+<span class="c"># This code is now on Gitlab!</span>
+
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status
+On branch master
+Your branch is up-to-date with <span class="s1">'origin/master'</span><span class="nb">.</span>
+Changes not staged <span class="k">for </span>commit:
+  <span class="o">(</span>use <span class="s2">"git add &lt;file&gt;..."</span> to update what will be committed<span class="o">)</span>
+  <span class="o">(</span>use <span class="s2">"git checkout -- &lt;file&gt;..."</span> to discard changes <span class="k">in </span>working directory<span class="o">)</span>
+
+	modified:   README.md
+
+no changes added to commit <span class="o">(</span>use <span class="s2">"git add"</span> and/or <span class="s2">"git commit -a"</span><span class="o">)</span>
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git add README.md
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"updated README"</span>
+<span class="o">[</span>master c19159a] updated README
+ 1 file changed, 3 insertions<span class="o">(</span>+<span class="o">)</span>
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git push
+Counting objects: 3, <span class="k">done</span><span class="nb">.</span>
+Delta compression using up to 8 threads.
+Compressing objects: 100% <span class="o">(</span>3/3<span class="o">)</span>, <span class="k">done</span><span class="nb">.</span>
+Writing objects: 100% <span class="o">(</span>3/3<span class="o">)</span>, 322 bytes | 0 bytes/s, <span class="k">done</span><span class="nb">.</span>
+Total 3 <span class="o">(</span>delta 2<span class="o">)</span>, reused 0 <span class="o">(</span>delta 0<span class="o">)</span>
+To https://dfkotz@gitlab.cs.dartmouth.edu/dfkotz/binary-tree.git
+   45993ff..c19159a  master -&gt; master
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>git status
+On branch master
+Your branch is up-to-date with <span class="s1">'origin/master'</span><span class="nb">.</span>
+nothing to commit, working directory clean
+<span class="o">[</span>kotz@flume ~/cs50/labs/tree6]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>Jump back to the browser and hit ‘refresh’ to see the new <code class="highlighter-rouge">README</code>.
+Cool!
+<img src="gitlab6.png" alt="" /></p>
+
+<h2 id="why-is-git-always-asking-for-my-password">Why is Git always asking for my password?</h2>
+
+<p>Because it must authenticate you to Gitlab.
+If you use the HTTPS-style URLs, you need to enter your Gitlab password.
+If you use the SSH-style URLs, you need to enter the passphrase you gave SSH when you generated the keypair.
+We now recommend that you use SSH-style URLs.
+The former method is a little tricky but worth the effort to set up.
+Read about <a href="/engs50/Resources/gitlab-ssh.html">how to set up Gitlab for SSH</a>.</p>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a>, each group sets up a shared repo on Gitlab.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

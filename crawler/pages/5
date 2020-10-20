@@ -1,0 +1,235 @@
+https://thayer.github.io/engs50/Resources/
+1
+16588
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Resources</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Resources/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Resources</h1>
+  </header>
+
+  <div class="post-content">
+    <h2 id="textbooks-and-resources">Textbooks and Resources</h2>
+
+<p><strong>There is no required textbook for this course</strong>.
+However, we do highly recommend <em>C: A Reference Manual</em> by Harbison and Steele.
+I have found it to be invaluable and always near my desk.
+There is a copy <a href="http://libcat.dartmouth.edu/search/r?SEARCH=cosc+050">on reserve</a> at Baker Library.
+There may be copies available in local bookstores, or you can order it from <a href="http://www.amazon.com/Reference-Manual-Samuel-P-Harbison/dp/013089592X/">Amazon</a> or <a href="http://www.barnesandnoble.com/w/c-samuel-p-harbison/1002260874?ean=9780130895929">Barnes &amp; Noble</a>.
+Look for the most recent (fifth) edition.</p>
+
+<p>When we need a more traditional C text, we refer to <em><a href="http://publications.gbdirect.co.uk/c_book">The C Book</a></em>, second edition, by Mike Banahan, Declan Brady and Mark Doran, originally published by Addison Wesley in 1991.
+This book is available online <a href="http://publications.gbdirect.co.uk/c_book">here</a>.</p>
+
+<p>The UNIX operating system and the C programming language have both been around for quite some time.
+UNIX was originally developed in the late 1960’s in assembly language and was mostly reimplemented in the new C programming language by the early 1970’s.
+The first book on C, Kernighan and Ritchie’s <em><a href="http://www.amazon.com/Programming-Language-2nd-Brian-Kernighan/dp/0131103628/ref=sr_1_1?ie=UTF8&amp;qid=1321068335&amp;sr=8-1">C Programming Language</a>,</em> is still in print, and is owned by most UNIX geeks – not because it’s such a great reference, but, well, just because.
+There are a large number of number of books on UNIX and all of its variants, including Linux (see below).</p>
+
+<p>UNIX systems contain lots of documentation in the form of what are called   <code class="highlighter-rouge">man pages</code>, which is short for “manual pages”.
+Thus, a hardcopy book on UNIX may not be really necessary – I didn’t own a UNIX book until many years after I began using UNIX.</p>
+
+<p>Documentation for many of the tools we will be using will either be found in   <code class="highlighter-rouge">man pages</code> or will be supplied as URL’s on this page.
+Of course, you’re welcome to employ your favorite search engine, but beware that there are subtle variations in UNIX tools across its many flavors and distributions.
+For CS50, the <code class="highlighter-rouge">man pages</code> on CS department servers are the definitive reference.</p>
+
+<p>Other resources, papers, and references will appear on in this page as they are identified.
+If you find others that you like, please let me know and we’ll share them with everyone.</p>
+
+<h3 id="general">General</h3>
+
+<p><a href="https://wiki.cs.dartmouth.edu/faq/doku.php/users_faq:first">CS Department User’s FAQ</a>; you’ll need to log in using your CS UNIX username and password.</p>
+
+<h3 id="bash">Bash</h3>
+
+<p>Here are some good links to bash scripting information.</p>
+
+<ul>
+  <li><a href="http://www.panix.com/~elflord/unix/bash-tute.html">Short bash tutorial</a></li>
+  <li><a href="http://www.gnu.org/software/bash/">GNU bash manual</a></li>
+  <li><a href="http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html">BASH Programming - Introduction HOW-TO</a></li>
+  <li><a href="http://tldp.org/LDP/abs/html/">Advanced bash scripting guide</a></li>
+  <li><em><a href="http://www.amazon.com/Bash-Pocket-Reference-Power-Admins/dp/1491941596">Bash Pocket Reference: Help for Power Users and Sys Admins</a>,</em> 2nd Edition, by Arnold Robbins; a short and useful book for less than ten bucks.</li>
+  <li><a href="http://explainshell.com">explainshell</a>, a <em>very cool</em> website that lets you type a bash command and get feedback on what it’s supposed to do.  (It’s drawing on the man pages.)</li>
+</ul>
+
+<h3 id="editors">Editors</h3>
+
+<p>Editor software (a very personal choice - I have used <code class="highlighter-rouge">emacs</code> for many years, as it is extensible (via Lisp) and customizable.
+Others prefer the increasingly popular <code class="highlighter-rouge">sublime text</code> editor ($70) - I’m told it is fast, highly extensible using python &amp; JSON.
+They are both excellent for longer sessions.
+Others prefer <code class="highlighter-rouge">vim</code>.
+For quick fixes and slow ssh connections the <code class="highlighter-rouge">vi</code> editor is a workable alternative.</p>
+
+<ul>
+  <li><a href="/engs50/Resources/StartingSublime.pdf">Getting started with Sublime Text</a> and <a href="http://code.tutsplus.com/articles/perfect-workflow-in-sublime-text-free-course--net-27293">a great tutorial</a></li>
+  <li><a href="http://www2.lib.uchicago.edu/keith/tcl-course/emacs-tutorial.html">Emacs tutorial</a></li>
+  <li><a href="http://marc-abramowitz.com/download/emacs_22_reference_card.ps2pdf14.pdf">Emacs quick reference guide</a></li>
+  <li><a href="http://heather.cs.ucdavis.edu/~matloff/UnixAndC/Editors/ViIntro.html">An Extremely Quick and Simple Introduction to the Vi Text Editor</a></li>
+  <li><a href="http://blog.interlinked.org/tutorials/vim_tutorial.html">vim tutorial</a></li>
+</ul>
+
+<h3 id="markdown">Markdown</h3>
+
+<p>A file with extension <code class="highlighter-rouge">.md</code> is assumed to be a text file in ‘Markdown’ syntax, which provides very simple (and readable) markup for headings, lists, italics, bold, hyperlinks, code snippets, and embedded images.
+(This course website is written in Markdown and rendered with Jekyll.) Many source-code web portals (like our Gitlab and the popular Github) allow you to browse the files in your repository - automatically rendering any that are in Markdown format, making such files much nicer to look at than plain-text files.
+You can edit Markdown files in any text editor, but there are some specialized editors available.
+Markdown is easy to learn and there are many useful resources online:</p>
+
+<ul>
+  <li>a quick <a href="http://www.markdown-tutorial.com/#/overview">tutorial</a>.</li>
+  <li>Gitlab’s <a href="https://gitlab.cs.dartmouth.edu/help/user/markdown.md">Markdown guide</a> (after all, CS50 uses Gitlab!)</li>
+  <li>Github’s <em><a href="https://guides.github.com/features/mastering-markdown/">Mastering Markdown</a></em> tutorial.</li>
+  <li>Github’s <em><a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown cheatsheet</a>.</em></li>
+  <li>Brett Terpstra’s <em><a href="http://brettterpstra.com/2015/08/24/write-better-markdown/">Write better Markdown</a></em>, which recognizes that many flavors of Markdown exist.</li>
+  <li><a href="https://robots.thoughtbot.com/markoff-free-markdown-previewer">Markoff</a>, a MacOS application for previewing Markdown files.</li>
+  <li><a href="http://macdown.uranusjr.com">Macdown</a>, a MacOS application for editing Markdown files.</li>
+</ul>
+
+<h3 id="git">Git</h3>
+
+<p>Great references for the <code class="highlighter-rouge">git</code> distributed version control system that we use</p>
+
+<ul>
+  <li>Instructions for setting up <a href="gitlab-ssh.html">Gitlab with SSH</a>.</li>
+  <li>Free <a href="http://git-scm.com/book">“Pro Git” book</a> by Scott Chacon, plus the website has LOTS of additional git references, including videos!</li>
+  <li>Some interactive tutorials
+    -   <a href="http://try.github.io/levels/1/challenges/1">try.github</a>
+    -   <a href="https://onlywei.github.io/explain-git-with-d3/">explain git</a></li>
+  <li>Some other non-interactive video tutorials</li>
+  <li><a href="http://www.git-tower.com/learn/videos">learn version control with git</a></li>
+  <li><a href="http://gitimmersion.com/index.html">git tutorial (requires Ruby)</a></li>
+  <li><a href="https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/">resolving conflicts</a></li>
+  <li>A very slick (and free) GUI for <code class="highlighter-rouge">git</code> called <a href="https://www.atlassian.com/software/sourcetree">SourceTree</a> is very popular, as is the excellent licensed (not free) application <a href="http://www.git-tower.com/">Tower<sup>2</sup>.</a></li>
+  <li>Reference for <a href="https://github.com/github/gitignore">common <code class="highlighter-rouge">.gitignore</code> files</a></li>
+</ul>
+
+<h3 id="tools">Tools</h3>
+
+<p>Software tools we may be using</p>
+
+<ul>
+  <li><a href="http://valgrind.org/">valgrind</a>: a family of tools for dynamic analysis of programs.</li>
+  <li>
+    <p><a href="https://web.stanford.edu/class/cs107/guide_valgrind.html">quick guide to valgrind</a></p>
+  </li>
+  <li>
+    <p><a href="http://www.gnu.org/software/make/manual/make.html">GNU make</a> is a utility for determining what needs to be done (e.g., compile, link, copy, etc.) to build a program or other target, and then issues the commands to do it.</p>
+  </li>
+  <li>
+    <p><a href="http://johnmacfarlane.net/pandoc/">pandoc</a>: A universal document converter.</p>
+  </li>
+  <li>
+    <p><a href="http://www.gtk.org/documentation.php">gtk</a>: A popular toolkit for creating graphical user interfaces.
+Follow the X11 instructions below to learn how to compile and use <code class="highlighter-rouge">gtk</code>.</p>
+  </li>
+  <li><a href="XQuartz/">X11 and XQuartz</a>: to run window-based (or graphical) applications on the CS50 Unix servers, but allow them to pop open windows on your Mac, you’ll need to install XQuartz.
+Installation is simple; this link has instructions for installing and using XQuartz, and for compiling <code class="highlighter-rouge">gtk</code> applications.</li>
+</ul>
+
+<h3 id="unix-books">Unix books</h3>
+
+<p>Unix &amp; Linux books / links</p>
+
+<ul>
+  <li><em><a href="http://www.amazon.com/Practical-Commands-Editors-Programming-Edition/dp/013308504X/ref=sr_1_1?ie=UTF8&amp;qid=1394757793&amp;sr=8-1&amp;keywords=Linux+Commands,+Editors,+and+Shell+Programming+Mark+G.+Sobell">A Practical Guide to Linux Commands, Editors, and Shell Programming</a>,</em> by Mark G. Sobell; an excellent, comprehensive, hands-on book on Linux and shell programming as well as Python, Perl, and MySQL.</li>
+  <li><em><a href="http://www.amazon.com/Beginning-Linux-Programming-Neil-Matthew-ebook/dp/B004YK0KO8/ref=sr_1_1?s=books&amp;ie=UTF8&amp;qid=1393966477&amp;sr=1-1&amp;keywords=beginning+linux+programming">Beginning Linux Programming, 4th Edition</a>,</em> by Neil Matthew, Richard Stones; A really good book covering, debugging, processes, threads, and socket programming in clear and easy manner</li>
+  <li><em><a href="http://www.amazon.com/Practice-Programming-Addison-Wesley-Professional-Computing/dp/020161586X/ref=pd_bbs_sr_2?ie=UTF8&amp;s=books&amp;qid=1199226460&amp;sr=1-2">The Practice of Programming</a>,</em> by Brian W. Kernighan, Rob Pike; a great classic book on design and programming for Unix and C.</li>
+  <li><em><a href="http://www.amazon.com/Professional-Linux-Programming-Jon-Masters/dp/0471776130/ref=sr_1_cc_2?s=aps&amp;ie=UTF8&amp;qid=1399424116&amp;sr=1-2-catcorr&amp;keywords=masters+and+blum+linux">Professional Linux Programming</a>,</em> by Jon Masters and Richard Blum; an oldie (2007) but a goodie.</li>
+  <li><em><a href="http://www.amazon.com/Unix-Network-Programming-Sockets-Networking/dp/0131411551/ref=sr_1_2?ie=UTF8&amp;qid=1329757685&amp;sr=8-2">UNIX Network Programming</a>,</em> by W. Richard Stevens, 2003; Prentice-Hall.</li>
+  <li><em><a href="http://www.amazon.com/Linux-Nutshell-Ellen-Siever/dp/0596154488">Linux in a Nutshell</a></em></li>
+  <li><em><a href="http://www.amazon.com/Linux-System-Programming-Talking-Directly/dp/1449339530">Linux System Programming</a></em></li>
+  <li><em><a href="http://www.linuxdevcenter.com/lpt/a/6109">What Is the X Window System</a>,</em> from O’Reilly’s linux devcenter.com</li>
+  <li><em><a href="http://www.computerhope.com/unix.htm#04">Unix, Linux, and variants</a></em>, free website listing common Unix commands</li>
+  <li><em><a href="http://www.math.utah.edu/docs/info/features_7.html">Bash command line editing</a></em></li>
+  <li><em><a href="https://www.lynda.com/Mac-OS-X-10-6-tutorials/Unix-for-Mac-OS-X-Users/78546-2.html">Unix for MacOS X users</a>,</em> a video tutorial from 2011 version of MacOS X. From Lynda.com, which is free to Dartmouth users.</li>
+  <li><a href="Homebrew.html">Homebrew</a>, a tool for installing Unix tools on MacOS. Highly recommended for CS50!</li>
+</ul>
+
+<h3 id="programming">Programming</h3>
+
+<ul>
+  <li>
+    <p><a href="https://www.lynda.com/Programming-Languages-training-tutorials/1467-0.html?category=c_1249">C programming tutorials</a> – video tutorials from Lynda.com, which are free to Dartmouth users.</p>
+  </li>
+  <li><em><a href="http://pragprog.com/book/tpp/the-pragmatic-programmer">The Pragmatic Programmer</a></em><a href="http://pragprog.com/book/tpp/the-pragmatic-programmer">, by Andrew Hunt and David Thomas. 2000, Addison Wesley.</a></li>
+  <li><a href="http://www.amazon.com/Things-Every-Programmer-Should-Know/dp/0596809484/ref=sr_1_2?ie=UTF8&amp;qid=1363813033&amp;sr=8-2&amp;keywords=97+things+every+programmer+should+know">97 things every programmer should know, by Kevlin Henney. O’Reilly 2010.</a></li>
+  <li><em><a href="http://www.amazon.com/First-Book-Fourth-Introduction-Programming/dp/1418835560/ref=sr_1_1?s=books&amp;ie=UTF8&amp;qid=1363813105&amp;sr=1-1&amp;keywords=bronson+ansi+c">A First Book of ANSI C, Fourth Edition,</a></em> <a href="http://www.amazon.com/First-Book-Fourth-Introduction-Programming/dp/1418835560/ref=sr_1_1?s=books&amp;ie=UTF8&amp;qid=1363813105&amp;sr=1-1&amp;keywords=bronson+ansi+c">by Gary J. Bronson</a>; a very good book for learning C</li>
+  <li><a href="http://en.wikipedia.org/wiki/C_programming_language">The Wikipedia entry for the C programming language</a></li>
+  <li><a href="http://groups.google.com/group/comp.lang.c/browse_frm/thread/1ce1b07f3725e0c7?q=%22Why+is+C+good%3F%3F%3F%22&amp;hl=en&amp;pli=1">The USENET discussion Why is C good?</a></li>
+  <li><em><a href="/engs50/Resources/RC13972-C-Programming.pdf">An Introduction to the C programming language</a>,</em> by Charles Palmer (1988). Easy read with lots of simple examples. Skip to page 20 to start, and remember some of the comments are dated (e.g., “<em>variables in all lower case</em>”).</li>
+  <li>Quick reference cards for <a href="http://users.ece.utexas.edu/~adnan/c-refcard.pdf">C</a> and <a href="http://users.ece.utexas.edu/~adnan/gdb-refcard.pdf">gdb</a>.</li>
+</ul>
+
+<p>Remember that we’re not suggesting you buy all these books.
+The text by Harbison and Steele is highly recommended for this course and may be in local bookstores.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

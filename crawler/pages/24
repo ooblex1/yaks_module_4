@@ -1,0 +1,608 @@
+https://thayer.github.io/engs50/Notes/makefiles/
+2
+40878
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Modules and Makefiles</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/makefiles/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Modules and Makefiles</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<ul>
+  <li>how to create a re-usable “module” by separating its code into a pair of <code class="highlighter-rouge">.c</code> and <code class="highlighter-rouge">.h</code> files.</li>
+  <li>the Make command and its Makefiles - never run <code class="highlighter-rouge">mygcc</code> again!</li>
+</ul>
+
+<p>For a deeper dive into <code class="highlighter-rouge">make</code>, see the <a href="extra/">lecture extra</a>.</p>
+
+<p>For a look at the C preprocessor, see another <a href="preprocessor.html">lecture extra</a>.</p>
+
+<p>For more about C header files, see another <a href="headerfiles.html">lecture extra</a>.</p>
+
+<!--You can view today's Terminal [script](/engs50/Notes/makefiles/script.txt), although a lot of the action was in emacs and thus not shown. -->
+
+<h2 id="extracting-bag-from-names">Extracting bag from names</h2>
+
+<p>Recall our <a href="/engs50/Examples/names9.c">names9</a> program from the prior lecture, in which we converted the <em>linked list</em> data structure, specific to that particular application’s needs, into a generic <em>bag</em> data structure.
+Our next step is to extract that <em>bag</em> into a separate set of files, with a clearly defined interface, so it can be used by this program and easily re-used by other programs.
+Given its design, it’s also easy to create multiple bags, unlike the original design (<a href="/engs50/Examples/names5.c">names5.c</a>) that was constrained to a single application-specific linked list.</p>
+
+<p>Today we divide the code <a href="/engs50/Examples/names9.c">names9</a> into three files:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">namesA.c</code> - a new version of the application;</li>
+  <li><code class="highlighter-rouge">bag.h</code> - declarations that form the interface to he <em>bag</em> module</li>
+  <li><code class="highlighter-rouge">bag.c</code> - functions that define the implementation of the <em>bag</em> module.</li>
+</ul>
+
+<p>Since we also use the <code class="highlighter-rouge">readlinep</code> module, we must now compile the program with a command like</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mygcc names.c bag.c readlinep.c -o names
+</code></pre></div></div>
+
+<h2 id="make-and-makefiles">Make and Makefiles</h2>
+
+<p>As our programs become more complex, it’s increasingly tedious (and error-prone) to type the commands to compile the code into an executable.
+Indeed, for a large codebase, it can take minutes or hours to compile all the code.
+Fortunately, there is a good tool to make an executable from a collection of source files, incrementally recompiling only those files that have been updated.</p>
+
+<p>The <code class="highlighter-rouge">make</code> command reads a configuration file called <code class="highlighter-rouge">Makefile</code> – written in its own little language – and executes shell commands as needed to compile all the source files and link them into an executable.
+Before we look at a specific example, let’s first take a closer look at the compilation process.</p>
+
+<p>From now on we will compile all our programs with Make.</p>
+
+<h3 id="compiling-and-linking">Compiling and linking</h3>
+
+<p>The <em>compiler</em> reads “source code” (from a file like <code class="highlighter-rouge">bag.c</code> containing C code) and outputs “assembly code” (in a file <code class="highlighter-rouge">bag.s</code> containing assembly language).
+Assembly language is still a human-readable text file, but now lists machine-level instructions instead of C statements.
+In other words, the compiler translates source code into assembly code.
+The Unix command for the C compiler is <code class="highlighter-rouge">cc</code>, though we use one from Gnu called <code class="highlighter-rouge">gcc</code>.</p>
+
+<p>The <em>assembler</em> reads assembly code and outputs “object code”, translating the textual machine instructions into binary machine instructions.
+It’s still not a complete program, not yet “executable” by the operating system.
+The Unix command for the assembler is <code class="highlighter-rouge">as</code>.</p>
+
+<p>The <em>linker</em> reads object code (from files like <code class="highlighter-rouge">names.o</code>, <code class="highlighter-rouge">bag.o</code>, and <code class="highlighter-rouge">readlinep.o</code>, and from libraries) and links them all together into an “executable” file, ready for the OS to run (execute) when we ask bash to run it.
+It does not translate the code further – both input and output in machine instructions in a binary format – it “links” the pieces together, resolving references in one file to functions and variables in other files.
+For example, <code class="highlighter-rouge">names.o</code> may reference a function <code class="highlighter-rouge">bag_new()</code>, which the linker finds in <code class="highlighter-rouge">bag.o</code>.
+The linker assigns memory addresses for all the code and global variables, ready for loading into memory when the program is executed.
+The Unix command for the linker is <code class="highlighter-rouge">ld</code> (short for “load”, not to be confused with <code class="highlighter-rouge">ln</code>, which links files together).</p>
+
+<blockquote>
+  <p>However, <em><a href="http://programmer.97things.oreilly.com/wiki/index.php/The_Linker_Is_not_a_Magical_Program">The linker is not a magical program</a></em>.</p>
+</blockquote>
+
+<p>The <code class="highlighter-rouge">gcc</code> command is actually pretty sophisticated, and in a form like</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mygcc names.c bag.c readlinep.c -o names
+</code></pre></div></div>
+
+<p>will actually run four commands, something like this:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gcc -c names.c
+gcc -c bag.c
+gcc -c readlinep.c
+ld names.o bag.o readlinep.o libraries... -o names
+rm names.o bag.o readlinep.o
+</code></pre></div></div>
+
+<p>Each of the first three ask to “compile” (<code class="highlighter-rouge">-c</code>) the listed C source file; by default, the compiler creates an object-code file in a file of the same name with the extension <code class="highlighter-rouge">.o</code>.
+(Under the hood, it’s actually running both the compiler and then the assembler, briefly creating the intermediate <code class="highlighter-rouge">.s</code> file.)  The fourth line links those three object files together with a collection of common libraries, to produce the executable program; the original <code class="highlighter-rouge">-o names</code> commandline argument is placed here.
+Finally, it cleans up by removing the intermediate object files.</p>
+
+<p>Again, for a large code base, it is a waste of effort to recompile every C source file every time, even if only one of them has changed since the last compilation.</p>
+
+<h3 id="dependencies">Dependencies</h3>
+
+<p>To optimize this process it helps to know which files depend on each other.
+Clearly, each object file depends on its source file:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>names.o: names.c
+bag.o: bag.c
+readlinep.o: readlinep.c
+</code></pre></div></div>
+
+<p>and the program depends on all the object files that will linked together:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>names: names.o bag.o readlinep.o
+</code></pre></div></div>
+
+<p>(It also depends on the standard libraries, but we assume they never change and we won’t worry about them.)</p>
+
+<p>Actually, if we look deeper, the object files also depend on the include files, because those files are virtually included in the C source files – the compiler reads the include file <code class="highlighter-rouge">bag.h</code> when it sees <code class="highlighter-rouge">#include "bag.h"</code> at some point while reading the C source code.
+Thus we also have dependencies</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>names.o: bag.h readlinep.h
+bag.o: bag.h
+readlinep.o: readlinep.h
+</code></pre></div></div>
+
+<p>(They also include <code class="highlighter-rouge">.h</code> files for standard libraries, but again, we assume those never change and thus we don’t worry about them as dependencies.)</p>
+
+<p>The above dependencies are actually written in <code class="highlighter-rouge">make</code> language.
+The name to the left of each colon is the <em>target</em>, and the name(s) to the right of the colon are the <em>dependencies</em>.
+The target depends on the dependencies, and should be rebuilt if any of the dependencies change.
+Notice that dependencies are transitive: <code class="highlighter-rouge">names</code> depends on <code class="highlighter-rouge">bag.o</code> which depends on <code class="highlighter-rouge">bag.c</code> and <code class="highlighter-rouge">bag.h</code>, and so forth.
+Make builds the <em>dependency tree</em> and rebuilds files as needed.</p>
+
+<p>But how does it know how to rebuild one file from another?
+We add a command (or list of commands), indented with a tab, on the line(s) that immediately follow the target.
+We put all this together in a file called <code class="highlighter-rouge">Makefile</code>:</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># executable depends on object files
+</span><span class="nl">names</span><span class="o">:</span> <span class="nf">names.o bag.o readlinep.o</span>
+        <span class="err">gcc</span> <span class="err">names.o</span> <span class="err">bag.o</span> <span class="err">readlinep.o</span> <span class="err">-o</span> <span class="err">names</span>
+
+<span class="c"># object files depend on source files
+</span><span class="nl">names.o</span><span class="o">:</span> <span class="nf">names.c</span>
+<span class="nl">bag.o</span><span class="o">:</span> <span class="nf">bag.c</span>
+<span class="nl">readlinep.o</span><span class="o">:</span> <span class="nf">readlinep.c</span>
+
+<span class="c"># object files also depend on include files
+</span><span class="nl">names.o</span><span class="o">:</span> <span class="nf">bag.h readlinep.h</span>
+<span class="nl">bag.o</span><span class="o">:</span> <span class="nf">bag.h</span>
+<span class="nl">readlinep.o</span><span class="o">:</span> <span class="nf">readlinep.h</span>
+
+<span class="c"># how to compile source into object files
+</span><span class="nl">names.o</span><span class="o">:</span>
+        <span class="err">gcc</span> <span class="err">-c</span> <span class="err">names.c</span>
+<span class="nl">bag.o</span><span class="o">:</span>
+        <span class="err">gcc</span> <span class="err">-c</span> <span class="err">bag.c</span>
+<span class="nl">readlinep.o</span><span class="o">:</span>
+        <span class="err">gcc</span> <span class="err">-c</span> <span class="err">readlinep.c</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Important: commands must be indented with a <em>tab</em> character, not spaces, or Make will not recognize them as commands.
+Some editors are savvy and insert a tab when you type a tab, and some try to be clever and change the tab to spaces.
+Make requires a tab.</p>
+</blockquote>
+
+<p>Now, all we have to do is type <code class="highlighter-rouge">make</code>, and let it do all the work!</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">ls
+</span>Makefile	bag.h		names.txt	readlinep.h
+bag.c		names.c		readlinep.c
+<span class="nv">$ </span>make
+gcc <span class="nt">-c</span> names.c
+gcc <span class="nt">-c</span> bag.c
+gcc <span class="nt">-c</span> readlinep.c
+gcc names.o bag.o readlinep.o <span class="nt">-o</span> names
+<span class="nv">$ </span>make
+make: <span class="sb">`</span>names<span class="s1">' is up to date.
+$ touch bag.h
+$ make
+gcc -c names.c
+gcc -c bag.c
+gcc names.o bag.o readlinep.o -o names
+$ ls
+Makefile	bag.o		names.o		readlinep.h
+bag.c		names*		names.txt	readlinep.o
+bag.h		names.c		readlinep.c
+$
+</span></code></pre></div></div>
+<p>Notice that, the first time I ran <code class="highlighter-rouge">make</code> it compiled each source file into an object file, and then compiled them all together.
+(We use <code class="highlighter-rouge">gcc</code> to link object files, because it’s very complicated to set up a proper <code class="highlighter-rouge">ld</code> commandline, and <code class="highlighter-rouge">gcc</code> is smart enough to realize it need only run the linker when it’s only given object files.)</p>
+
+<p>On my second run of <code class="highlighter-rouge">make</code>, it checked the dependency tree and decided there was nothing to be rebuilt.
+Time saved!</p>
+
+<p>I pretended to edit <code class="highlighter-rouge">bag.h</code> by “touching” it - the <code class="highlighter-rouge">touch</code> command just updates the modification date of the file(s) named on its command line, creating files if needed but making no changes to the content of existing files.</p>
+
+<p>On my third run of <code class="highlighter-rouge">make</code>, it checked the dependency tree and saw that both <code class="highlighter-rouge">bag.o</code> and <code class="highlighter-rouge">names.o</code> depend on <code class="highlighter-rouge">bag.h</code>, so it recompiled both.
+Because those two object files changed, it had to rebuild <code class="highlighter-rouge">names</code>.
+In the end, notice that the <code class="highlighter-rouge">.o</code> files stick around - which is why <code class="highlighter-rouge">make</code> does not need to rebuild them every time.</p>
+
+<p>Make actually knows about C and the relationship between <code class="highlighter-rouge">.c</code> and <code class="highlighter-rouge">.o</code> files, so several of the dependencies we listed were not necessary to list.
+Indeed, some of the commands we listed are also unnecessary: they are <em>implicit rules</em> already known to make.
+We thus streamline our <code class="highlighter-rouge">Makefile</code>:</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># executable depends on object files
+</span><span class="nl">names</span><span class="o">:</span> <span class="nf">names.o bag.o readlinep.o</span>
+	gcc names.o bag.o readlinep.o <span class="nt">-o</span> names
+
+<span class="c"># object files also depend on include files
+</span><span class="nl">names.o</span><span class="o">:</span> <span class="nf">bag.h readlinep.h</span>
+<span class="nl">bag.o</span><span class="o">:</span> <span class="nf">bag.h</span>
+<span class="nl">readlinep.o</span><span class="o">:</span> <span class="nf">readlinep.h</span>
+</code></pre></div></div>
+<p>Compare with the prior <code class="highlighter-rouge">Makefile</code> and you’ll see two whole sections gone.
+This new makefile works just the same:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">ls
+</span>Makefile	bag.c		names.c		readlinep.c
+Makefile~	bag.h		names.txt	readlinep.h
+<span class="nv">$ </span>make
+cc    <span class="nt">-c</span> <span class="nt">-o</span> names.o names.c
+cc    <span class="nt">-c</span> <span class="nt">-o</span> bag.o bag.c
+cc    <span class="nt">-c</span> <span class="nt">-o</span> readlinep.o readlinep.c
+gcc names.o bag.o readlinep.o <span class="nt">-o</span> names
+<span class="nv">$ </span><span class="nb">ls
+</span>Makefile	bag.h		names.c		readlinep.c
+Makefile~	bag.o		names.o		readlinep.h
+bag.c		names<span class="k">*</span>		names.txt	readlinep.o
+<span class="err">$</span>
+</code></pre></div></div>
+
+<p>There are two important details, however.
+First, you’ll note that its implicit rules run <code class="highlighter-rouge">cc</code> instead of <code class="highlighter-rouge">gcc</code>.
+Second, note that neither our explicit rules nor Make’s implicit rules pass the CS50-standard command-line arguments to the C compiler.
+We need to tell Make about those.
+We can assign to some Make variables to inform Make about our preferred compiler and command-line options.
+(Actually, Make calls them “macros” because their value cannot actually vary.)</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">CC</span><span class="o">=</span>gcc
+<span class="nv">CFLAGS</span><span class="o">=</span><span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>
+
+<span class="c"># executable depends on object files
+</span><span class="nl">names</span><span class="o">:</span> <span class="nf">names.o bag.o readlinep.o</span>
+	<span class="nv">$(CC)</span> <span class="nv">$(CFLAGS)</span> names.o bag.o readlinep.o <span class="nt">-o</span> names
+
+<span class="c"># object files also depend on include files
+</span><span class="nl">names.o</span><span class="o">:</span> <span class="nf">bag.h readlinep.h</span>
+<span class="nl">bag.o</span><span class="o">:</span> <span class="nf">bag.h</span>
+<span class="nl">readlinep.o</span><span class="o">:</span> <span class="nf">readlinep.h</span>
+</code></pre></div></div>
+
+<p>The first two lines assign values to the macros <code class="highlighter-rouge">CC</code> and <code class="highlighter-rouge">CFLAGS</code>.
+These two particular macros are known to Make; it will use them in its implicit rules.
+To use them in our explicit rules, too, we have to refer to them explicitly - see the commands to rebuild <code class="highlighter-rouge">names</code>.
+Notice that the macro-substitution syntax in Make uses a dollar sign - like bash - but requires parentheses around the macro name - unlike bash.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>make
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>   <span class="nt">-c</span> <span class="nt">-o</span> names.o names.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>   <span class="nt">-c</span> <span class="nt">-o</span> bag.o bag.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>   <span class="nt">-c</span> <span class="nt">-o</span> readlinep.o readlinep.c
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span> names.o bag.o readlinep.o <span class="nt">-o</span> names
+</code></pre></div></div>
+<p>This time, Make used the <code class="highlighter-rouge">gcc</code> compiler and all our flags.</p>
+
+<h2 id="which-target">Which target?</h2>
+
+<p>So far, we’ve just typed <code class="highlighter-rouge">make</code> at the command line.
+We can actually tell Make to build a particular target by naming it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>make readlinep.o
+gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>   <span class="nt">-c</span> <span class="nt">-o</span> readlinep.o readlinep.c
+</code></pre></div></div>
+
+<p>When given no target(s) on the command line, Make chooses the first target that has commands.
+In our <code class="highlighter-rouge">Makefile</code>, that was <code class="highlighter-rouge">names</code> - which is why we put it first.
+In a complex <code class="highlighter-rouge">Makefile</code>, it is common to place a target named <code class="highlighter-rouge">all</code> first, with a dependency (list) that indicates which target (list) is actually desired when one types <code class="highlighter-rouge">make all</code> or just <code class="highlighter-rouge">make</code>.</p>
+
+<blockquote>
+  <p>This is a <em>phony target</em>, because the result of <code class="highlighter-rouge">make all</code> is never to produce a file called <code class="highlighter-rouge">all</code>.
+That’s ok - its purpose is to direct Make toward the target(s) we want it to build.</p>
+</blockquote>
+
+<h2 id="cleaning-up">Cleaning up</h2>
+
+<p>We’ve taught Make how to build our program - now let’s teach it how to clean up.
+By convention, every good <code class="highlighter-rouge">Makefile</code> has a target called <code class="highlighter-rouge">clean</code>.
+Let’s extend the above <code class="highlighter-rouge">Makefile</code> (by convention, the <code class="highlighter-rouge">clean</code> rule goes at the bottom of the file):</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">clean</span><span class="o">:</span>
+	rm <span class="nt">-f</span> names
+	rm <span class="nt">-f</span> <span class="k">*</span>~ <span class="k">*</span>.o
+	rm <span class="nt">-rf</span> <span class="k">*</span>.dSYM
+</code></pre></div></div>
+<p>The <code class="highlighter-rouge">-f</code> flag (“force”) asks <code class="highlighter-rouge">rm</code> to exit with success even if it fails - e.g., if there are no files by those names to be removed.
+The <code class="highlighter-rouge">-r</code> flag (“recursive”) removes a directory and its contents.
+These commands remove the <code class="highlighter-rouge">names</code> executable, and the object files <code class="highlighter-rouge">*.o</code>, and the emacs backup files <code class="highlighter-rouge">~</code>, and the dSYM directory <code class="highlighter-rouge">gcc</code> creates in support of <code class="highlighter-rouge">gdb</code>.</p>
+
+<p>Look how well it cleans up!</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">ls
+</span>Makefile	bag.h		names.c		readlinep.c
+Makefile~	bag.o		names.o		readlinep.h
+bag.c		names<span class="k">*</span>		names.txt	readlinep.o
+<span class="nv">$ </span>make clean
+rm <span class="nt">-f</span> names
+rm <span class="nt">-f</span> <span class="k">*</span>~ <span class="k">*</span>.o
+rm <span class="nt">-rf</span> <span class="k">*</span>.dSYM
+<span class="nv">$ </span><span class="nb">ls
+</span>Makefile	bag.h		names.txt	readlinep.h
+bag.c		names.c		readlinep.c
+</code></pre></div></div>
+
+<p>In some Makefiles, you’ll see the author explicitly tell Make that this rule is “phony”:</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">.PHONY</span><span class="o">:</span> <span class="nf">clean</span>
+</code></pre></div></div>
+
+<h2 id="more-on-macros">More on macros</h2>
+
+<p>Any symbol that is defined in a Makefile like this</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NAME = VALUE
+</code></pre></div></div>
+
+<p>is called a macro.
+Once defined, you can expand them using</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>... $(NAME) ...
+</code></pre></div></div>
+
+<p>It is also common to define macros for the name of the program being built, and the list of object files that go into it.
+Below, our final <code class="highlighter-rouge">Makefile</code> declares <code class="highlighter-rouge">PROG</code> and <code class="highlighter-rouge">OBJS</code> for this purpose, and uses them in the build command.
+I also included a list of library files needed by this program as <code class="highlighter-rouge">LIBS</code>; although <code class="highlighter-rouge">names</code> does not need the math library, it’s harmless to ask <code class="highlighter-rouge">gcc</code> to link with the math library and it serves as a good example here.
+(Certain libraries, like stdio and stdlib, are linked without you asking.)</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">PROG</span> <span class="o">=</span> names
+<span class="nv">OBJS</span> <span class="o">=</span> names.o bag.o readlinep.o
+<span class="nv">LIBS</span> <span class="o">=</span> <span class="nt">-lm</span>
+
+<span class="c"># executable depends on object files
+</span><span class="nl">$(PROG)</span><span class="o">:</span> <span class="nf">$(OBJS)</span>
+	<span class="nv">$(CC)</span> <span class="nv">$(CFLAGS)</span> <span class="nv">$(OBJS)</span> <span class="nv">$(LIBS)</span> <span class="nt">-o</span> <span class="nv">$(PROG)</span>
+</code></pre></div></div>
+<p>Notice how we were able to rewrite the build rule to be fully generic - it names no specific files.
+Indeed, you could use this rule in all your Makefiles!</p>
+
+<h2 id="complete-makefile">Complete Makefile</h2>
+
+<p>With the addition of the phony targets and a nice header comment, we’re done:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Makefile for the "names" program that uses the "bag" module.
+#
+# David Kotz - April 2017
+</span>
+<span class="nv">CC</span><span class="o">=</span>gcc
+<span class="nv">CFLAGS</span><span class="o">=</span><span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-ggdb</span>
+<span class="nv">PROG</span> <span class="o">=</span> names
+<span class="nv">OBJS</span> <span class="o">=</span> names.o bag.o readlinep.o
+<span class="nv">LIBS</span> <span class="o">=</span> <span class="nt">-lm</span>
+
+<span class="nl">.PHONY</span><span class="o">:</span> <span class="nf">all clean</span>
+
+<span class="nl">all</span><span class="o">:</span> <span class="nf">names</span>
+
+<span class="c"># executable depends on object files
+</span><span class="nl">$(PROG)</span><span class="o">:</span> <span class="nf">$(OBJS)</span>
+	<span class="nv">$(CC)</span> <span class="nv">$(CFLAGS)</span> <span class="nv">$(OBJS)</span> <span class="nv">$(LIBS)</span> <span class="nt">-o</span> <span class="nv">$(PROG)</span>
+
+<span class="c"># object files depend on include files
+</span><span class="nl">names.o</span><span class="o">:</span> <span class="nf">bag.h readlinep.h</span>
+<span class="nl">bag.o</span><span class="o">:</span> <span class="nf">bag.h</span>
+<span class="nl">readlinep.o</span><span class="o">:</span> <span class="nf">readlinep.h</span>
+
+<span class="nl">clean</span><span class="o">:</span>
+	rm <span class="nt">-f</span> <span class="nv">$(PROG)</span>
+	rm <span class="nt">-f</span> <span class="k">*</span>~ <span class="k">*</span>.o
+	rm <span class="nt">-rf</span> <span class="k">*</span>.dSYM
+</code></pre></div></div>
+
+<p>The macro definitions at the top make it easy for a reader to quickly see what program will be built and from what files.
+The gnarly compilation rule is the same for every Makefile!
+Written once, and not likely needing to be changed.
+The dependencies at bottom are the only other part that varies with the specific program.</p>
+
+<p>I saved this Makefile as <a href="/engs50/Examples/names-Makefile">names-Makefile</a> in our examples directory.</p>
+
+<h2 id="tips">Tips</h2>
+
+<p>Some other things to know about Make.</p>
+
+<h3 id="errors">Errors</h3>
+
+<p>If Make encounters an error while compiling, it stops and does not proceed with the rest of the build.
+If, for example, a C compilation step fails and prints its error messages, Make notices this, prints a message, and exits with error status 1.
+It will not proceed to compile other files, or build the overall program.
+If you want to ask Make to proceed even after encountering errors, run <code class="highlighter-rouge">make -k</code>.</p>
+
+<h3 id="make-command-line">Make command line</h3>
+
+<p>Make supports many command-line arguments.
+See <code class="highlighter-rouge">man make</code>.</p>
+
+<p><code class="highlighter-rouge">-f file</code> use <code class="highlighter-rouge">file</code> instead of default <code class="highlighter-rouge">Makefile</code></p>
+
+<p><code class="highlighter-rouge">-n</code> Determine which commands need to be run, but don’t actually execute any of them, just print them.</p>
+
+<p><code class="highlighter-rouge">-k</code> while a particular target and the things that depend on it might have failed, continue trying to make the other dependencies of these targets anyway.
+(My emacs command uses this flag.)</p>
+
+<p><code class="highlighter-rouge">-C dir</code> or <code class="highlighter-rouge">--directory=dir</code> tells Make to change its working directory (as if it internally runs <code class="highlighter-rouge">cd dir</code>) and then look for a Makefile (i.e., it will read from <code class="highlighter-rouge">dir/Makefile</code>).
+This option is useful for running Make in a subdirectory.</p>
+
+<h3 id="automatic-variables">Automatic variables</h3>
+
+<p>The make utility also provides some useful <a href="http://www.gnu.org/software/make/manual/make.html#Automatic-Variables">automatic variables</a>:</p>
+
+<p><code class="highlighter-rouge">$@</code>   name of the current target</p>
+
+<p><code class="highlighter-rouge">$?</code>   the list of dependencies that are newer than the target</p>
+
+<p><code class="highlighter-rouge">$^</code>	the list of dependencies for this target</p>
+
+<p>For example, we could rewrite our <code class="highlighter-rouge">names</code> target as follows</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nl">names</span><span class="o">:</span> <span class="nf">names.o bag.o readlinep.o</span>
+	<span class="nv">$(CC)</span> <span class="nv">$(CFLAGS)</span> <span class="nv">$^</span> <span class="nt">-o</span> <span class="nv">$@</span>
+</code></pre></div></div>
+
+<p>Although useful, I find the style we used in our complete example to be more readable.</p>
+
+<h3 id="documentation">Documentation</h3>
+
+<p>You can view the <a href="http://www.gnu.org/software/make/manual/make.html">GNU documentation</a>, the manual pages for <code class="highlighter-rouge">make</code>, Steve Talbot’s “oldie but goodie” book “<em>Managing projects with make</em>” <a href="http://shop.oreilly.com/product/9780596006105.do">updated</a> in 2004 by Robert Mecklenburg for GNU <code class="highlighter-rouge">make</code>, or any of the variety of online tutorials for <code class="highlighter-rouge">make</code>.</p>
+
+<h3 id="for-emacs-users">for emacs users</h3>
+
+<p>If you use emacs, and you installed our CS50 customation:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  cp ~cs50/.emacs ~
+</code></pre></div></div>
+
+<p>Whenever you start emacs, it loads this file.
+This file defines a new keystroke <code class="highlighter-rouge">^X-c</code> (ctrl-X c), which tells emacs to run <code class="highlighter-rouge">make -k</code> in a separate subwindow.
+If you get any compiler errors, type the keystroke <code class="highlighter-rouge">^X-`</code> (ctrl-X backquote) and emacs jumps to the right file and right line.
+It’s handy!</p>
+
+<blockquote>
+  <p>If <code class="highlighter-rouge">cp</code> warns you about over-writing an existing <code class="highlighter-rouge">.emacs</code> you might want to reconsider - perhaps you’ve customized <code class="highlighter-rouge">emacs</code> before and you should edit your <code class="highlighter-rouge">~/.emacs</code> to include commands from <code class="highlighter-rouge">~cs50/.emacs</code> rather than simply overwriting it!
+Best to <code class="highlighter-rouge"><span class="gh">diff ~/cs50/.emacs ~/.emacs</span></code> to see what’s different, rather than simply overwriting yours.</p>
+</blockquote>
+
+<h2 id="non-compilation-makefiles">Non-compilation makefiles</h2>
+
+<p>You can use makefiles to solve many of your daily challenges involving a sequences of dependent actions:</p>
+
+<ul>
+  <li>running test shell scripts during development and regression testing</li>
+  <li>creating documents with LaTeX</li>
+  <li>maintaining webpages (staging and live directories)</li>
+  <li>automated documentation generation</li>
+  <li>source code management</li>
+</ul>
+
+<p>Here, for example, is the Makefile I use on my MacBook to compile and push the CS50 website to the webserver:</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Makefile for deploying Jekyll site.
+# David Kotz, Spring 2017, borrowing from Charles Palmer and Ira Jenkins
+</span>
+<span class="nv">DEST</span>    <span class="o">=</span>  cs50@green.cs.dartmouth.edu:public_html
+<span class="nv">DESTURL</span> <span class="o">=</span>  http://www.cs.dartmouth.edu/~cs50/
+<span class="nv">LOCALURL</span> <span class="o">=</span> http://127.0.0.1:4000
+
+<span class="c"># files *not* to push to the destination site
+</span><span class="nv">EXCLUDES</span> <span class="o">=</span> <span class="nt">--exclude</span><span class="o">=</span>/Makefile     <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Comics/future   <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Comics/unused   <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/examples/future <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/examples/unused <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Labs/future     <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Labs/unused     <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Sections/future <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Sections/unused <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Reading/future  <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Reading/unused  <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Lectures/future <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>/Lectures/unused <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span><span class="se">\*</span><span class="nt">-draft</span><span class="se">\*</span>       <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span><span class="se">\*</span>~              <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span><span class="se">\*</span>.o             <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span>a.out            <span class="se">\</span>
+	<span class="nt">--exclude</span><span class="o">=</span><span class="se">\*</span>.dSYM          <span class="se">\</span>
+	<span class="nt">--delete-excluded</span>
+
+<span class="nl">.PHONY</span><span class="o">:</span> <span class="nf">build deploy local clean</span>
+
+<span class="c"># just for testing the build
+</span><span class="nl">build</span><span class="o">:</span>
+	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Building..."</span>
+	<span class="nb">cat </span>_config-<span class="o">{</span>base,cs<span class="o">}</span> <span class="o">&gt;</span> _config.yml
+	jekyll build
+
+<span class="c"># build and push to CS server
+</span><span class="nl">deploy</span><span class="o">:</span>
+	<span class="nb">cat </span>_config-<span class="o">{</span>base,cs<span class="o">}</span> <span class="o">&gt;</span> _config.yml
+	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Building for CS..."</span>
+	jekyll build <span class="nt">--destination</span> _site
+	<span class="p">-</span>rm _config.yml
+
+	<span class="err">@echo</span> <span class="s2">"\nFixing permissions..."</span>
+	<span class="err">chmod</span> <span class="err">-R</span> <span class="err">go-w</span> <span class="err">_site/*</span>
+	<span class="err">chmod</span> <span class="err">-R</span> <span class="err">go+rX</span> <span class="err">_site/*</span>
+
+	<span class="err">@echo</span> <span class="s2">"\nAdding data..."</span>
+	<span class="err">ln</span> <span class="err">-s</span> <span class="err">../data</span> <span class="err">_site/data</span>
+
+	<span class="err">@echo</span> <span class="s2">"\nDeploying..."</span>
+	<span class="err">rsync</span> <span class="err">-e</span> <span class="err">ssh</span> <span class="err">-alcvz</span> <span class="err">$(EXCLUDES)</span> <span class="err">--delete</span>  <span class="err">_site/</span> <span class="err">$(DEST)</span>
+	<span class="err">open</span> <span class="err">$(DESTURL)</span>
+
+<span class="c"># build and open in a local server (jekyll serve runs jekyll build first)
+</span><span class="nl">local</span><span class="o">:</span>
+	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Building for local viewing..."</span>
+	<span class="nb">cat </span>_config-<span class="o">{</span>base,local<span class="o">}</span> <span class="o">&gt;</span> _config.yml
+	<span class="o">(</span>sleep 5<span class="p">;</span> open <span class="nv">$(LOCALURL)</span><span class="o">)</span> &amp;
+	jekyll serve <span class="nt">--incremental</span>
+	<span class="p">-</span>rm _config.yml
+
+<span class="nl">clean</span><span class="o">:</span>
+	jekyll clean
+	<span class="p">-</span>rm <span class="nt">-f</span> _config.yml
+</code></pre></div></div>
+
+<p>The leading <code class="highlighter-rouge">@</code> on some command lines tells <code class="highlighter-rouge">make</code> not to print that command out for the user to see - just to execute the command.
+Here I use it for <code class="highlighter-rouge">echo</code> commands because, of course, those print their arguments for the user to see.</p>
+
+<p>The leading <code class="highlighter-rouge">-</code> on some command lines tells <code class="highlighter-rouge">make</code> to ignore the exit status of that command - so even a non-zero exit status will allow <code class="highlighter-rouge">make</code> to continue and not exit with an error message.</p>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a> we extend the <code class="highlighter-rouge">Makefile</code> for <code class="highlighter-rouge">names</code> to add a phony <em>test</em> target.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

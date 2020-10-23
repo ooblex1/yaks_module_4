@@ -1,0 +1,405 @@
+https://thayer.github.io/engs50/Notes/crawler/
+2
+20897
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>TSE Crawler design and implementation</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/crawler/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">TSE Crawler design and implementation</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<ul>
+  <li>To understand the specifications for the Tiny Search Engine (TSE)</li>
+  <li>To develop an implementation plan for the TSE Crawler</li>
+  <li>To demonstrate the execution of one Crawler solution</li>
+</ul>
+
+<p>My first Terminal <a href="/engs50/Notes/crawler/script1.txt">script</a> shows a short run of crawler over the cs50 home directory.</p>
+
+<p>My second Terminal <a href="/engs50/Notes/crawler/script2.txt">script</a> shows some short runs of crawler over the small ‘letters’ playground, then a run over the ‘wikipedia’ playground; I eventually killed the maxDepth=2 crawl because it takes a long time to finish.</p>
+
+<h2 id="specifications">Specifications</h2>
+
+<p>A good software implementation requires a good software design, and a good software design must be based on a clear set of requirements.
+We think about these <em>specifications</em> as a sort of “contract” between the programmer (who writes the code) and the customer (the ultimate user of the software).
+Thus, we need three specs:</p>
+
+<ul>
+  <li><strong>Requirements spec</strong>: specifies what the software must do</li>
+  <li><strong>Design spec</strong>: specifies the structure of the software in a language-independent, machine-dependent way</li>
+  <li><strong>Implementation spec</strong>: specifies the language-dependent, machine-dependent details of the implementation.</li>
+</ul>
+
+<p>We’ll take a closer look at the design process in the next lecture.
+For today, let’s apply this approach to the TSE.</p>
+
+<h2 id="tiny-search-engine-tse">Tiny Search Engine (TSE)</h2>
+
+<p>Our Tiny Search Engine (TSE) design is inspired by the material in the paper <em><a href="/engs50/Reading/searchingtheweb.pdf">Searching the Web</a></em>, by Arvind Arasu, Junghoo Cho, Hector Garcia-Molina, Andreas Paepcke, and Sriram Raghavan (Stanford University); <em>ACM Transactions on Internet Technology (TOIT),</em> Volume 1, Issue 1 (August 2001).</p>
+
+<h3 id="tse-requirements-spec">TSE Requirements Spec</h3>
+
+<p>The Tiny Search Engine (TSE) <strong>shall</strong> consist of three subsystems:</p>
+
+<ol>
+  <li><strong>crawler</strong>, which crawls the web from a given seed to a given maxDepth and caches the content of the pages it finds, one page per file, in a given directory.</li>
+  <li><strong>indexer</strong>, which reads files from the given directory, builds an index that maps from <em>words</em> to <em>pages</em> (URLs), and writes that index to a given file.</li>
+  <li><strong>querier</strong>, which reads the index from a given file, and a query expressed as a set of words optionally combined by (AND, OR), and outputs a ranked list of pages (URLs) in which the given combination of words appear.</li>
+</ol>
+
+<p>Each subsystem is a standalone program executed from the command line, but they inter-connect through files in the file system.</p>
+
+<blockquote>
+  <p>In a spec document, we write <em>shall do</em> to mean <em>must do</em>.</p>
+</blockquote>
+
+<p>We’ll look deeper at the requirements for the each subsystem, later.
+First, let’s go to the next level on the overall TSE: the Design Spec.</p>
+
+<h3 id="tse-design-spec">TSE Design Spec</h3>
+
+<p>The overall architecture presented below shows the modular decomposition of the system:</p>
+
+<p><img src="/engs50/Notes/crawler/designandcrawler1x.png" alt="Tiny Search Engine modular design" /></p>
+
+<hr />
+
+<p>The above diagram is consistent with the Requirements Spec: we can clearly see three sub-systems, their interconnection through files, and the user interface for submitting queries to the querier.
+The querier subsystem has an internal <em>ranking</em> module, which we anticipate might be separate from the <em>query processor</em> module; we’ll look more closely when we come to the querier design.</p>
+
+<p>Next, we describe each sub-system and its high-level design.</p>
+
+<p>The <strong>crawler</strong> crawls a website and retrieves webpages starting with a specified URL.
+It parses the initial webpage, extracts any embedded <code class="highlighter-rouge">href</code> URLs and retrieves those pages, and crawls the pages found at those URLs, but limiting itself to <code class="highlighter-rouge">maxDepth</code> hops from the seed URL.
+When the crawler process is complete, the indexing of the collected documents can begin.</p>
+
+<p>The <strong>indexer</strong> extracts all the keywords for each stored webpage and creates a lookup table that maps each word found to all the documents (webpages) where the word was found.</p>
+
+<p>The <strong>query engine</strong> responds to requests (queries) from users.
+The <em>query processor module</em> loads the index and searches for pages that include the search keywords.
+Because there may be many hits, we need a <em>ranking module</em> to rank the results (e.g., high to low number of instances of a keyword on a page).</p>
+
+<h3 id="tse-crawler-specs">TSE Crawler Specs</h3>
+
+<p>We’ll look deeper at the requirements for the indexer and querier later.
+Right now, let’s focus on the crawler:</p>
+
+<ul>
+  <li><strong><a href="/engs50/Labs/Lab4/REQUIREMENTS.html">Requirements Spec</a></strong>.</li>
+  <li><strong><a href="/engs50/Labs/Lab4/DESIGN.html">Design Spec</a></strong>.</li>
+  <li><strong>Implementation spec</strong>:
+The Design Spec describes abstractions - abstract data structures, and pseudocode.
+The same design could be implemented in C or Java or another language.
+The Implementation Spec gets more specific.
+It is <em>language, operating system, and hardware dependent</em>.
+The implementation spec includes many or all of these topics:
+    <ul>
+      <li>Detailed pseudo code for each of the objects/components/functions,</li>
+      <li>Definition of detailed APIs, interfaces, function prototypes and their parameters,</li>
+      <li>Data structures (e.g., <code class="highlighter-rouge">struct</code> names and members),</li>
+      <li>Security and privacy properties,</li>
+      <li>Error handling and recovery,</li>
+      <li>Resource management,</li>
+      <li>Persistant storage (files, database, etc).</li>
+    </ul>
+  </li>
+</ul>
+
+<p>The <a href="/engs50/Labs/Lab3">Lab3</a> assignment is written like an implementation spec, right down to the specific function prototypes.</p>
+
+<p>You need to write the Implementation spec for the Crawler in Lab 4.</p>
+
+<h2 id="demonstration">Demonstration</h2>
+
+<h3 id="crawler-execution-and-output">Crawler execution and output</h3>
+
+<p>Below is a snippet of when the program starts to crawl the CS50 website to a depth of 1.
+The crawler prints status information as it goes along.</p>
+<blockquote>
+  <p>Note, you might consider covering this debugging print-out code in an <code class="highlighter-rouge">#ifdef</code> block that can be triggered by a compile-time switch.
+See the <a href="../12/preprocessor.html">Lecture extra</a> about this trick.</p>
+</blockquote>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ./crawler http://old-www.cs.dartmouth.edu/~cs50/index.html data 1
+ 0   Fetched: http://old-www.cs.dartmouth.edu/~cs50/index.html
+ 0     Saved: http://old-www.cs.dartmouth.edu/~cs50/index.html
+ 0  Scanning: http://old-www.cs.dartmouth.edu/~cs50/index.html
+ 0     Found: http://old-www.cs.dartmouth.edu/~cs50/
+ 0     Added: http://old-www.cs.dartmouth.edu/~cs50/
+ 0     Found: https://canvas.dartmouth.edu/courses/14815
+ 0  IgnExtrn: https://canvas.dartmouth.edu/courses/14815
+ 0     Found: https://piazza.com/dartmouth/spring2017/cosc050sp17/home
+ 0  IgnExtrn: https://piazza.com/dartmouth/spring2017/cosc050sp17/home
+ 0     Found: http://old-www.cs.dartmouth.edu/~cs50/Schedule.pdf
+ 0  IgnExtrn: http://old-www.cs.dartmouth.edu/~cs50/Schedule.pdf
+ 0     Found: http://www.cs.dartmouth.edu/~cs50/Logistics/
+ 0  IgnExtrn: http://www.cs.dartmouth.edu/~cs50/Logistics/
+ 0     Found: http://www.cs.dartmouth.edu/~cs50/Lectures/
+ 0  IgnExtrn: http://www.cs.dartmouth.edu/~cs50/Lectures/
+ 0     Found: http://www.cs.dartmouth.edu/~cs50/Reading/
+ 0  IgnExtrn: http://www.cs.dartmouth.edu/~cs50/Reading/
+ 0     Found: http://www.cs.dartmouth.edu/~cs50/examples/
+ 0  IgnExtrn: http://www.cs.dartmouth.edu/~cs50/examples/
+ 0     Found: http://www.cs.dartmouth.edu/~cs50/Sections/
+ 0  IgnExtrn: http://www.cs.dartmouth.edu/~cs50/Sections/
+ 0     Found: http://www.cs.dartmouth.edu/~cs50/Labs/
+ 0  IgnExtrn: http://www.cs.dartmouth.edu/~cs50/Labs/
+ 0     Found: http://www.cs.dartmouth.edu/~cs50/Labs/Project/
+ 0  IgnExtrn: http://www.cs.dartmouth.edu/~cs50/Labs/Project/
+ 0     Found: https://gitlab.cs.dartmouth.edu
+ 0  IgnExtrn: https://gitlab.cs.dartmouth.edu
+ 0     Found: http://www.cs.dartmouth.edu/~cs50/Resources/
+ 0  IgnExtrn: http://www.cs.dartmouth.edu/~cs50/Resources/
+ 0     Found: http://old-www.cs.dartmouth.edu/~dfk/
+ 0     Added: http://old-www.cs.dartmouth.edu/~dfk/
+ 1    Fetched: http://old-www.cs.dartmouth.edu/~dfk/
+ 1      Saved: http://old-www.cs.dartmouth.edu/~dfk/
+ 1    Fetched: http://old-www.cs.dartmouth.edu/~cs50/
+ 1      Saved: http://old-www.cs.dartmouth.edu/~cs50/
+</code></pre></div></div>
+
+<p>Notice how I printed the depth of the current crawl at left, then indented slightly based on the current depth, then printed a single word meant to indicate what is being done, then printed the URL.
+By ensuring a consistent format, and choosing a simple/unique word for each type of line, I can post-process the output with <code class="highlighter-rouge">grep</code>, <code class="highlighter-rouge">awk</code>, and so forth, enabling me to run various checks on the output of the crawler.
+Much better than a mish-mash of arbitrary output formats!</p>
+
+<p>To make this easy, I wrote a simple function to print those lines:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// log one word (1-9 chars) about a given url
+</span><span class="kr">inline</span> <span class="k">static</span> <span class="kt">void</span> <span class="nf">logr</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">word</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">depth</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">url</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"%2d %*s%9s: %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="s">""</span><span class="p">,</span> <span class="n">word</span><span class="p">,</span> <span class="n">url</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>I thus have just one <code class="highlighter-rouge">printf</code> call, and if I want to tweak the format, I just need to edit one place and not every log-type <code class="highlighter-rouge">printf</code> in the code.</p>
+
+<blockquote>
+  <p>Notice the <code class="highlighter-rouge">inline</code> modifier.
+This means that C is allowed to compile this code ‘in line’ where the function call occurs, rather than compiling code that actually jumps to a function and returns.
+Syntactically, in every way, it’s just like a function - but more efficient.
+Great for tiny functions like this one, where it’s worth duplicating the code (making the executable bigger) to save time (making the program run slightly faster).</p>
+</blockquote>
+
+<p>Anyway, at strategic points in the code, I make a call like this one:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   <span class="n">logr</span><span class="p">(</span><span class="s">"Fetched"</span><span class="p">,</span> <span class="n">page</span><span class="o">-&gt;</span><span class="n">depth</span><span class="p">,</span> <span class="n">page</span><span class="o">-&gt;</span><span class="n">url</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="contents-of-pagedirectory-after-crawler-has-run">Contents of pageDirectory after crawler has run</h3>
+
+<p>For each URL crawled the program creates a file and places in the file the URL and filename followed by all the contents of the webpage.
+But for a maxDepth = 1 as in this example there are only a few webpages crawled and files created.
+Below is a peek at the files created during the above crawl.
+Notice how each page starts with the URL, then a number (the depth of that page during the crawl), then the contents of the page (here I printed only the first line of the content).</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ls
+1	2	3
+$ head -3 1
+http://old-www.cs.dartmouth.edu/~cs50/index.html
+0
+&lt;!DOCTYPE html&gt;
+$ head -3 2
+http://old-www.cs.dartmouth.edu/~dfk/
+1
+&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"&gt;
+$ head -3 3
+http://old-www.cs.dartmouth.edu/~cs50/
+1
+&lt;!DOCTYPE html&gt;
+</code></pre></div></div>
+
+<h2 id="organization-of-the-tse-code">Organization of the TSE code</h2>
+
+<p>Let’s take a look at the structure of the TSE solution - so you can see what you’re aiming for.</p>
+
+<h3 id="directory-structure">Directory structure</h3>
+
+<p>My TSE comprises six subdirectories:</p>
+
+<ul>
+  <li><strong>libcs50</strong> - a library of code we provide</li>
+  <li><strong>common</strong> - a library of code you write</li>
+  <li><strong>crawler</strong> - the crawler</li>
+  <li><strong>indexer</strong> - the indexer</li>
+  <li><strong>querier</strong> - the querier</li>
+  <li><strong>data</strong> - with subdirectories where the crawler and indexer can write files, and the querier can read files.</li>
+</ul>
+
+<p>My top-level <code class="highlighter-rouge">.gitignore</code> file excludes <code class="highlighter-rouge">data</code> from the repository, because the data files are big, changing often, and don’t deserve to be saved.</p>
+
+<p>The full tree looks like this:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>├── common
+│   ├── index.c
+│   ├── index.h
+│   ├── Makefile
+│   ├── pagedir.c
+│   ├── pagedir.h
+│   ├── word.c
+│   └── word.h
+├── crawler
+│   ├── crawler.c
+│   ├── crawlertest.sh
+│   ├── Makefile
+│   └── README.md
+├── indexer
+│   ├── indexer.c
+│   ├── indexsort.awk
+│   ├── indexsort.sh
+│   ├── indextest.c
+│   ├── indextest.sh
+│   ├── Makefile
+│   └── README.md
+├── libcs50
+│   ├── bag.c
+│   ├── bag.h
+│   ├── counters.c
+│   ├── counters.h
+│   ├── file.c
+│   ├── file.h
+│   ├── file.md
+│   ├── hashtable.c
+│   ├── hashtable.h
+│   ├── jhash.c
+│   ├── jhash.h
+│   ├── Makefile
+│   ├── memory.c
+│   ├── memory.h
+│   ├── memory.md
+│   ├── README.md
+│   ├── set.c
+│   ├── set.h
+│   ├── webpage.c
+│   ├── webpage_fetch.c
+│   ├── webpage.h
+│   ├── webpage_internal.h
+│   └── webpage.md
+├── Makefile
+├── querier
+│   ├── fuzzquery.c
+│   ├── Makefile
+│   ├── querier.c
+│   ├── README.md
+│   └── testqueries
+└── README.md
+</code></pre></div></div>
+
+<h4 id="source-files">Source files</h4>
+
+<p>My crawler, indexer, and querier each consist of just one <code class="highlighter-rouge">.c</code> file.
+They share some common code, which I keep in the <code class="highlighter-rouge">common</code> directory:</p>
+
+<ul>
+  <li><strong>pagedir</strong> - a suite of functions to help the crawler write pages to the pageDirectory and help the indexer read them back in</li>
+  <li><strong>index</strong> - a suite of functions that implement the “index” data structure; this module includes functions to write an index to a file (used by indexer) and read an index from a file (used by querier).</li>
+  <li><strong>word</strong> - a function <code class="highlighter-rouge">NormalizeWord</code> used by both the indexer and the querier.</li>
+</ul>
+
+<p>Each of the program directories (crawler, indexer, querier) include a few files related to testing, as well.</p>
+
+<p>You’ll recognize the Lab3 data structures - they’re all in the <code class="highlighter-rouge">libcs50</code> library.
+Note the flatter organization - there’s not a separate subdirectory (with Makefile or test code) for each data structure.</p>
+
+<h4 id="makefiles">Makefiles</h4>
+
+<p>The starter kit includes a <code class="highlighter-rouge">Makefile</code> at the top level and another to build the <code class="highlighter-rouge">libcs50</code> library.</p>
+
+<p>The top-level <code class="highlighter-rouge">Makefile</code> recursively calls Make on each of the source directories.</p>
+
+<p>The <code class="highlighter-rouge">libcs50/Makefile</code> demonstrates how you can build a library, in this case <code class="highlighter-rouge">libcs50.a</code>, from a collection of object <code class="highlighter-rouge">.o</code> files.
+Study this Makefile, because you’ll need to write something similar for your <code class="highlighter-rouge">common</code> directory.</p>
+
+<p>You can then link these libraries into your other programs without having to list all the individual <code class="highlighter-rouge">.o</code> files on the commandline.
+For example, when I build my crawler Make runs commands as follows:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make -C crawler
+gcc -Wall -pedantic -std=c11 -ggdb -DAPPTEST  -I../libcs50 -I../common   -c -o crawler.o crawler.c
+gcc -Wall -pedantic -std=c11 -ggdb -DAPPTEST  -I../libcs50 -I../common crawler.o ../common/common.a ../libcs50/libcs50.a -lcurl -o crawler
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">crawler/Makefile</code> is written in good style, with appropriate use of variables, so the rule that causes Make to run the above commands is actually much shorter:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>crawler: crawler.o $(LLIBS)
+        $(CC) $(CFLAGS) $^ $(LIBS) -o $@
+</code></pre></div></div>
+
+<p>We’ll work more with Makefiles in upcoming classes.</p>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a> your group will run the crawler over a set of web pages and try to understand why it takes the steps it does.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

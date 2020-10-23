@@ -1,0 +1,339 @@
+https://thayer.github.io/engs50/Labs/Lab4/
+2
+19841
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Lab 4 - Crawler</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/Lab4/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Lab 4 - Crawler</h1>
+  </header>
+
+  <div class="post-content">
+    <p><strong>Due Friday, April 27, 2018, at 10pm</strong></p>
+
+<p>In this lab you’ll begin the Tiny Search Engine (TSE) by coding the Crawler according to the <a href="REQUIREMENTS.html">Crawler Requirements Spec</a> and the  <a href="DESIGN.html">Crawler Design Spec</a>.</p>
+
+<ul id="markdown-toc">
+  <li><a href="#preparation" id="markdown-toc-preparation">Preparation</a></li>
+  <li><a href="#assignment" id="markdown-toc-assignment">Assignment</a></li>
+  <li><a href="#whatsubmit" id="markdown-toc-whatsubmit">Submission - what</a></li>
+  <li><a href="#howsubmit" id="markdown-toc-howsubmit">Submission - how</a>    <ul>
+      <li><a href="#extensions" id="markdown-toc-extensions">Extensions</a></li>
+    </ul>
+  </li>
+  <li><a href="#hints-and-tips" id="markdown-toc-hints-and-tips">Hints and tips</a>    <ul>
+      <li><a href="#libcs50" id="markdown-toc-libcs50">libcs50</a></li>
+      <li><a href="#markdown" id="markdown-toc-markdown">Markdown</a></li>
+      <li><a href="#testing-crawler" id="markdown-toc-testing-crawler">Testing Crawler</a></li>
+      <li><a href="#use-valgrind-and-gdb" id="markdown-toc-use-valgrind-and-gdb">Use valgrind and gdb</a></li>
+      <li><a href="#memory-allocation" id="markdown-toc-memory-allocation">Memory allocation</a></li>
+      <li><a href="#hashtable-of-url" id="markdown-toc-hashtable-of-url">Hashtable of URL</a></li>
+      <li><a href="#pseudocode" id="markdown-toc-pseudocode">Pseudocode</a></li>
+      <li><a href="#pagedirectory" id="markdown-toc-pagedirectory">pageDirectory</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="preparation">Preparation</h2>
+
+<ol>
+  <li>
+    <p><em>Fork</em> a copy of our <a href="https://gitlab.cs.dartmouth.edu/CS50/tse">TSE starter kit</a> to make a new project in your Gitlab account; see instructions in the README there.
+Ensure the repo is <em>Private</em>.
+Give “Master” access to Professor Palmer (ccpalmer) and to head grader Haider Syed ( he may have two ids in Gitlab, use the one with “@h”).</p>
+  </li>
+  <li>
+    <p><em>Clone</em> the new project to a Git repository on your CS Unix account; again, see instructions in your fork’s README.</p>
+  </li>
+  <li>
+    <p>Edit the <code class="highlighter-rouge">README.md</code> file to remove the git instructions; a suggested template is at the bottom of the file. Include your name!</p>
+  </li>
+  <li>
+    <p>In the terminal, <strong>copy</strong> your <a href="Lab3/">Lab 3</a> sources (just <code class="highlighter-rouge">counters.[ch] set.[ch] hashtable.[ch]</code>) to the <code class="highlighter-rouge">libcs50</code> subdirectory in your brand-new repository; try <code class="highlighter-rouge">make</code> in that directory to ensure everything works.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">git add libcs50/*.[ch]; git commit -a; git push</code>.</p>
+  </li>
+  <li>
+    <p>Visit your repo on <a href="gitlab.cs.dartmouth.edu">Gitlab</a> and you should see the updated README and your new source files.
+Double-check the <a href="https://gitlab.cs.dartmouth.edu/help/public_access/public_access">visibility</a> of your repo to ensure it is <strong><em>Private</em></strong>.</p>
+  </li>
+</ol>
+
+<h2 id="assignment">Assignment</h2>
+
+<p>Write the <em>crawler</em>, first sub-system of the Tiny Search Engine.
+Please follow the <a href="/engs50/Resources/CodingStyle.html">CS50 coding style guidelines</a>, the <a href="REQUIREMENTS.html">Crawler Requirements Spec</a>, and the  <a href="DESIGN.html">Crawler Design Spec</a>.</p>
+
+<ol>
+  <li>
+    <p>Create a subdirectory <code class="highlighter-rouge">crawler</code>.</p>
+  </li>
+  <li>
+    <p>In that directory, write a program <code class="highlighter-rouge">crawler</code> that implements the Requirements Spec, leveraging your data structures.
+Please take special care that your crawler does not explore URLs that are not ‘internal’ according to <code class="highlighter-rouge">IsInternalURL()</code>.</p>
+  </li>
+  <li>
+    <p>In that directory, write a <code class="highlighter-rouge">Makefile</code> so you can build everything from the top-level directory by simply typing <code class="highlighter-rouge">make</code>, and clean up everything by typing <code class="highlighter-rouge">make clean</code>.
+To build <code class="highlighter-rouge">crawler</code> you will need to add <code class="highlighter-rouge">-lcurl</code> to include the <code class="highlighter-rouge">libcurl</code> library.</p>
+  </li>
+  <li>
+    <p>In that directory, write a <code class="highlighter-rouge">README.md</code> file to provide any special information about how to compile or use your crawler.
+This file is likely to be short.
+<em>You must use Markdown; see below.</em></p>
+  </li>
+  <li>
+    <p>In that directory, write a <code class="highlighter-rouge">IMPLEMENTATION.md</code> file to describe the implementation of your crawler.
+<em>You must use Markdown; see below.</em></p>
+  </li>
+  <li>
+    <p>Add a <code class="highlighter-rouge">TESTING.md</code> file in the <code class="highlighter-rouge">crawler</code> directory, telling the grader how you tested your crawler.
+(You may find it helpful to write a <code class="highlighter-rouge">bash</code> script to execute your crawler, and/or a <code class="highlighter-rouge">make test</code> target.) Read <a href="#testing-crawler">about testing</a> below.</p>
+  </li>
+  <li>
+    <p>As you create files and directories, add them to your git repository.
+<strong>Important:</strong> do not add any compiled files to git.
+In short: your repo should not contain any data files, core dumps, or files built with <code class="highlighter-rouge">make</code> and removed by <code class="highlighter-rouge">make clean</code>.
+Commit and push at least once a day.</p>
+  </li>
+</ol>
+
+<h2 id="whatsubmit">Submission - what</h2>
+
+<p>In this lab you shall add/edit these files in your repo:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">README.md</code> (edited)</li>
+  <li><code class="highlighter-rouge">Makefile</code> (possibly edited)</li>
+  <li><code class="highlighter-rouge">crawler/</code>
+    <ul>
+      <li><code class="highlighter-rouge">Makefile</code></li>
+      <li><code class="highlighter-rouge">crawler.c</code></li>
+      <li><code class="highlighter-rouge">README.md</code></li>
+      <li><code class="highlighter-rouge">IMPLEMENTATION.md</code></li>
+      <li><code class="highlighter-rouge">TESTING.md</code></li>
+      <li><em>optional other files related to testing</em></li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">common/</code> <em>if you follow our tip/suggestion below</em>
+    <ul>
+      <li><code class="highlighter-rouge">pagedir.c</code></li>
+      <li><code class="highlighter-rouge">pagedir.h</code></li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">libcs50/</code>  <em>if you wish to use your Lab3 solution</em>
+    <ul>
+      <li><code class="highlighter-rouge">set.c</code></li>
+      <li><code class="highlighter-rouge">counters.c</code></li>
+      <li><code class="highlighter-rouge">hashtable.c</code></li>
+    </ul>
+  </li>
+</ul>
+
+<p><em>You shall NOT modify any of the code we provide in <code class="highlighter-rouge">libcs50</code></em>.</p>
+
+<p><em>You shall NOT include any data files produced by the crawler, any binary/object files produced by the compiler, backup files, core dumps etc.</em></p>
+
+<h2 id="howsubmit">Submission - how</h2>
+
+<p>When you are ready for final submission,</p>
+
+<ul>
+  <li><strong>Add</strong> all required files using an appropriate <code class="highlighter-rouge">git add</code> commandline.</li>
+  <li><strong>Commit</strong> all changes using an appropriate <code class="highlighter-rouge">git commit</code> commandline.</li>
+  <li><strong>Tag</strong>: <code class="highlighter-rouge">git tag lab4submit</code></li>
+  <li><strong>Push</strong>: <code class="highlighter-rouge">git push --tags</code> to ensure the tags are pushed to the remote.
+See <a href="/git/tags.html">more about tags</a>.</li>
+</ul>
+
+<p>Use your web browser to view your remote on Gitlab and make sure there is a tag <code class="highlighter-rouge">lab4submit</code> and the files associated with that tagged commit include everything we’ll need to grade your lab.</p>
+
+<p>We grade the version tagged <code class="highlighter-rouge">lab4submit</code> so it is safe for you to continue work (e.g., so you can start work on Lab 5), even if you commit or push.</p>
+
+<p>We will clone your repo at 0h, 24h, 48h, and 72h after the original deadline.
+We will start grading when we first see one with tag <code class="highlighter-rouge">lab4submit</code>, and judge it late if that tag was added after the deadline.
+To avoid confusion, <em>please blitz <code class="highlighter-rouge">cs50 AT cs.dartmouth.edu</code> if you want a late submission to be graded instead of your on-time submission.</em></p>
+
+<p><strong><em>Your entire codebase must compile with <code class="highlighter-rouge">make</code> from the top-level directory and produce no compiler warnings.</em></strong>  If we find that your code will not compile, or has <strong>segmentation faults</strong>, we will send it back to you as soon as we can for repair; recall the <a href="/#crashes">grading policy</a>.</p>
+
+<p>We will run your crawler on our own set of test data.</p>
+
+<p>We will run <code class="highlighter-rouge">valgrind</code> on your program to look for memory leaks; you will lose points for memory leaks or memory errors.
+<strong>Important</strong>: the <code class="highlighter-rouge">libcurl</code> library is known to leave some “still reachable” memory; these are not your fault and will not count against you.</p>
+
+<h3 id="extensions">Extensions</h3>
+
+<p>If you want to claim your 24h extension, create a file <code class="highlighter-rouge">EXTENSION</code> at the top-level directory of your repository.
+Don’t forget to <code class="highlighter-rouge">git push</code> <em>(before the deadline!)</em> so we will see the file.
+For example,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>touch EXTENSION
+<span class="nv">$ </span>git add EXTENSION
+<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"extension request"</span>
+<span class="nv">$ </span>git tag lab4submit     <span class="c"># add tag, as above</span>
+<span class="nv">$ </span>git push <span class="nt">--tags</span>        <span class="c"># push to gitlab, including tags</span>
+</code></pre></div></div>
+
+<p>Use your web browser to view your remote on Gitlab and make sure there is a tag <code class="highlighter-rouge">lab4submit</code> and that its files include <code class="highlighter-rouge">EXTENSION</code>.</p>
+
+<p>When you are ready to submit your code, remove <code class="highlighter-rouge">EXTENSION</code> as follows, <em>update your submission tag</em>, and push to Gitlab:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git rm EXTENSION
+<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"ready for grading"</span>
+<span class="nv">$ </span>git push <span class="nt">--delete</span> origin lab4submit <span class="c"># remove the tag from remote</span>
+<span class="nv">$ </span>git tag <span class="nt">-f</span> lab4submit  <span class="c"># move the local tag forward to this commit</span>
+<span class="nv">$ </span>git push <span class="nt">--tags</span>        <span class="c"># push to gitlab remote, including tags</span>
+</code></pre></div></div>
+
+<p>Use your web browser to view your remote on Gitlab and make sure there is a tag <code class="highlighter-rouge">lab4submit</code>, that its files do <em>not</em> include <code class="highlighter-rouge">EXTENSION</code>, and its files include everything we’ll need to grade your lab.</p>
+
+<h1 id="hints-and-tips">Hints and tips</h1>
+
+<h3 id="libcs50">libcs50</h3>
+
+<p>We provide several modules in the <code class="highlighter-rouge">libcs50</code> directory, which compiles to a library <code class="highlighter-rouge">libcs50.a</code> you can link with your crawler.
+<em>You should not change any of our code.</em>
+You may drop in your <code class="highlighter-rouge">set.[ch]</code>, <code class="highlighter-rouge">counters.[ch]</code>, <code class="highlighter-rouge">hashtable.[ch]</code> files from Lab 3.
+If you’d prefer to use our version of <em>set</em>, <em>counters</em>, and <em>hashtable</em>, that’s totally fine; the starter kit includes a pre-compiled library you can use instead; see <code class="highlighter-rouge">libcs50/README.md</code>.</p>
+
+<p>Most of the modules in this directory are documented with a corresponding Markdown file.</p>
+
+<h3 id="markdown">Markdown</h3>
+
+<p>In this and subsequent labs, you must provide documentation files in Markdown format, that is, you should supply <code class="highlighter-rouge">README.md</code>, <code class="highlighter-rouge">IMPLEMENTATION.md</code>, and <code class="highlighter-rouge">TESTING.md</code>.
+The Markdown syntax provides very simple (and readable) markup for headings, lists, italics, bold, and code snippets.
+(This course website is written in Markdown.) See <a href="/engs50/Resources/#markdown">Markdown resources</a>.</p>
+
+<h3 id="testing-crawler">Testing Crawler</h3>
+
+<p>It is your responsibility to test your crawler and write about your approach in <code class="highlighter-rouge">TESTING.md</code>.
+Consider following some of the testing plan discussed in <a href="/crawler/">Lecture</a>.</p>
+
+<p>Some safe seeds you might test include</p>
+
+<ul>
+  <li>http://old-www.cs.dartmouth.edu/~cs50/data/tse/letters</li>
+  <li>http://old-www.cs.dartmouth.edu/~cs50/index.html</li>
+  <li>http://old-www.cs.dartmouth.edu/~cs50/data/tse/wikipedia</li>
+</ul>
+
+<blockquote>
+  <p>The first two are good at depths 0 and higher, but the Wikipedia case is likely too slow to run past maxDepth=2.</p>
+</blockquote>
+
+<p>You may point your crawler at any other CS user’s home page - but your seed URL must begin with <code class="highlighter-rouge">http://old-www.cs.dartmouth.edu/</code>.</p>
+
+<p>For example, you might construct your own test files in your CS Unix account in a directory like <code class="highlighter-rouge">~/public_html/tse</code> and crawl the URL <code class="highlighter-rouge">http://old-www.cs.dartmouth.edu/~YOURUSERID/tse</code></p>
+
+<h3 id="use-valgrind-and-gdb">Use valgrind and gdb</h3>
+
+<p>In <a href="/debug/">Lecture</a> we learned how to use <code class="highlighter-rouge">valgrind</code> and <code class="highlighter-rouge">gdb</code>; make use of them.</p>
+
+<h3 id="memory-allocation">Memory allocation</h3>
+
+<p>You may find the <code class="highlighter-rouge">memory.c</code> module useful.
+Its use is optional, but it is ready to use as part of library <code class="highlighter-rouge">libcs50.a</code>.</p>
+
+<p>In our Lab3 we tried to recover gracefully from memory-allocation failures.
+In the TSE application programs, we’ll be a bit more lazy: on NULL return from malloc/calloc you can print an error and exit with non-zero exit status.
+(You may find the <code class="highlighter-rouge">assertp()</code> function, defined by the  <code class="highlighter-rouge">memory</code> module, to be useful here.)</p>
+
+<h3 id="hashtable-of-url">Hashtable of URL</h3>
+
+<p>Our design calls for use of a Hashtable to store the URLs already seen.
+Our Hashtable implementation stores a <code class="highlighter-rouge">void*item</code> with each key… but if you’re just storing URLs (as keys), what item do you store?
+Our hashtable disallows NULL items.
+Suggestion: just pass a constant string as the item.</p>
+
+<h3 id="pseudocode">Pseudocode</h3>
+
+<p>Your implementation does not need to follow our pseudocode; this is one reason why you need to write about your implementation choices in <code class="highlighter-rouge">IMPLEMENTATION.md</code>.</p>
+
+<p>Our pseudocode refers to a <code class="highlighter-rouge">pagefetcher</code>; note this is effectively <code class="highlighter-rouge">webage_fetch()</code>.
+<strong>Note that <code class="highlighter-rouge">webage_fetch()</code> inserts a 1-second delay after every fetch attempt</strong>; your Crawler thus gets this behavior for free.</p>
+
+<p>Our pseudocode refers to a <code class="highlighter-rouge">pagescanner</code>; yours should leverage <code class="highlighter-rouge">webage_getNextURL()</code>.</p>
+
+<h3 id="pagedirectory">pageDirectory</h3>
+
+<p>The Crawler is supposed to determine whether the pathname provided as pageDirectory is indeed a directory, and is writable (meaning, you can create files there).
+How?
+The simplest method is to create a file there.
+If you construct a string <code class="highlighter-rouge">filename</code> that is the directory name, followed by a slash <code class="highlighter-rouge">'/'</code>, followed by a file name like <code class="highlighter-rouge">.crawler</code>, you could call <code class="highlighter-rouge">fopen(filename, "w")</code>; if it returns NULL (failure), then either the directory does not exist or is not writable.
+If it returns non-NULL (success), close the file.
+It’s fine to leave <code class="highlighter-rouge">.crawler</code> in the page directory.
+(Actually, the presence of this file will later help your indexer  confirm the pageDirectory is indeed a Crawler-produced directory.)</p>
+
+<p><strong>Tip: think ahead</strong>, and put the code for writing webpages to the pageDirectory in a separate <code class="highlighter-rouge">pagedir</code> module, in the <code class="highlighter-rouge">common</code> directory.
+Write a <code class="highlighter-rouge">Makefile</code> that produces library <code class="highlighter-rouge">common/common.a</code>.
+Not required for Lab4 but you’ll end up needing to take this step in Lab5 anyway.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

@@ -1,0 +1,321 @@
+https://thayer.github.io/engs50/Labs/Lab6/REQUIREMENTS.html
+3
+15667
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>TSE Querier Requirements Spec</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/Lab6/REQUIREMENTS.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">TSE Querier Requirements Spec</h1>
+  </header>
+
+  <div class="post-content">
+    <p>The TSE Querier is a standalone program that reads the index file produced by the TSE Indexer, and page files produced by the TSE Querier, and answers search queries submitted via stdin.</p>
+
+<p>The querier <strong>shall</strong>:</p>
+
+<ol>
+  <li>execute from a command line with usage syntax
+    <ul>
+      <li><code class="highlighter-rouge">./querier pageDirectory indexFilename</code></li>
+      <li>where <code class="highlighter-rouge">pageDirectory</code> is the pathname of a directory produced by the Crawler, and</li>
+      <li>where <code class="highlighter-rouge">indexFilename</code> is the pathname of a file produced by the Indexer.</li>
+    </ul>
+  </li>
+  <li>
+    <p>load the index from <code class="highlighter-rouge">indexFilename</code> into an internal data structure.</p>
+  </li>
+  <li>read search queries from stdin, one per line, until EOF.
+    <ol>
+      <li>clean and parse each query according to the <em>syntax</em> described below.</li>
+      <li>if the query syntax is somehow invalid, print an error message, do not perform the query, and prompt for the next query.</li>
+      <li>print the ‘clean’ query for user to see.</li>
+      <li>use the index to identify the set of documents that <em>satisfy</em> the query, as described below.</li>
+      <li>if the query is empty (no words), print nothing.</li>
+      <li>if no documents satisfy the query, print <code class="highlighter-rouge">No documents match.</code></li>
+      <li>otherwise, rank the resulting set of documents according to its <em>score</em>, as described below, and print the set of documents in decreasing rank order; for each, list the score, document ID and URL.
+(Obtain the URL by reading the first line of the relevant document file from the <code class="highlighter-rouge">pageDirectory</code>.)</li>
+      <li>Exit with zero status when EOF is reached on stdin.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>The querier <strong>shall</strong> validate its command-line arguments:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">pageDirectory</code> is the pathname for an existing directory produced by the Crawler, and</li>
+  <li><code class="highlighter-rouge">indexFilename</code> is the pathname of a readable file.</li>
+</ul>
+
+<p>The querier <em>may</em> assume that the input directory and files follow the designated formats.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">pageDirectory</code> has files named 1, 2, 3, …, without gaps.</li>
+  <li>The content of files in <code class="highlighter-rouge">pageDirectory</code> follow the format as defined in the specs; thus your code (to read the files) need not have extensive error checking.</li>
+  <li>The content of the file named by <code class="highlighter-rouge">indexFilename</code> follows our <a href="/engs50/Labs/Lab5/REQUIREMENTS.html#index-file-format">Index file format</a>; thus your code (to recreate an index structure by reading a file) need not have extensive error checking.</li>
+</ul>
+
+<h2 id="queries">Queries</h2>
+
+<p>The specs above indicate that you read one query per line, parse the query according to its <em>syntax</em>, determine which documents <em>satisfy</em> the query, and determine <em>score</em> for each document satisfying the query.
+We define each term below.</p>
+
+<h3 id="syntax">Syntax</h3>
+
+<p>Queries are a sequence of words, with optional boolean operators (‘and’, ‘or’), where ‘and’ has higher precedence than ‘or’.</p>
+
+<p>First, we ignore blank lines (i.e., empty or nothing but spaces).</p>
+
+<p>Second, we translate all upper-case letters on the input line into lower-case.</p>
+
+<p>Then, we use <a href="https://en.wikipedia.org/wiki/Backus–Naur_Form">Backus-Naur Form</a> for describing the query syntax; if you have not heard of BNF before, you’re sure to see it in future CS classes (or software specs!).</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>query       ::= &lt;andsequence&gt; [or &lt;andsequence&gt;]...
+andsequence ::= &lt;word&gt; [ [and] &lt;word&gt;]...
+</code></pre></div></div>
+<p>and <code class="highlighter-rouge">word</code> is a sequence of one or more (lower-case) letters.</p>
+
+<p>Think of the query as a sequence of <em>tokens</em>, each a <code class="highlighter-rouge">word</code> or a literal (‘and’, ‘or’), with space(s) between tokens, and optional space at the beginning or end of the line.
+Note, too, that the literal ‘and’ may be left out and is thus implicit.</p>
+
+<p>Notice how the structure of the syntax indicates that ‘and’ has higher precedence (binds more tightly) than ‘or’.
+A query is an OR’d sequence of AND-sequences, or for those of you familiar with logic, a <em>disjunction</em> of <em>conjunctions</em>.</p>
+
+<blockquote>
+  <p>By the way, this is very similar to another grammar you know well: arithmetic.</p>
+
+  <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>expression ::= &lt;product&gt; [ + &lt;product&gt;]...
+product  ::= &lt;number&gt; [ * &lt;number&gt;]...
+</code></pre></div>  </div>
+  <p>and <code class="highlighter-rouge">number</code> is a sequence of one or more digits.
+In an equation like <code class="highlighter-rouge">4 + 5 * 6</code>, the answer is <code class="highlighter-rouge">4 + (5 * 6) = 34</code>, not <code class="highlighter-rouge">(4 + 5) * 6 = 54</code>, because <code class="highlighter-rouge">*</code> has higher precedence than <code class="highlighter-rouge">+</code>.
+See <a href="/querier/">Lecture notes</a>.</p>
+</blockquote>
+
+<p>Single-word examples (all equivalent):</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> Dartmouth
+ dartmouth
+     dartmouth
+</code></pre></div></div>
+
+<p>Two-word examples (all equivalent):</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> Dartmouth College
+ dartmouth college
+ dartmouth and college
+    dartmouth    AND    College
+</code></pre></div></div>
+
+<p>The following two examples are different:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dartmouth College AND computer science
+Dartmouth College or computer science
+</code></pre></div></div>
+
+<p>There is an implicit ‘and’ between ‘Dartmouth’ and ‘College’ and between ‘computer’ and ‘science’.
+(Capitalization does not matter.) Thus, the above two queries are equivalent to</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dartmouth AND College AND computer AND science
+Dartmouth AND College or computer AND science
+</code></pre></div></div>
+
+<p>The first is a single <code class="highlighter-rouge">andsequence</code> (a single conjunction); the second is a combination of a first <code class="highlighter-rouge">andsequence</code> and a second <code class="highlighter-rouge">andsequence</code> - that is, a disjunction of two conjunctions.</p>
+
+<p>You can combine words more richly, of course:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dartmouth or computer science or programming or Unix or Doug McIlroy
+</code></pre></div></div>
+
+<p>The following queries all have syntax errors:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>and
+or
+and dartmouth
+or dartmouth
+dartmouth college or
+dartmouth college and
+dartmouth college and or computer
+dartmouth college and and computer
+dartmouth college or and computer
+computer science 50
+Dartmouth!
+Backus-Naur Form
+</code></pre></div></div>
+
+<p>because (per the syntax)</p>
+
+<ul>
+  <li>the literal ‘and’ must come between <code class="highlighter-rouge">words</code>, and the literal ‘or’ must come between <code class="highlighter-rouge">andsequences</code>, so they cannot appear at the beginning or end of a query,</li>
+  <li>the literals (‘and’ &amp; ‘or’) cannot be adjacent</li>
+  <li>characters other than letters or spaces are disallowed.</li>
+</ul>
+
+<p>Example output from the querier for some of the queries above:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Query: dartmouth or computer science or programming or unix or doug mcilroy
+Matches 7 documents (ranked):
+score 292 doc   7: http://old-www.cs.dartmouth.edu/~dfk/papers/index.html
+score   9 doc   4: http://old-www.cs.dartmouth.edu/~dfk/postdoc.html
+score   7 doc   6: http://old-www.cs.dartmouth.edu/~dfk/people.html
+score   6 doc   1: http://old-www.cs.dartmouth.edu/~dfk/index.html
+score   5 doc  10: http://old-www.cs.dartmouth.edu/~dfk/ChampionInternationalProfessor.html
+score   4 doc   9: http://old-www.cs.dartmouth.edu/
+score   4 doc   5: http://old-www.cs.dartmouth.edu/~dfk/teaching.html
+-----------------------------------------------
+Query: and 
+Error: 'and' cannot be first
+Query: or 
+Error: 'or' cannot be first
+Query: and dartmouth 
+Error: 'and' cannot be first
+Query: or dartmouth 
+Error: 'or' cannot be first
+Query: dartmouth college or 
+Error: 'or' cannot be last
+Query: dartmouth college and 
+Error: 'and' cannot be last
+Query: dartmouth college and or computer 
+Error: 'and' and 'or' cannot be adjacent
+Query: dartmouth college and and computer 
+Error: 'and' and 'and' cannot be adjacent
+Query: dartmouth college or and computer 
+Error: 'or' and 'and' cannot be adjacent
+Error: bad character '5' in query.
+Error: bad character '!' in query.
+Error: bad character '-' in query.
+</code></pre></div></div>
+
+<h3 id="satisfy">Satisfy</h3>
+
+<p>A document <em>satisfies</em> a single-word query for <code class="highlighter-rouge">word</code> if that <code class="highlighter-rouge">word</code> appears in that document.</p>
+
+<p>A document <em>satisfies</em> a conjunction (aka andsequence) <code class="highlighter-rouge">wordA and wordB</code> if both <code class="highlighter-rouge">wordA</code> and <code class="highlighter-rouge">wordB</code> appear in the document.
+By induction, a document satisfies <code class="highlighter-rouge">&lt;andsequence&gt; and wordC</code> if the document satisfies the <code class="highlighter-rouge">andsequence</code> and <code class="highlighter-rouge">wordC</code> also appears in the document.</p>
+
+<p>A document <em>satisfies</em> a disjunction <code class="highlighter-rouge">wordA or wordB</code> if either <code class="highlighter-rouge">wordA</code> and <code class="highlighter-rouge">wordB</code> appear in the document.
+By induction, a document satisfies <code class="highlighter-rouge">&lt;andsequenceA&gt; or &lt;andsequenceB&gt;</code> if the document satisfies the <code class="highlighter-rouge">andsequenceB</code> or satisfies <code class="highlighter-rouge">andsequenceB</code>, or both.</p>
+
+<h3 id="score">Score</h3>
+
+<p>Because we want to rank the documents satisfying the query, we need to score each document by <em>how well</em> it satisfies the document.</p>
+
+<p>The score for a document satisfying a single-word query for <code class="highlighter-rouge">word</code> is the number of occurrences of <code class="highlighter-rouge">word</code> in that document.
+(Fortunately, that’s what your index tells you.)</p>
+
+<p>The score for a document satisfying a conjunction (aka <code class="highlighter-rouge">andsequence</code>) <code class="highlighter-rouge">wordA and wordB</code> is the <em>minimum</em> of the score for <code class="highlighter-rouge">wordA</code> and the score for <code class="highlighter-rouge">wordB</code> on this document.
+By induction, the score for a document satisfying <code class="highlighter-rouge">&lt;andsequence&gt; and wordC</code> is the minimum of the score for the <code class="highlighter-rouge">andsequence</code> and the score for <code class="highlighter-rouge">wordC</code> on this document.</p>
+
+<p>The score for a document satisfying a disjunction <code class="highlighter-rouge">wordA or wordB</code> is the <em>sum</em> of the score for <code class="highlighter-rouge">wordA</code> and the score for <code class="highlighter-rouge">wordB</code> on this document.
+By induction, the score for a document satisfying <code class="highlighter-rouge">&lt;andsequenceA&gt; or &lt;andsequenceB&gt;</code> is the sum of the score for <code class="highlighter-rouge">andsequenceA</code> and the score for <code class="highlighter-rouge">andsequenceB</code> on this document.</p>
+
+<p>For example, consider three documents (D1, D2, D3) and three queries:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">query</th>
+      <th style="text-align: left">D1</th>
+      <th style="text-align: left">D2</th>
+      <th style="text-align: left">D3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><em>matches</em></td>
+      <td style="text-align: left">0 cat, 5 dog, 7 emu</td>
+      <td style="text-align: left">3 cat, 2 dog, 1 emu</td>
+      <td style="text-align: left">3 cat, 4 dog, 0 emu</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">cat and dog</td>
+      <td style="text-align: left">score = 0</td>
+      <td style="text-align: left">score = 2</td>
+      <td style="text-align: left">score = 3*</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">cat or  dog</td>
+      <td style="text-align: left">score = 5</td>
+      <td style="text-align: left">score = 5</td>
+      <td style="text-align: left">score = 7*</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">cat and dog or emu</td>
+      <td style="text-align: left">score = 7*</td>
+      <td style="text-align: left">score = 3</td>
+      <td style="text-align: left">score = 3</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>where * indicates the highest rank for each query.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

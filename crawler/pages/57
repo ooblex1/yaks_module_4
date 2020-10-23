@@ -1,0 +1,142 @@
+https://thayer.github.io/engs50/Notes/c2/activity.html
+3
+7378
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Activity - strings are arrays</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/c2/activity.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Activity - strings are arrays</h1>
+  </header>
+
+  <div class="post-content">
+    <p>In C, a string is actually an array of characters, which (by convention) is terminated by a null (<code class="highlighter-rouge">\0</code>) character.</p>
+
+<p>Examine this program, in <code class="highlighter-rouge">overflow.c</code>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">...</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">buflen</span> <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">buf1</span><span class="p">[</span><span class="n">buflen</span><span class="p">];</span>
+  <span class="kt">char</span> <span class="n">buf2</span><span class="p">[</span><span class="n">buflen</span><span class="p">];</span>
+  <span class="kt">int</span> <span class="n">example</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"%d: buf1='%s', buf2='%s'</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">example</span><span class="o">++</span><span class="p">,</span> <span class="n">buf1</span><span class="p">,</span> <span class="n">buf2</span><span class="p">);</span>
+
+  <span class="c1">// assign a constant to each buffer
+</span>  <span class="n">strcpy</span><span class="p">(</span><span class="n">buf1</span><span class="p">,</span> <span class="s">"hello"</span><span class="p">);</span>  <span class="c1">// like buf1 = "hello"
+</span>  <span class="n">printf</span><span class="p">(</span><span class="s">"%d: buf1='%s', buf2='%s'</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">example</span><span class="o">++</span><span class="p">,</span> <span class="n">buf1</span><span class="p">,</span> <span class="n">buf2</span><span class="p">);</span>
+
+  <span class="n">strcpy</span><span class="p">(</span><span class="n">buf2</span><span class="p">,</span> <span class="s">"class!"</span><span class="p">);</span>  <span class="c1">// like buf2 = "class!"
+</span>  <span class="n">printf</span><span class="p">(</span><span class="s">"%d: buf1='%s', buf2='%s'</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">example</span><span class="o">++</span><span class="p">,</span> <span class="n">buf1</span><span class="p">,</span> <span class="n">buf2</span><span class="p">);</span>
+
+  <span class="c1">// assign a longer constant to each buffer
+</span>  <span class="n">strcpy</span><span class="p">(</span><span class="n">buf1</span><span class="p">,</span> <span class="s">"hellohellohello"</span><span class="p">);</span> <span class="c1">// 15 characters
+</span>  <span class="n">printf</span><span class="p">(</span><span class="s">"%d: buf1='%s', buf2='%s'</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">example</span><span class="o">++</span><span class="p">,</span> <span class="n">buf1</span><span class="p">,</span> <span class="n">buf2</span><span class="p">);</span>
+
+  <span class="n">strcpy</span><span class="p">(</span><span class="n">buf2</span><span class="p">,</span> <span class="s">"class!class!class!"</span><span class="p">);</span>  <span class="c1">// 18 characters
+</span>  <span class="n">printf</span><span class="p">(</span><span class="s">"%d: buf1='%s', buf2='%s'</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">example</span><span class="o">++</span><span class="p">,</span> <span class="n">buf1</span><span class="p">,</span> <span class="n">buf2</span><span class="p">);</span>
+
+  <span class="n">putchar</span> <span class="p">(</span><span class="sc">'\n'</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">buflen</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"buf1[%d] = '%c'</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">buf1</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Explain its output, below, which may not be what you expected!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0: buf1=W?P?', buf2='?V?P?'
+1: buf1='hello', buf2='?V?P?'
+2: buf1='hello', buf2='class!'
+3: buf1='hellohellohello', buf2='class!'
+4: buf1='s!', buf2='class!class!class!'
+
+buf1[0] = 's'
+buf1[1] = '!'
+buf1[2] = ''
+buf1[3] = 'l'
+buf1[4] = 'o'
+buf1[5] = 'h'
+buf1[6] = 'e'
+buf1[7] = 'l'
+buf1[8] = 'l'
+buf1[9] = 'o'
+buf1[10] = 'h'
+buf1[11] = 'e'
+buf1[12] = 'l'
+buf1[13] = 'l'
+buf1[14] = 'o'
+buf1[15] = ''
+</code></pre></div></div>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

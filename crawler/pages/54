@@ -1,0 +1,1040 @@
+https://thayer.github.io/engs50/Notes/c1/extra.html
+3
+71128
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Extra - Introduction to C</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/c1/extra.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Extra - Introduction to C</h1>
+  </header>
+
+  <div class="post-content">
+    <p>This “lecture extra” is meant to complement today’s <a href="index.html">lecture notes</a>.</p>
+
+<p><strong><em>Warning: the examples in (or cited by) this “lecture extra” may not follow CS50 programming style.”</em></strong></p>
+
+<p>We cover</p>
+
+<ul>
+  <li>Operators</li>
+  <li>Precedence</li>
+  <li>Base data types</li>
+  <li>Storage modifiers</li>
+  <li>Scope rules of global and local variables</li>
+  <li>Flow of control in C programs</li>
+</ul>
+
+<h2 id="lets-c-">Let’s C !</h2>
+
+<h3 id="basic-operators">Basic Operators</h3>
+
+<p>Nearly all operators in C are identical to those of Java.
+However, the role of C in system programming exposes us to much more use of the shift and bit-wise operators than in Java.
+Here are the basic operators:</p>
+
+<ul>
+  <li>Assignment
+  <code class="highlighter-rouge">=</code></li>
+  <li>Arithmetic
+  <code class="highlighter-rouge">+, -, *, /, %, unary</code></li>
+  <li>
+    <p>Priorities may be overridden with <code class="highlighter-rouge">( )</code>’s.</p>
+  </li>
+  <li>Relational (all of these have the same precedence)
+  <code class="highlighter-rouge">&gt;, &gt;=, &lt;, &lt;=</code></li>
+  <li>Equality
+  <code class="highlighter-rouge">==</code> , <code class="highlighter-rouge">!=</code></li>
+  <li>Logical
+  <code class="highlighter-rouge">&amp;&amp;</code> (and), <code class="highlighter-rouge">||</code> (or), <code class="highlighter-rouge">!</code> (not)</li>
+</ul>
+
+<h3 id="pre--and-post--decrement-and-increment-operators">Pre- and post- decrement and increment operators</h3>
+
+<p>Any (integer, character or pointer) variable may be either incremented or decremented before or after its value is used in an expression.</p>
+
+<p>For example :
+<code class="highlighter-rouge">--fred</code>  will decrement <code class="highlighter-rouge">fred</code> before its value is used</p>
+
+<p><code class="highlighter-rouge">++fred</code>  will increment <code class="highlighter-rouge">fred</code> before its value is used</p>
+
+<p><code class="highlighter-rouge">fred--</code>  will get (old) value and then decrement <code class="highlighter-rouge">fred</code></p>
+
+<p><code class="highlighter-rouge">fred++</code>  will get (old) value and then increment <code class="highlighter-rouge">fred</code></p>
+
+<p>Let’s write some C code to look at pre and post increment and decrement.</p>
+
+<p>C code: <a href="/engs50/Examples/increment.c">increment.c</a></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+  file: increment.c
+
+  Description: Illustrate pre and post increment and decrement.
+*/</span>
+
+<span class="cp">#include &lt;stdio.h&gt;
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+
+     <span class="kt">int</span> <span class="n">fred</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">3</span><span class="p">;</span>
+
+     <span class="n">printf</span><span class="p">(</span><span class="s">"Start; fred = %d and a = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">fred</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+     <span class="n">a</span> <span class="o">=</span> <span class="o">--</span><span class="n">fred</span><span class="p">;</span>
+     <span class="n">printf</span><span class="p">(</span><span class="s">"a = --fred; fred = %d and a = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">fred</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+     <span class="n">a</span> <span class="o">=</span> <span class="o">++</span><span class="n">fred</span><span class="p">;</span>
+     <span class="n">printf</span><span class="p">(</span><span class="s">"a = ++fred; fred = %d and a = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">fred</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+     <span class="n">a</span> <span class="o">=</span> <span class="n">fred</span><span class="o">--</span><span class="p">;</span>
+     <span class="n">printf</span><span class="p">(</span><span class="s">"a = fred--; fred = %d and a = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">fred</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+     <span class="n">a</span> <span class="o">=</span> <span class="n">fred</span><span class="o">++</span><span class="p">;</span>
+     <span class="n">printf</span><span class="p">(</span><span class="s">"a = fred++; fred = %d and a = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">fred</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+
+     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Once we have the C code we have to compile it with <code class="highlighter-rouge">gcc</code> with the various compiler switches we discussed in Lecture 1.
+To see ALL of the options, try</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gcc <span class="nt">--help</span> <span class="nt">-v</span>
+<span class="c"># or</span>
+man gcc
+</code></pre></div></div>
+
+<p>We’ll use <code class="highlighter-rouge">mygcc -o filename filename.c </code>as our compilation command for now.
+Later, we’ll use the more powerful <code class="highlighter-rouge">make</code> utility.
+In <code class="highlighter-rouge">.bashrc</code> we already defined <code class="highlighter-rouge">mygcc</code> as an alias:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">alias </span>mygcc
+<span class="nb">alias </span><span class="nv">mygcc</span><span class="o">=</span><span class="s1">'gcc -Wall -pedantic -std=c11 -ggdb'</span>
+
+<span class="nv">$ </span>mygcc <span class="nt">-o</span> increment increment.c
+<span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-l</span> increment
+<span class="nt">-rwxr-xr-x</span>   1 atc  admin  13344 Jan 14 21:51 increment
+<span class="nv">$ </span>./increment
+Start<span class="p">;</span> fred <span class="o">=</span> 3 and a <span class="o">=</span> 3
+a <span class="o">=</span> <span class="nt">--fred</span><span class="p">;</span> fred <span class="o">=</span> 2 and a <span class="o">=</span> 2
+a <span class="o">=</span> ++fred<span class="p">;</span> fred <span class="o">=</span> 3 and a <span class="o">=</span> 3
+a <span class="o">=</span> fred--<span class="p">;</span> fred <span class="o">=</span> 2 and a <span class="o">=</span> 3
+a <span class="o">=</span> fred++<span class="p">;</span> fred <span class="o">=</span> 3 and a <span class="o">=</span> 2
+</code></pre></div></div>
+
+<p>The compiler produces an executable file named <code class="highlighter-rouge">increment</code>.</p>
+
+<p>You do not have to use <code class="highlighter-rouge">chmod</code> to make it an executable.
+The compiler takes care of that when it creates an executable with the correct permission for the file <code class="highlighter-rouge">increment </code>.</p>
+
+<p>Try it yourself.
+Save the file in your directory (e.g., <code class="highlighter-rouge">cs50/code/</code>), and compile and run the code.
+Verify that the output matches the above.</p>
+
+<h3 id="more-about-gcc-and-mygcc">More about gcc and mygcc</h3>
+
+<p>A word of warning: Whether using <code class="highlighter-rouge">gcc -o hello hello.c</code> or <code class="highlighter-rouge">mygcc -o hello hello.c</code> you must take care to avoid getting the order of the files wrong with the <code class="highlighter-rouge">-o</code> switch which tells the complier that the name of the file following the <code class="highlighter-rouge">-o</code> switch will be the name of the executable.
+One student compiled the correct way <code class="highlighter-rouge">mygcc -o hello hello.c</code> (producing a executable <code class="highlighter-rouge">hello</code> correctly) and then recompiled but got the order wrong: <code class="highlighter-rouge">mygcc -o hello.c hello</code>.
+What the <code class="highlighter-rouge">gcc</code> compiler did wasn’t pleasant.
+It took the executable <code class="highlighter-rouge">hello</code> as the source file and and <code class="highlighter-rouge">hello.c</code> as the name of the executable to be created.
+The result was the real source file <code class="highlighter-rouge">hello.c</code> disappeared!
+Well, it didn’t actually disappear, it was just erased by the compiler as it got ready to produce a new output file of that same name.
+So please be careful: the <code class="highlighter-rouge">-o</code> tells the compiler that the executable it creates should be given the name that follows the <code class="highlighter-rouge">-o</code>.
+You can always use the default <code class="highlighter-rouge">a.out</code> and not use the <code class="highlighter-rouge">-o</code> option if concerned.</p>
+
+<p>The other <code class="highlighter-rouge">gcc</code> switches are important to use because make sure we write good clean code.
+Let<code class="highlighter-rouge">s discuss what these </code>gcc<code class="highlighter-rouge"> options are (</code>-Wall -pedantic -std=c11`):</p>
+
+<ul>
+  <li><code class="highlighter-rouge">-Wall</code> turns on all optional warnings which are desirable for normal code.</li>
+  <li><code class="highlighter-rouge">-pedantic</code> checks programs for strict ISO C conformance and issues all the warnings demanded by strict ISO C.</li>
+  <li><code class="highlighter-rouge">-std=c11</code> indicates the language standard we want.
+By using these options the compiler forces us to resolve various warning that you would not see if you just used <code class="highlighter-rouge">gcc</code> without any switches.</li>
+</ul>
+
+<p>Always use these options (<code class="highlighter-rouge">-Wall -pedantic -std=c11</code>) from now on in this course.
+You can do a <code class="highlighter-rouge">man gcc</code> and look at the option meanings for the nitty gritty details on these settings.</p>
+
+<h3 id="bitwise-operators-and-masking">Bitwise operators and masking</h3>
+
+<p><code class="highlighter-rouge">&amp;</code> (bitwise and), <code class="highlighter-rouge">|</code> (bitwise or), <code class="highlighter-rouge">~</code> (bitwise negation).</p>
+
+<p>You can use these to check if certain bits are on, as in <code class="highlighter-rouge">(nextchar &amp; 0x30)</code>.
+Do you see how this works?</p>
+
+<p>Shift operators <code class="highlighter-rouge">&lt;&lt;</code> (shift left), <code class="highlighter-rouge">&gt;&gt;</code> (shift right)</p>
+
+<p>Shifting bits to the left or right.
+Note: results may vary based upon whether the type of the variable being shifted is “signed” or “unsigned”.
+See H&amp;S pp.231-233.</p>
+
+<h3 id="combined-operators-and-assignment">Combined operators and assignment</h3>
+
+<p><strong>Example <a href="/engs50/Examples/combined.c">combined.c</a></strong></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+        <span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="n">d</span><span class="p">;</span>
+
+        <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="p">;</span> <span class="n">b</span><span class="o">=</span><span class="mi">20</span><span class="p">;</span> <span class="n">c</span><span class="o">=</span><span class="mi">30</span><span class="p">;</span> <span class="n">d</span><span class="o">=</span><span class="mi">4</span><span class="p">;</span>
+
+        <span class="c1">// these lines ...
+</span>        <span class="n">a</span><span class="o">=</span><span class="n">a</span><span class="o">+</span><span class="mi">2</span><span class="p">;</span>
+        <span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="o">-</span><span class="mi">12</span><span class="p">;</span>
+        <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="o">*</span><span class="p">(</span><span class="n">d</span><span class="o">-</span><span class="mi">2</span><span class="p">);</span>
+        <span class="n">printf</span><span class="p">(</span> <span class="s">"a=%d, b=%d, c=%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+
+        <span class="n">a</span><span class="o">=</span><span class="mi">10</span><span class="p">;</span> <span class="n">b</span><span class="o">=</span><span class="mi">20</span><span class="p">;</span> <span class="n">c</span><span class="o">=</span><span class="mi">30</span><span class="p">;</span> <span class="n">d</span><span class="o">=</span><span class="mi">4</span><span class="p">;</span>
+
+        <span class="c1">// could have been written this way
+</span>        <span class="n">a</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">;</span>
+        <span class="n">b</span> <span class="o">-=</span> <span class="mi">12</span><span class="p">;</span>
+        <span class="n">c</span> <span class="o">*=</span> <span class="n">d</span><span class="o">-</span><span class="mi">2</span><span class="p">;</span>
+        <span class="n">printf</span><span class="p">(</span> <span class="s">"a=%d, b=%d, c=%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+
+        <span class="n">exit</span> <span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h3 id="type-coercion">Type coercion</h3>
+
+<p>C permits assignments and parameter passing between variables of different types using type casts or coercion.
+Casts in C are not implicit, and are used where some languages require a ‘transfer function’.
+We will see examples of C’s cast operator later in the course.</p>
+
+<h3 id="precedence-of-operators">Precedence of operators</h3>
+
+<p>Expressions are all evaluated from left-to-right, and the default precedence may be overridden with brackets.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Operator</th>
+    </tr>
+    <tr>
+      <th style="text-align: center">Precedence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><em>highest</em></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">( )</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">++ -- !</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">* / % |</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">+ - </code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">==  !=</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">&amp;</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">|</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">&amp;&amp;</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">||</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">?:</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">=</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="highlighter-rouge">,</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><em>lowest</em></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="variable-names">Variable names</h3>
+
+<p>Variable names (and type and function names as we shall see later) must commence with an alphabetic or the underscore character <code class="highlighter-rouge">A-Z a-z _</code> and be followed by zero or more alphabetic, underscore or digit characters <code class="highlighter-rouge">A-Z a-z 0-9</code>.
+Most C compilers, such as <code class="highlighter-rouge">gcc</code>, accept and support variable, type, and function names to be up to 256 characters in length.
+(Some older C compilers only supported variable names with up to 8 unique leading characters and keeping to this limit may be preferred to maintain portable code.) It is also preferred that you do not use variable names consisting entirely of uppercase characters.
+All-uppercase variable names are typically reserved for constants (such as <code class="highlighter-rouge">MAXBUFSIZE</code>, <code class="highlighter-rouge">AVAGADROS_NUMBER</code>, <code class="highlighter-rouge">MAXUSERS</code>).</p>
+
+<p>Importantly, C variable names are case sensitive, so <code class="highlighter-rouge">MYLIMIT</code>, <code class="highlighter-rouge">mylimit</code>, <code class="highlighter-rouge">Mylimit</code> and <code class="highlighter-rouge">MyLimit</code> are four different variable names.</p>
+
+<p>There are some specific variable/function naming styles that you may encounter.
+The major ones are</p>
+
+<ul>
+  <li>
+    <p><strong>camelCase</strong>: writing compound words with the first letter of each word capitalized, except for the first word’s first letter, which is not capitalized.</p>
+  </li>
+  <li>
+    <p><strong>PascalCase</strong>: writing compound words just as in camelCase* with the first letter of the first word also capitalized.
+(In Java it is common to use this case for class names, but Camel case for member names.)</p>
+  </li>
+  <li>
+    <p><strong>snake_case</strong>: writing compound words with an underscore between each word with little, if any, capitalization.</p>
+  </li>
+</ul>
+
+<p>For a short history of how these came about and some discussion, see Brad Abrams’ <a href="http://blogs.msdn.com/b/brada/archive/2004/02/03/67024.aspx">blog post</a>.</p>
+
+<p>Any programming project, including all of your assignments, should pick a variable/function naming style and <strong>stick with it</strong>.</p>
+
+<h3 id="base-types">Base types</h3>
+
+<p>Variables are declared to be of a certain type.
+This type may be either a base type supported by the C language itself, or a user-defined type consisting of elements drawn from C’s set of base types.
+C’s base types and their representation on our lab’s systems are:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">type</th>
+      <th style="text-align: left">description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">char</code></td>
+      <td style="text-align: left">the character type, 8 bits long</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">short</code></td>
+      <td style="text-align: left">the short integer type, 16 bits long</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">int</code></td>
+      <td style="text-align: left">the standard integer type, 32 bits long</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">long</code></td>
+      <td style="text-align: left">the longer integer type, 64 bits long</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">float</code></td>
+      <td style="text-align: left">the standard floating point (real) type, 32 bits long (about 10 decimal digits of precision)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">double</code></td>
+      <td style="text-align: left">the extra precision floating point type, 64 bits long (about 17 decimal digits of precision)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>We can determine the number of bytes required for datatypes (and other things, as we will see later) with the <code class="highlighter-rouge">sizeof</code> operator.
+In contrast, Java defines how long each datatype may be.
+In C, the sizes vary from machine to machine, with the details managed by the compiler.
+C’s only guarantee is that:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sizeof(char) &lt;= sizeof(short) &lt;= sizeof(int) &lt;= sizeof(long)
+</code></pre></div></div>
+
+<p>Let’s write some C code to look at these base data types.
+We will use the <code class="highlighter-rouge">sizeof</code> operator and the <code class="highlighter-rouge">printf</code> function.
+We will also define variables of each of the base types and print the initialized values as part of the <code class="highlighter-rouge">data-types.c</code> code.</p>
+
+<p><strong>Example <a href="/engs50/Examples/data-types.c">data-types.c</a></strong></p>
+
+<p>The contents of data-types.c looks like this:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+  file: data-types.c
+
+  Description: Sets up variables for different base data types, intialises them
+  and print the data and the size of the base data types in number of bytes.
+
+  Revised version of code pg. 96 (Program 2.10) (Bronson) "First Book on ANSI C"
+*/</span>
+
+<span class="cp">#include &lt;stdio.h&gt;
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+
+  <span class="kt">char</span> <span class="n">ch</span> <span class="o">=</span> <span class="sc">'a'</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">in</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">short</span> <span class="n">sh</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="n">lo</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="kt">long</span> <span class="n">llo</span> <span class="o">=</span> <span class="mi">1234567890</span><span class="p">;</span>
+  <span class="kt">float</span> <span class="n">fl</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">.</span><span class="mi">256734</span><span class="p">;</span>
+  <span class="kt">double</span> <span class="n">db</span> <span class="o">=</span> <span class="mf">11e+23</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="kt">double</span> <span class="n">ld</span> <span class="o">=</span> <span class="mf">10e+30</span><span class="p">;</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"-------contents ------- sizeof()------</span><span class="se">\n\n</span><span class="s">"</span><span class="p">);</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"contents of char is %c --- sizeof %ld bytes</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">));</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"contents int is  %d --- sizeof  %ld bytes</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">in</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"contents short is  %d --- sizeof %ld bytes</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">sh</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">short</span><span class="p">));</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"contents long is %ld --- sizeof %ld bytes</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="p">));</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"contents long long is %lld --- sizeof %ld bytes</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">llo</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span> <span class="kt">long</span><span class="p">));</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"contents float is %f --- sizeof %ld bytes</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span><span class="n">fl</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"contents double is  %e --- sizeof %ld bytes</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span><span class="n">db</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"contents long double is  %LG --- sizeof %ld bytes</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">ld</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span> <span class="kt">double</span><span class="p">));</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Let’s compile and run the code.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>mygcc <span class="nt">-o</span> data-types data-types.c
+<span class="nv">$ </span>./data-types
+<span class="nt">-------contents</span> <span class="nt">-------</span> sizeof<span class="o">()</span><span class="nt">------</span>
+
+contents of char is a <span class="nt">---</span> sizeof 1 bytes
+
+contents int is  2 <span class="nt">---</span> sizeof  4 bytes
+
+contents short is  3 <span class="nt">---</span> sizeof 2 bytes
+
+contents long is 4 <span class="nt">---</span> sizeof 8 bytes
+
+contents long long is 1234567890 <span class="nt">---</span> sizeof 8 bytes
+
+contents float is 1000.256714 <span class="nt">---</span> sizeof 4 bytes
+
+contents double is  1.100000e+24 <span class="nt">---</span> sizeof 8 bytes
+
+contents long double is  1E+31 <span class="nt">---</span> sizeof 16 bytes
+</code></pre></div></div>
+
+<p>Check it out: Save the file in your directory; compile and run the code.
+Check the output.</p>
+
+<h3 id="storage-modifiers-of-variables">Storage modifiers of variables</h3>
+
+<p>Base types may be preceded with one or more storage modifier:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">storage</th>
+      <th style="text-align: left">meaning</th>
+    </tr>
+    <tr>
+      <th style="text-align: left">modifier</th>
+      <th style="text-align: left"> </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">auto</code></td>
+      <td style="text-align: left">the variable is placed on the stack (default, deprecated)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">const</code></td>
+      <td style="text-align: left">the variable is a constant, and can/will never change value</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">extern</code></td>
+      <td style="text-align: left">the variable is defined outside of the current file</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">register</code></td>
+      <td style="text-align: left">request that the variable be placed in a register (mostly ignored)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">static</code></td>
+      <td style="text-align: left">the variable is placed in global storage with limited visibility</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">typedef</code></td>
+      <td style="text-align: left">introduces a user-defined type</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="highlighter-rouge">unsigned</code></td>
+      <td style="text-align: left">stored and used only as positive integers</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="initialization-of-variables">Initialization of variables</h3>
+
+<p>All scalar <code class="highlighter-rouge">auto</code> and <code class="highlighter-rouge">static</code> variables may be initialized immediately after their definition, typically with constants or simple expressions that the compiler can evaluate at compile time.
+The C99 language defines that all uninitialized global variables, and all uninitialized static local variables will have the starting values resulting from their memory locations being filled with zeroes - conveniently the value of <code class="highlighter-rouge">0</code> for an integer, and <code class="highlighter-rouge">0.0</code> for a floating point number.</p>
+
+<h3 id="scope-rules-of-global-variables">Scope rules of global variables</h3>
+
+<p><em>Scope</em> is defined as the section (e.g., function, block) of the program where the variable is valid and known.</p>
+
+<p>In Java, a variable is simply used as a name by which we refer to an object.
+A newly created object is given a name for later reference, and that name may be re-used to refer to another object later in the program.
+In C, a variable more strictly refers to a memory address (or contiguous memory address starting from the indicated point) and the type of the variable declares how that memory’s contents should be interpreted and modified.</p>
+
+<p>C only has two true lexical levels, <code class="highlighter-rouge">global</code> and <code class="highlighter-rouge">function</code>, though sub-blocks of variables and statements may be introduced in sub-blocks in many places, seemingly creating new lexical levels.
+As such, variables are typically defined globally (at lexical level 0), or at the start of a statement block, where a function’s body is understood to be a statement block.</p>
+
+<p>Variables defined globally in a file, are visible until the end of that file.
+They need not be declared at the top of a file, but typically are.
+If a global variable has a storage modifier of <code class="highlighter-rouge">static</code>, it means that the variable is only available from within that file.
+If the <code class="highlighter-rouge">static</code> modifier is missing, that variable may be accessed from another file if part of a program compiled and linked from multiple source files.</p>
+
+<p>The <code class="highlighter-rouge">extern</code> modifier is used (within a given file) to declare that the indicated variable is defined in another file.
+The variable may be <em>declared</em> as <code class="highlighter-rouge">extern</code> in all files, but must be <em>defined</em> (and not as a <code class="highlighter-rouge">static</code>!) in only a single file.</p>
+
+<h3 id="scope-rules-of-local-variables">Scope rules of local variables</h3>
+
+<p>Variables may also be declared at the beginning of a statement block, but may not be declared anywhere other than the top of the block.
+Such variables are visible until the end of that block; most variables are declared at the top of a function’s block, and are thus visible until the end of the current function.
+A variables name may shadow that of a global variable, making that global variable inaccessible.
+Blocks do not have names, and so shadowed variables cannot be named.
+Local variables are accessible until the end of the block in which they are defined.</p>
+
+<p>Local variables are implicitly preceded by the <code class="highlighter-rouge">auto</code> modifier as control flow enters the block; memory for the variable is allocated on the run-time stack.
+The memory is automatically deallocated (or simply becomes inaccessible) as control flow leaves the block.
+The implicit <code class="highlighter-rouge">auto</code> modifier facilitates recursion in C as each entry into a new block allocates memory for new local variables, and these unique instances are accessible only while in that block.</p>
+
+<p>If a local variable is preceded by the <code class="highlighter-rouge">static</code> modifier, its memory is not allocated on the run-time stack, but in the same memory as for global variables.
+When control flow leaves the block, the memory is not deallocated, and remains for the exclusive use by that local variable.
+The result is that a <code class="highlighter-rouge">static</code>local variable retains its value between entries to its block.
+Whereas the starting value of an <code class="highlighter-rouge">auto</code> local variable (sitting on the stack) cannot be assumed (or more correctly, should be considered to contain a totally random value), the starting value of a static local variable is as it was when the variable was last used.</p>
+
+<h3 id="examples-of-global-and-local-variables">Examples of global and local variables</h3>
+
+<p>Let’s look at some code snippets to reinforce the ideas of local and global variables and the issue of the scope of these variables in a section of code.</p>
+
+<p><strong>Example <a href="/engs50/Examples/scope.c">scope.c</a></strong></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+
+  File: scope.c
+
+  Description: Illustrates the use of global and local variables and
+               global function prototypes.
+
+
+   Revised code taken from pg. 330 (Program 7.1) (Bronson) "First Book on ANSI C"
+
+*/</span>
+
+<span class="cp">#include &lt;stdio.h&gt;
+</span>
+<span class="cm">/* firstnum is a global variable not defined on the main() stack. It has full scope
+   of all functions in the file scope.c. Any code in the file can read and write to it.
+   Once main() teriminates the variable is dellocated and no longer exists
+*/</span>
+
+<span class="kt">int</span> <span class="n">firstnum</span><span class="p">;</span> <span class="cm">/* create a global variable named firstnum */</span>
+
+<span class="kt">void</span> <span class="n">valfun</span><span class="p">();</span> <span class="cm">/* global function prototype */</span>
+
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">secnum</span><span class="p">;</span> <span class="cm">/* create a local variable named secnum */</span>
+  <span class="n">firstnum</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="cm">/* store a value into the global variable */</span>
+  <span class="n">secnum</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="cm">/* store a value into the local variable */</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">From main(): firstnum = %d"</span><span class="p">,</span><span class="n">firstnum</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">From main(): secnum = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">secnum</span><span class="p">);</span>
+
+  <span class="n">valfun</span><span class="p">();</span> <span class="cm">/* call the function valfun */</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">From main() again: firstnum = %d"</span><span class="p">,</span><span class="n">firstnum</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">From main() again: secnum = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">secnum</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+<span class="kt">void</span> <span class="nf">valfun</span><span class="p">()</span> <span class="cm">/* no values are passed to this function */</span>
+<span class="p">{</span>
+
+  <span class="cm">/* secum is a local variable created on the stack when valfun() executes.
+     When valfun() exits the stack is deallocated and the variable no
+     longer exists. It is local and its scope is valfun() */</span>
+
+  <span class="kt">int</span> <span class="n">secnum</span><span class="p">;</span> <span class="cm">/* create a second local variable named secnum */</span>
+  <span class="n">secnum</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="cm">/* this only affects this local variable's value */</span>
+
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">From valfun(): firstnum = %d"</span><span class="p">,</span><span class="n">firstnum</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">From valfun(): secnum = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">secnum</span><span class="p">);</span>
+  <span class="n">firstnum</span> <span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="cm">/* this changes firstnum for both functions */</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If we run the code the output is as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>mygcc <span class="nt">-o</span> scope scope.c
+<span class="nv">$ </span>./scope
+
+From main<span class="o">()</span>: firstnum <span class="o">=</span> 10
+From main<span class="o">()</span>: secnum <span class="o">=</span> 20
+
+From valfun<span class="o">()</span>: firstnum <span class="o">=</span> 10
+From valfun<span class="o">()</span>: secnum <span class="o">=</span> 30
+
+From main<span class="o">()</span> again: firstnum <span class="o">=</span> 40
+From main<span class="o">()</span> again: secnum <span class="o">=</span> 20
+</code></pre></div></div>
+
+<p>Study the output.
+Is it what you expected?</p>
+
+<p>The first thing to note about the source code is that it defines a global variable <code class="highlighter-rouge">firstnum</code> that’s scope is the complete file and therefore is accessible from <code class="highlighter-rouge">main()</code> and the <code class="highlighter-rouge">valfun()</code>.</p>
+
+<p>Note <code class="highlighter-rouge">scope.c</code> has a <code class="highlighter-rouge">main()</code> and a <code class="highlighter-rouge">valfun()</code> function.
+The <em>prototype</em> for <code class="highlighter-rouge">valfun()</code> is declared at the top of the file, giving it global scope in the file <code class="highlighter-rouge">scope.c</code>.
+(We will discuss prototypes more later.) Both <code class="highlighter-rouge">main()</code> and <code class="highlighter-rouge">valfun()</code> update and print the value of <code class="highlighter-rouge">firstnum</code>, which represents a variable with a memory address (space is not allocated on the stack as in the case of auto variables such as <code class="highlighter-rouge">secnum</code>).
+Note that <code class="highlighter-rouge">main()</code> and <code class="highlighter-rouge">valfun()</code> both have local variables named <code class="highlighter-rouge">secnum</code>.
+This name collision is not a problem and causes no clash because of the scope of these two different local variables (that happen to have the same name) only have local scope inside the <code class="highlighter-rouge">main()</code> and <code class="highlighter-rouge">valfun()</code> functions, respectively.
+Their instances are private to <code class="highlighter-rouge">main()</code> and <code class="highlighter-rouge">valfun()</code>, respectively.
+They have no association other than having the same names.
+They are auto variables created on the stack and no longer exist when the function exits.
+For example, <code class="highlighter-rouge">valfun()</code> creates a variable for <code class="highlighter-rouge">secnum</code> of integer type on its local stack when it executes, but when it returns control to <code class="highlighter-rouge">main()</code> the stack is deallocated and the variable no longer exists.
+In contrast, the global variable <code class="highlighter-rouge">firstnum</code> and its current value are not changed when <code class="highlighter-rouge">valfun()</code> exits.</p>
+
+<h3 id="examples-of-auto-and-static-local-variables">Examples of auto and static local variables</h3>
+
+<p>Consider another storage modifier that is impacted by scope: <code class="highlighter-rouge">static</code>.
+Here the variable is placed in global storage with limited visibility depending on where it is defined.
+Let’s look at two code snippets that illustrate the use of local auto and static variables.
+These represent two important cases in C.</p>
+
+<p>First, let’s look at the case of auto local variables.</p>
+
+<p><strong>Example: <a href="/engs50/Examples/auto.c">auto.c</a></strong></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+
+  File: auto.c
+
+  Description: Illustrates the auto local variables
+
+  Code taken from pg. 336 (Program 7.2) (Bronson) "First Book on ANSI C"
+
+*/</span>
+
+
+<span class="cp">#include &lt;stdio.h&gt;
+</span>
+<span class="kt">void</span> <span class="n">testauto</span><span class="p">();</span> <span class="cm">/* function prototype */</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">count</span><span class="p">;</span> <span class="cm">/* create the auto variable count */</span>
+  <span class="k">for</span><span class="p">(</span><span class="n">count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">;</span> <span class="n">count</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">testauto</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">testauto</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="cm">/* create the auto variable num */</span>
+               <span class="cm">/* and initialize to zero */</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"The value of the automatic variable num is %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">num</span><span class="p">);</span>
+  <span class="n">num</span><span class="o">++</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If we run the code the output is as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>./auto
+The value of the automatic variable num is 0
+The value of the automatic variable num is 0
+The value of the automatic variable num is 0
+</code></pre></div></div>
+
+<p>Study the output.
+Is it what you expected?</p>
+
+<p>Now let’s look at the case when <code class="highlighter-rouge">num</code> is defined as <code class="highlighter-rouge">static</code> inside the scope of the function <code class="highlighter-rouge">teststat()</code>.
+Note, that the value of <code class="highlighter-rouge">num</code> is now persistent across multiple invocations of the function.
+This is in direct contrast to the auto local varable of the last code snippet - i.e., <code class="highlighter-rouge">auto.c</code>.
+In essence, the operator <code class="highlighter-rouge">static</code> allocates memory to the variable of type <code class="highlighter-rouge">int</code> that is outside the stack just like a global variable in <code class="highlighter-rouge">scope.c</code> - i.e., <code class="highlighter-rouge">firstnum</code>.
+However, the distinction here is that <code class="highlighter-rouge">static</code> is not global.
+It is only accessible in the function <code class="highlighter-rouge">teststat()</code>.
+We hope that clarifies the issue of scope, local and global variables and the issue of auto variables and static variables.</p>
+
+<p>First, let’s look at the case of static local variables.</p>
+
+<p><strong>Example <a href="/engs50/Examples/static.c">static.c</a></strong></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+
+  File: static.c
+
+  Description: Illustrates the use of auto variables, with `static`.
+
+
+   Revised code taken from pg. 336 (Program 7.2) (Bronson) "First Book on ANSI C"
+
+*/</span> 
+
+
+<span class="cp">#include &lt;stdio.h&gt;
+</span>
+<span class="kt">void</span> <span class="n">teststat</span><span class="p">();</span> <span class="cm">/* function prototype */</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">count</span><span class="p">;</span> <span class="cm">/* count is a local auto variable */</span>
+
+  <span class="k">for</span><span class="p">(</span><span class="n">count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">;</span> <span class="n">count</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">teststat</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cm">/*  Note, that the varuable num in teststat() is only set to zero once. The value set by 
+    the local scope static variable num detains its value when teststat() returns.
+*/</span>
+
+<span class="kt">void</span> <span class="nf">teststat</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="k">static</span> <span class="kt">int</span> <span class="n">num</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="cm">/* num is a local static variable */</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"The value of the static variable num is now %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">num</span><span class="p">);</span>
+  <span class="n">num</span><span class="o">++</span><span class="p">;</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If we run the code the output is as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>./static
+The value of the static variable num is now 0
+The value of the static variable num is now 1
+The value of the static variable num is now 2
+</code></pre></div></div>
+
+<p>Is this what you expected?</p>
+
+<p>Question: If I have defined <code class="highlighter-rouge">static int num;</code> at the top of <code class="highlighter-rouge">static.c</code> how would that change the scope of the static variable?
+Is it different to <code class="highlighter-rouge">int num</code>; as defined as global variable (like <code class="highlighter-rouge">firstnum</code> in <code class="highlighter-rouge">scope</code>.c)?</p>
+
+<h3 id="flow-of-control-in-a-c-program">Flow of control in a C program</h3>
+
+<p>Control flow within C programs is almost identical to the equivalent constructs in Java.
+However, C provides no exception mechanism, and so C has no <code class="highlighter-rouge">try</code>, <code class="highlighter-rouge">catch</code>, and <code class="highlighter-rouge">finally</code>, constructs.</p>
+
+<p>Conditional execution</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">if</span> <span class="p">(</span> <span class="n">expression</span> <span class="p">)</span>
+           <span class="n">statement1</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="n">expression</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="n">statement1</span><span class="p">;</span>
+           <span class="n">statement2</span><span class="p">;</span>
+           <span class="p">......</span>
+      <span class="p">}</span>
+
+      <span class="k">if</span> <span class="p">(</span> <span class="n">expression</span> <span class="p">)</span>
+           <span class="n">statement</span><span class="p">;</span>
+      <span class="k">else</span>
+           <span class="n">statement</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>Of significance, and a very common cause of errors in C programs, is that C (before C99) has no Boolean datatype.
+Instead, any expression that evaluates to the integer value of 0 is considered false, and any nonzero value as true (the opposite of bash!).
+A conditional statement’s controlling expression is evaluated and if non-zero (i.e., true) the following statement is executed.
+Most errors are introduced when programmers (accidentally) use embedded assignment statements in conditional expressions:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">if</span> <span class="p">(</span><span class="n">loop_index</span> <span class="o">=</span> <span class="n">MAXINDEX</span> <span class="p">)</span>
+           <span class="n">statement</span><span class="p">;</span>
+
+       <span class="cm">/* instead of ... */</span>
+
+       <span class="k">if</span> <span class="p">(</span><span class="n">loop_index</span> <span class="o">==</span> <span class="n">MAXINDEX</span> <span class="p">)</span>
+          <span class="n">statement</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>A good habit to get into is to place constants on the left of (potential) assignments:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">=</span> <span class="n">value</span> <span class="p">)</span>
+           <span class="n">statement</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>When compiling with <code class="highlighter-rouge">gcc -std=c11 -Wall -pedantic</code> the compiler will complain about the use of assignment operators inside <code class="highlighter-rouge">if</code> conditions … the only way to ‘shut up the compiler’ is to use extra parentheses:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">if</span> <span class="p">(</span> <span class="p">(</span> <span class="n">loop_index</span> <span class="o">=</span> <span class="n">MAXINDEX</span> <span class="p">)</span> <span class="p">)</span>
+           <span class="n">statement</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>C’s other control flow statements are very unsurprising:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">while</span> <span class="p">(</span> <span class="n">conditional</span><span class="o">-</span><span class="n">expression</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="n">statement1</span><span class="p">;</span>
+           <span class="n">statement2</span><span class="p">;</span>
+           <span class="p">......</span>
+      <span class="p">}</span>
+
+      <span class="k">do</span> <span class="p">{</span>
+           <span class="n">statement1</span><span class="p">;</span>
+           <span class="n">statement2</span><span class="p">;</span>
+           <span class="p">......</span>
+      <span class="p">}</span> <span class="k">while</span> <span class="p">(</span> <span class="n">conditional</span><span class="o">-</span><span class="n">expression</span> <span class="p">);</span>
+
+
+      <span class="k">for</span><span class="p">(</span> <span class="n">initialization</span> <span class="p">;</span> <span class="n">conditional</span><span class="o">-</span><span class="n">expression</span> <span class="p">;</span> <span class="n">adjustment</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="n">statement1</span><span class="p">;</span>
+           <span class="n">statement2</span><span class="p">;</span>
+           <span class="p">......</span>
+      <span class="p">}</span>
+</code></pre></div></div>
+
+<p>Examples of code snippets:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="cm">/* Loops: using the for statement */</span>
+
+    <span class="cp">#define ARRAY_LENGTH 100
+</span>
+    <span class="kt">long</span> <span class="n">array</span><span class="p">[</span><span class="n">ARRAY_LENGTH</span><span class="p">];</span>
+    <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+
+    <span class="k">for</span> <span class="p">(</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">ARRAY_LENGTH</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+
+       <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">i</span><span class="p">;</span>
+       <span class="n">printf</span><span class="p">(</span><span class="err">'</span><span class="n">Value</span> <span class="n">of</span> <span class="n">i</span> <span class="n">is</span> <span class="o">%</span><span class="n">d</span><span class="err">\</span><span class="n">n</span><span class="s">", i);</span><span class="err">
+
+</span><span class="s">    }</span><span class="err">
+</span></code></pre></div></div>
+
+<p>Any of the components of the <code class="highlighter-rouge">for</code> statement’s <em>for-expressions</em> may be missing, If the conditional-expression is missing, it is always true.
+Infinite loops may be requested in C with <code class="highlighter-rouge">for( ; ; )</code> … or with <code class="highlighter-rouge">while(1)</code> …</p>
+
+<h3 id="the-equivalence-of-for-and-while">The equivalence of for and while</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">for</span> <span class="p">(</span> <span class="n">expression1</span> <span class="p">;</span> <span class="n">expression2</span> <span class="p">;</span> <span class="n">expression3</span> <span class="p">)</span> <span class="p">{</span>
+             <span class="n">statement1</span><span class="p">;</span>
+      <span class="p">}</span>
+
+
+      <span class="n">expression1</span><span class="p">;</span>
+      <span class="k">while</span> <span class="p">(</span> <span class="n">expression2</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="n">statement1</span><span class="p">;</span>
+            <span class="n">expression3</span><span class="p">;</span>
+      <span class="p">}</span>
+</code></pre></div></div>
+
+<p>Example of equivalence using the <code class="highlighter-rouge">while</code> statement</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">ARRAY_LENGTH</span><span class="p">)</span> <span class="p">{</span>
+
+       <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">i</span><span class="p">;</span>
+       <span class="n">printf</span><span class="p">(</span><span class="err">'</span><span class="n">Value</span> <span class="n">of</span> <span class="n">i</span> <span class="n">is</span> <span class="o">%</span><span class="n">d</span><span class="err">\</span><span class="n">n</span><span class="s">", i);</span><span class="err">
+</span><span class="s">       i++;</span><span class="err">
+
+</span><span class="s">    }</span><span class="err">
+</span></code></pre></div></div>
+
+<h3 id="the-switch-statement">The switch statement</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">switch</span> <span class="p">(</span> <span class="n">expression</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="k">case</span> <span class="n">const1</span> <span class="p">:</span> <span class="n">statement1</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+           <span class="k">case</span> <span class="n">const2</span> <span class="p">:</span> <span class="n">statement2</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+           <span class="k">case</span> <span class="n">const3</span> <span class="p">:</span>
+           <span class="k">case</span> <span class="n">const4</span> <span class="p">:</span> <span class="n">statement4</span><span class="p">;</span>
+           <span class="k">default</span> <span class="o">:</span> <span class="n">statementN</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+</code></pre></div></div>
+
+<p>One of the few differences here between C and Java is that C permits control to “drop down” to following case constructs, unless there is an explicit <code class="highlighter-rouge">break</code> statement.</p>
+
+<p><strong>Example <a href="/engs50/Examples/operator.c">operator.c</a></strong></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+
+  File: operator.c
+
+  Description: Implements basic operations (multiplication, division, addition, modulos.
+
+
+  Revised version of code pg. 191 (Program 4.6) (Bronson) "First Book on ANSI C"
+
+*/</span> 
+
+<span class="cp">#include &lt;stdio.h&gt;
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+
+  <span class="kt">int</span> <span class="n">opselect</span><span class="p">;</span>
+  <span class="kt">float</span> <span class="n">fnum</span><span class="p">,</span> <span class="n">snum</span><span class="p">;</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"Please type in two numbers: "</span><span class="p">);</span>
+  <span class="n">scanf</span><span class="p">(</span><span class="s">"%f %f"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">fnum</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">snum</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"Enter a select code:"</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s"> 1 for addition"</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s"> 2 for multiplication"</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s"> 3 for division : "</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s"> 4 for modulus  : "</span><span class="p">);</span>
+ 
+  <span class="n">scanf</span><span class="p">(</span><span class="s">"%d"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">opselect</span><span class="p">);</span> 
+
+  <span class="c1">// This line below as an intentional bug. It is commented out. 
+</span>  <span class="c1">// it causes a segmentation fault (segfault for short)
+</span>
+  <span class="c1">//scanf("%d", opselect); 
+</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">opselect</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="k">case</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">"The sum of the numbers entered is %6.3f</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">fnum</span> <span class="o">+</span> <span class="n">snum</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="mi">2</span><span class="p">:</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">"The product of the numbers entered is %6.3f</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">fnum</span> <span class="o">*</span> <span class="n">snum</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+
+    <span class="k">case</span> <span class="mi">3</span><span class="p">:</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">snum</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"The first number divided by the second is %6.3f</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="n">fnum</span> <span class="o">/</span> <span class="n">snum</span><span class="p">);</span>
+      <span class="k">else</span>
+		      <span class="n">printf</span><span class="p">(</span><span class="s">"Division by zero is not allowed</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span> 
+
+    <span class="k">case</span> <span class="mi">4</span><span class="p">:</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">"The modulus of the numbers entered is %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">fnum</span> <span class="o">%</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">snum</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+
+    <span class="nl">default:</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">"Need to enter a number between 1-4</span><span class="se">\n\n</span><span class="s">"</span><span class="p">);</span> 
+
+ <span class="p">}</span>
+
+ <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="the-break-statement">The break statement</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">for</span> <span class="p">(</span> <span class="n">expression1</span> <span class="p">;</span> <span class="n">expression2</span> <span class="p">;</span> <span class="n">expression3</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="n">statement1</span> <span class="p">;</span>
+           <span class="k">if</span><span class="p">(</span> <span class="p">...</span> <span class="p">)</span>
+              <span class="k">break</span><span class="p">;</span>
+           <span class="n">statementN</span> <span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="k">while</span> <span class="p">(</span> <span class="n">expression1</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="n">statement1</span> <span class="p">;</span>
+           <span class="k">if</span><span class="p">(</span> <span class="p">...</span> <span class="p">)</span>
+              <span class="k">break</span><span class="p">;</span>
+           <span class="n">statementN</span> <span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="k">switch</span> <span class="p">(</span> <span class="n">expression1</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="k">case</span> <span class="n">const1</span><span class="p">:</span>
+              <span class="n">statement</span> <span class="mi">1</span><span class="p">;</span>
+              <span class="k">break</span><span class="p">;</span>
+
+           <span class="k">case</span> <span class="n">const2</span><span class="p">:</span>
+              <span class="n">statement</span> <span class="mi">2</span><span class="p">;</span>
+              <span class="k">break</span><span class="p">;</span>
+
+           <span class="k">case</span> <span class="n">const3</span><span class="p">:</span>
+              <span class="n">statement</span> <span class="mi">3</span><span class="p">;</span>
+              <span class="k">break</span><span class="p">;</span>
+
+           <span class="k">default</span><span class="o">:</span>
+              <span class="n">statement</span> <span class="n">n</span><span class="p">;</span>
+              <span class="k">break</span><span class="p">;</span>
+
+       <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="the-continue-statement">The continue statement</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">for</span> <span class="p">(</span> <span class="n">expression1</span> <span class="p">;</span> <span class="n">expression2</span> <span class="p">;</span> <span class="n">expression3</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="n">statement1</span> <span class="p">;</span>
+           <span class="k">if</span><span class="p">(</span> <span class="p">...</span> <span class="p">)</span>
+              <span class="k">continue</span><span class="p">;</span>
+           <span class="n">statementN</span> <span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="k">while</span> <span class="p">(</span> <span class="n">expression1</span> <span class="p">)</span> <span class="p">{</span>
+           <span class="n">statement1</span> <span class="p">;</span>
+           <span class="k">if</span><span class="p">(</span> <span class="p">...</span> <span class="p">)</span>
+              <span class="k">continue</span><span class="p">;</span>
+           <span class="n">statementN</span> <span class="p">;</span>
+      <span class="p">}</span>
+</code></pre></div></div>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

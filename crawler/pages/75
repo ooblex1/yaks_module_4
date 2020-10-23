@@ -1,0 +1,158 @@
+https://thayer.github.io/engs50/Notes/bugs/activity.html
+3
+5717
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Activity - Mid-term feedback</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/bugs/activity.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Activity - Mid-term feedback</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<ul>
+  <li>for students to identify how they can help improve their own learning</li>
+  <li>for students to identify how they can help their group learn</li>
+  <li>for the professor to identify how he can help students learn</li>
+</ul>
+
+<h2 id="activity">Activity</h2>
+
+<p>We discuss the feedback from the mid-term survey conducted by DCAL and the Instructional team.
+Below are a few of the themes that came through loud and clear:</p>
+
+<h3 id="things-we-do-well">Things we do well</h3>
+
+<ul>
+  <li>we compliment each other; we respect each other</li>
+  <li>we <em>work together</em> to <em>learn together</em></li>
+  <li>we all contribute to understanding the task, understanding the material, and devising a solution</li>
+  <li>we rotate partners and the ‘point person’ on activities</li>
+  <li>we explain difficult concepts to others in our group</li>
+  <li>we ask each other questions when we need help</li>
+  <li>we ask questions to help guide others toward understanding</li>
+  <li>we ask our Learning Fellow when we get stuck</li>
+  <li>where we have different levels of experience, the more-experienced help the less-experienced.</li>
+</ul>
+
+<h3 id="things-students-can-do">Things students can do</h3>
+
+<ul>
+  <li>I can pay more attention in lecture, and be ready to engage with the group activity</li>
+  <li>I can attend regularly - and be part of my group</li>
+  <li>I can participate more in my group activity</li>
+  <li>I can encourage my group to work together rather than independently</li>
+  <li>I can encourage each member to actively contribute</li>
+  <li>I can rotate partners with whom I work</li>
+  <li>I can encourage my group to rotate the ‘point person’ on activities</li>
+  <li>I can ask more questions to help others understand the activity or the material</li>
+  <li>I can make sure everyone’s voice is heard</li>
+  <li>I can create a groupme, slack, or other chat group to encourage group communication outside class</li>
+  <li>I can get to know my team better - get together outside class</li>
+  <li>I can read the lecture notes and labs more carefully</li>
+  <li>I can help everyone by contributing answers on Piazza</li>
+</ul>
+
+<h3 id="things-the-professor-can-do">Things the professor can do</h3>
+
+<ul>
+  <li>he can clarify opportunities for help outside class</li>
+  <li>he can vary how he conveys concepts in lecture: whiteboard work, live-coding programs, finished programs, in-class activities</li>
+  <li>he can choose better (more interesting) examples</li>
+  <li>he can explain pointers more clearly</li>
+  <li>he can <em>slow down</em> the pace</li>
+  <li>he can <em>speed up</em> the pace</li>
+  <li>he can spend <em>more</em> time on in-class activities</li>
+  <li>he can spend <em>less</em> time on in-class activities</li>
+  <li>he can provide solutions to in-class activities</li>
+  <li>he can ensure the lectures (and notes) cover everything needed for the labs</li>
+  <li>he can streamline the lecture material - avoid ‘lecture extras’</li>
+  <li>he can clarify the expectations for each lab</li>
+  <li>he can ensure faster turnaround on lab grades/feedback</li>
+  <li>he can ensure section leaders are better prepared for sections</li>
+  <li>he can reconsider the policies on attendance and assigned seating</li>
+  <li>he can reconsider the assigment of groups at start of term</li>
+</ul>
+
+<h3 id="other-observations">Other observations</h3>
+
+<ul>
+  <li>the classroom furniture arrangement is not conducive to lecture</li>
+  <li>in-class activities are helpful to some students</li>
+  <li>out-of-class coding is how students learn best</li>
+</ul>
+
+<p><img src="pace-graph.png" alt="" /></p>
+
+<p><img src="balance-graph.png" alt="" /></p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

@@ -1,0 +1,147 @@
+https://thayer.github.io/engs50/Resources/gitlab-ssh.html
+2
+7226
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gitlab with SSH</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Resources/gitlab-ssh.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Gitlab with SSH</h1>
+  </header>
+
+  <div class="post-content">
+    <p>In CS50 we use the Git revision-control system, and specifically, our own <a href="http://gitlab.cs.dartmouth.edu">Gitlab</a> server.
+Connections between Gitlab and your computer - whether that be your laptop, or one of the CS Linux servers - are conducted over a secure connection, either using the <strong>HTTPS</strong> or <strong>SSH</strong> protocols.
+Although it takes a little bit more set-up effort, SSH is the preferred choice and we find that it works better for students once it is set up.</p>
+
+<h3 id="instructions">Instructions</h3>
+
+<ol>
+  <li>Visit <a href="http://gitlab.cs.dartmouth.edu">Gitlab</a> and click on your personal icon in the upper-right corner; pick <em>Settings</em> from the pop-up menu.</li>
+  <li>Click on <em>SSH Keys</em> in the list of panes across the top.</li>
+  <li>Log in to your account on the CS Linux server.</li>
+  <li>Check to see whether you already have an ssh key.
+If so, it lives in the <code class="highlighter-rouge">.ssh</code> subdirectory of your home directory.
+Try <code class="highlighter-rouge">cat ~/.ssh/id_rsa.pub</code>.
+If you have a key, it will print out.
+If not, you’ll get an error <code class="highlighter-rouge">No such file or directory</code>.
+4.
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>kotz@flume ~]<span class="nv">$ </span><span class="nb">cat</span> ~/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDY035+DErTm2wKVK9OFgwpyGRjkEMXHyNPZ6gHmb+SQEmljyGwcJB6mQWIQZrII59m427gP81nvR3COD1iMH9SG67+odMlc4TL4959zkGJ7ycL8wmyLq1V7CTyE8mN0oYXD6YBve6C+38BAxdz5H2KWwem/45uwtJz8a5oIpVT6QY7clY2qinD8VCO6IUi4WBCFINYbp6PtV12bJYID8LMOShpljm4oyD3RFt4Ht+85/N2yCBLHydMO25MfLDxlIYav9Ky3S8LT+aojfb96W54h3r9YKG2KD/JQGnBzcZVTYPrFlEa2rLBUwqVo5ZjbKi9P/+HmtDAJOxrD+3038sV dfk@topdog.cs.dartmouth.edu
+</code></pre></div>    </div>
+  </li>
+  <li>If you do <em>not</em> have an ssh key, generate one:
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh-keygen -t rsa -C "YourUsername@cs.dartmouth.edu" -b 4096
+</code></pre></div>    </div>
+    <p>then try <code class="highlighter-rouge">cat ~/.ssh/id_rsa.pub</code>.</p>
+  </li>
+  <li>Use your mouse to select the whole output of <code class="highlighter-rouge">cat</code>. Copy it to your clipboard.</li>
+  <li>Go back to your browser - still at the <em>SSH Keys</em> page on Gitlab - and paste your clipboard into that big box.</li>
+  <li>Click the <em>Add Key</em> button.</li>
+  <li>You should now use the SSH-style URL when cloning repos from Gitlab.
+If you’d already cloned a repo with the HTTPS-style URL, see below.</li>
+</ol>
+
+<p>Whenever you <code class="highlighter-rouge">git pull</code> or <code class="highlighter-rouge">git push</code> or other operations that involve the remote, you will need to enter the passphrase you provided when you generated the ssh keypair – <em>not</em> your Gitlab password – because you need to give <code class="highlighter-rouge">ssh</code> permission to use your private key to authenticate yourself to the remote Gitlab server.</p>
+
+<h3 id="macos-users">MacOS users</h3>
+
+<p>If you use a MacOS laptop and want to be able to clone from Gitlab repos to your Mac, copy your ssh keys to your laptop.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>scp YourUsername@flume.cs.dartmouth.edu:.ssh/id_rsa     ~/.ssh/
+<span class="nv">$ </span>scp YourUsername@flume.cs.dartmouth.edu:.ssh/id_rsa.pub ~/.ssh/
+</code></pre></div></div>
+
+<h3 id="switching-from-https-to-ssh">Switching from HTTPS to SSH</h3>
+
+<p>If you already cloned a repo using the HTTPS-style URL and now want to use the SSH method, set up for SSH first, as above.
+Then <code class="highlighter-rouge">cd</code> to the directory holding your clone.
+You should see something like this.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git remote <span class="nt">-v</span>
+origin	https://dfkotz@gitlab.cs.dartmouth.edu/dfkotz/demonstration.git <span class="o">(</span>fetch<span class="o">)</span>
+origin	https://dfkotz@gitlab.cs.dartmouth.edu/dfkotz/demonstration.git <span class="o">(</span>push<span class="o">)</span>
+</code></pre></div></div>
+
+<p>Visit your repo’s home page on Gitlab and find the box that holds the URL.
+Click the pop-up next to that box, and choose SSH.
+Copy the URL to your clipboard, and tell Git to set that URL as your <code class="highlighter-rouge">origin</code> instead:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git remote set-url origin git@gitlab.cs.dartmouth.edu:dfkotz/demonstration.git
+<span class="nv">$ </span>git remote <span class="nt">-v</span>
+origin	git@gitlab.cs.dartmouth.edu:dfkotz/demonstration.git <span class="o">(</span>fetch<span class="o">)</span>
+origin	git@gitlab.cs.dartmouth.edu:dfkotz/demonstration.git <span class="o">(</span>push<span class="o">)</span>
+</code></pre></div></div>
+
+<h3 id="more-help">More help</h3>
+
+<p>See the <a href="https://gitlab.cs.dartmouth.edu/help/ssh/README">Gitlab SSH help</a>.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

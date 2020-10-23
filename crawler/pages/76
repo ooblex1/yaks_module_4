@@ -1,0 +1,171 @@
+https://thayer.github.io/engs50/Notes/unittest/activity.html
+3
+7331
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Activity - Unit testing</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/unittest/activity.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Activity - Unit testing</h1>
+  </header>
+
+  <div class="post-content">
+    <p>Consider the simple one-function <code class="highlighter-rouge">jhash</code> module used in Lab3 and the TSE.
+It comprises <a href="/engs50/Labs/Lab3/starter/hashtable/jhash.c">jhash.c</a> and <a href="/engs50/Labs/Lab3/starter/hashtable/jhash.h">jhash.h</a> and implements the <code class="highlighter-rouge">JenkinsHash()</code> function below.</p>
+
+<ol>
+  <li>With your group, list all the tests a good unit test should run against this unit.
+    <ul>
+      <li>Can you spot the bug?  (I just noticed one I’d overlooked before.)</li>
+      <li>If you have time,</li>
+    </ul>
+    <ul>
+      <li>download the above files, or copy them:</li>
+      <li><code class="highlighter-rouge">cp ~cs50/public_html/Labs/Lab3/starter/hashtable/jhash.[ch] .</code></li>
+      <li>extend <code class="highlighter-rouge">jhash.c</code> with a unit test like those we saw demonstrated in class today; you can <code class="highlighter-rouge">#include "unittest.h"</code> and copy that file from <code class="highlighter-rouge">~cs50/examples/unittest.h</code> for your testing.</li>
+    </ul>
+  </li>
+</ol>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">unsigned</span> <span class="kt">long</span>
+<span class="nf">JenkinsHash</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">mod</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">str</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+      <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="kt">size_t</span> <span class="n">len</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">str</span><span class="p">);</span>
+    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">hash</span><span class="p">,</span> <span class="n">i</span><span class="p">;</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">hash</span> <span class="o">=</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">len</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">hash</span> <span class="o">+=</span> <span class="n">str</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+        <span class="n">hash</span> <span class="o">+=</span> <span class="p">(</span><span class="n">hash</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span><span class="p">);</span>
+        <span class="n">hash</span> <span class="o">^=</span> <span class="p">(</span><span class="n">hash</span> <span class="o">&gt;&gt;</span> <span class="mi">6</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">hash</span> <span class="o">+=</span> <span class="p">(</span><span class="n">hash</span> <span class="o">&lt;&lt;</span> <span class="mi">3</span><span class="p">);</span>
+    <span class="n">hash</span> <span class="o">^=</span> <span class="p">(</span><span class="n">hash</span> <span class="o">&gt;&gt;</span> <span class="mi">11</span><span class="p">);</span>
+    <span class="n">hash</span> <span class="o">+=</span> <span class="p">(</span><span class="n">hash</span> <span class="o">&lt;&lt;</span> <span class="mi">15</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">hash</span> <span class="o">%</span> <span class="n">mod</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<!--
+## Solution
+
+The bug is actually a failure to be defensive in regards to the arguments.
+If a caller passes `mod = 0` then this function will divide by zero and the program will crash.
+The caller cannot pass a negative `mod` -- because the parameter is of `unsigned` type.
+(It's worth considering whether `mod = 1` should be allowed -- with `mod = 1` the hash would always be zero.)
+
+You could create some unit tests by adding the following to the bottom of `jhash.c`:
+
+```c
+#ifdef UNIT_TEST
+#include <stdio.h>
+#include "unittest.h"
+
+int main()
+{
+  START_TEST_CASE("jhash");
+  EXPECT(JenkinsHash(NULL, 1) == 0);
+  EXPECT(JenkinsHash("", 1) == 0);
+  EXPECT(JenkinsHash("CS50", 1) == 0);
+  EXPECT(JenkinsHash("CS50", 99999) == JenkinsHash("CS50", 99999));
+  EXPECT(JenkinsHash("CS50", 99999) == 18704);
+  EXPECT(JenkinsHash("This is a very long string and it will make it hard to read this test; fortunately, the function does not care.", 99999) == 86041);
+
+  END_TEST_CASE;
+  return TEST_RESULT;
+}
+
+#endif // UNIT_TEST
+```
+
+I did not test the `mod = 0` case because I don't want to crash the program.
+If I fix that bug by changing the first lines of the function:
+
+```c
+    if (str == NULL || mod <= 1)
+      return 0;
+```
+
+I could then add another test case.
+
+```c
+  EXPECT(JenkinsHash("CS50", 0) == 0);
+```
+
+Here's the final [jhash.c](/engs50/Notes/unittest/jhash.c).
+
+-->
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

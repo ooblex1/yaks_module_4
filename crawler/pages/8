@@ -1,0 +1,246 @@
+https://thayer.github.io/engs50/Labs/Lab1/
+2
+11061
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Lab 1 - Bash</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/Lab1/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Lab 1 - Bash</h1>
+  </header>
+
+  <div class="post-content">
+    <p><strong>Due Sunday, April 2, at 11:00pm</strong></p>
+
+<p>This first lab is relatively quick, and should get you up to speed working with the command line, basic shell commands, an editor, and a small shell program.</p>
+
+<ul id="markdown-toc">
+  <li><a href="#materials" id="markdown-toc-materials">Materials</a></li>
+  <li><a href="#preparation" id="markdown-toc-preparation">Preparation</a></li>
+  <li><a href="#assignment" id="markdown-toc-assignment">Assignment</a></li>
+  <li><a href="#what-to-hand-in-and-how" id="markdown-toc-what-to-hand-in-and-how">What to hand in, and how</a></li>
+  <li><a href="#bursting-an-html-file-into-many-sonnets" id="markdown-toc-bursting-an-html-file-into-many-sonnets">Bursting an html file into many sonnets</a></li>
+</ul>
+
+<h2 id="materials">Materials</h2>
+
+<p>You will need these materials for this assignment.</p>
+
+<ul>
+  <li><em>Alice in Wonderland</em>, which you will find as plaintext in file <code class="highlighter-rouge">alice-gutenberg.txt</code> on canvas.
+    <blockquote>
+      <p>Credit: <a href="http://www.gutenberg.org/ebooks/11">Project Gutenberg</a></p>
+    </blockquote>
+  </li>
+  <li>Shakespeare’s sonnets, which you will find as plaintext files,
+are available in the tar file <code class="highlighter-rouge">sonnets.tar</code> on canvas. This file unpacks into a
+subdirectory <code class="highlighter-rouge">sonnets</code>.
+    <blockquote>
+      <p>Credit: <a href="http://www.gutenberg.org/ebooks/1041">Project Gutenberg</a></p>
+    </blockquote>
+  </li>
+</ul>
+
+<p>Curious how the <code class="highlighter-rouge">sonnets</code> directory from Gutenberg’s <a href="/engs50/Labs/Lab1/sonnets.html"><code class="highlighter-rouge">sonnets.html</code></a> file?
+Look at the bottom of this page.</p>
+
+<h2 id="preparation">Preparation</h2>
+
+<p>Set up for your work in this course, if you have not already:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">cd</span>
+<span class="nv">$ </span>mkdir <span class="nt">-p</span> cs50/labs/lab1
+<span class="nv">$ </span>chmod go-rwx cs50
+<span class="nv">$ </span><span class="nb">cd </span>cs50/labs/lab1
+</code></pre></div></div>
+
+<p>These commands create a directory <code class="highlighter-rouge">~/cs50/labs/lab1</code>, prevent others
+from peeking at your work, and change the working directory to <code class="highlighter-rouge">lab1</code>
+so you’re ready for the work below.</p>
+
+<h2 id="assignment">Assignment</h2>
+
+<ol>
+  <li>
+    <p>Write a single bash command/pipeline that will extract the text of
+<em>Alice in Wonderland</em> into a file <code class="highlighter-rouge">alice.txt</code> in your <code class="highlighter-rouge">lab1</code>
+directory.  (Note that the provided file has header and footer
+material added by Project Gutenberg.  We want only the stuff Lewis
+Carroll wrote.)</p>
+  </li>
+  <li>
+    <p>Write a single bash command/pipeline that will read <code class="highlighter-rouge">alice.txt</code> and
+print a crude table of contents.</p>
+  </li>
+  <li>
+    <p>Write a single bash command/pipeline that will read <code class="highlighter-rouge">alice.txt</code> and
+print the words, in order, exactly one word per line, into
+<code class="highlighter-rouge">alicewords.txt</code>.  (A <em>word</em> is a sequence of letters.)</p>
+  </li>
+  <li>
+    <p>Write a single bash command/pipeline that will read
+<code class="highlighter-rouge">alicewords.txt</code> and print the number of times the word “Alice”
+appears, regardless of how it is capitalized.</p>
+  </li>
+  <li>
+    <p>Write a single bash command/pipeline that will read
+<code class="highlighter-rouge">alicewords.txt</code> and print the number of times the word “wonder”
+appears, regardless of how it is capitalized; be careful not to
+count other words!</p>
+  </li>
+  <li>
+    <p>Write a single bash command/pipeline that will read
+<code class="highlighter-rouge">alicewords.txt</code> and print the top-10 most-common words, regardless
+of capitalization.</p>
+  </li>
+  <li>Write a single bash command/pipeline that will read <code class="highlighter-rouge">alicewords.txt</code> and print the number of unique words, regardless of capitalization, that are not <a href="https://en.wikipedia.org/wiki/Stop_words">stop words</a>.
+Use the sorted list of stop words in <code class="highlighter-rouge">stopwords.txt</code> (available on canvas).
+    <blockquote>
+      <p>We’re going to keep things simple, here; the words “account”, “accounts”, and “accounting” are all unique words for our purposes, though a fancier solution would <em>stem</em> them all to “account”.
+Given our definition of <em>word</em>, above, the word “account’s” would appear in <code class="highlighter-rouge">alicewords.txt</code> as “account” and “s”, and the latter will be stripped out as a stopword.</p>
+
+      <p>You may find <code class="highlighter-rouge">comm</code> useful here.</p>
+    </blockquote>
+  </li>
+  <li>Write a bash script called <code class="highlighter-rouge">shake.sh</code> that allows the user to search for a word in all of Shakespeare’s sonnets.
+    <ul>
+      <li>For each matching sonnet, the script prints one line: the sonnet number, a colon, a space, the first line of the sonnet, then elipses.</li>
+      <li>If the user provides too few or too many arguments, it should print “usage: shake.sh searchword” and exit with status 1.</li>
+      <li>If the script cannot find the <code class="highlighter-rouge">sonnets</code> directory in the expected location, it should print “cannot find sonnets directory” and exit with status 2.</li>
+      <li>Write three test cases; write each test’s command in a separate single-line file <code class="highlighter-rouge">shaketest#</code>.
+Run each test and save its output in a separate file, i.e., <code class="highlighter-rouge">bash shaketest1 &gt; shaketest1.out</code>.</li>
+    </ul>
+  </li>
+</ol>
+
+<blockquote>
+  <p>For example,</p>
+
+  <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ./shake.sh spring
+CII:   My love is strengthen'd, though more weak in seeming;...
+CIV:   To me, fair friend, you never can be old,...
+I:   From fairest creatures we desire increase,...
+LIII:   What is your substance, whereof are you made,...
+LXIII:   Against my love shall be as I am now,...
+XCVIII:   From you have I been absent in the spring,...
+$ ./shake.sh computer
+$
+</code></pre></div>  </div>
+  <p>How many hits will you get if you shake <code class="highlighter-rouge">love</code>? :-)</p>
+</blockquote>
+
+<h2 id="what-to-hand-in-and-how">What to hand in, and how</h2>
+
+<p>For the command/pipeline questions, write all your answers in a single file <code class="highlighter-rouge">commands.txt</code>.
+<em>Include each command and its output.</em></p>
+
+<p>When finished, you should have the following files:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-1</span>
+alice.txt
+alicewords.txt
+commands.txt
+shake.sh
+shaketest1
+shaketest1.out
+shaketest2
+shaketest2.out
+shaketest3
+shaketest3.out
+</code></pre></div></div>
+
+<h2 id="bursting-an-html-file-into-many-sonnets">Bursting an html file into many sonnets</h2>
+
+<p>This section is brought to you by <em>curiosity</em>.</p>
+
+<p>How was the files in the <code class="highlighter-rouge">sonnets</code> directory produced from Gutenberg’s
+<a href="/engs50/Labs/Lab1/sonnets.html">sonnets.html</a> file?  A little <code class="highlighter-rouge">sed</code> and a little <code class="highlighter-rouge">awk</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mkdir sonnets
+sed <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'1,/^\*\*\* START/d'</span> <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'/^End of Project Gutenberg/,$d'</span> <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'s/&lt;br \/&gt;//'</span> <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'s/&amp;nbsp;/ /g'</span> <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'/&lt;\/p&gt;/d'</span> <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'/&lt;\/h3&gt;/d'</span> <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'/class="poem"/d'</span> <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'/&lt;pre&gt;/d'</span> <span class="se">\</span>
+ <span class="nt">-e</span> <span class="s1">'/^$/d'</span> sonnets.html <span class="se">\</span>
+| awk <span class="s1">'\
+ /&lt;h3&gt;/ {printing=0; header=1; next;}\
+ header {sonnet="sonnets/" $1; print sonnet; printing=1; header=0; next;}\
+ printing {print &gt; sonnet}'</span>
+</code></pre></div></div>
+
+<p>You don’t need to learn <code class="highlighter-rouge">awk</code> and you will not need it for this
+assignment.  But it’s a interesting language!</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

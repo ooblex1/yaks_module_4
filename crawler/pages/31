@@ -1,0 +1,305 @@
+https://thayer.github.io/engs50/Notes/unittest/
+2
+22745
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Unit testing</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/unittest/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Unit testing</h1>
+  </header>
+
+  <div class="post-content">
+    <p>The goal of effective unit testing is to isolate each functional part of the system and to demonstrate that each of those parts is working properly.</p>
+
+<p>A short online reference is Jeff Canna’s <em><a href="http://www.ibm.com/developerworks/library/j-test.html">Testing, Fun, Really</a></em>.
+Although he is talking mostly about Java, his insights on unit testing are superb.</p>
+
+<blockquote>
+  <p>“Unit tests tell a developer that the code is doing things right; functional tests tell a developer that the code is doing the right things.” – Jeff Canna, <em><a href="http://www.ibm.com/developerworks/library/j-test.html">Testing, Fun, Really</a></em>.</p>
+</blockquote>
+
+<blockquote>
+  <p>“Unit tests are written from the developer’s perspective and focus on particular methods of the class under test.” – Jeff Canna, <em><a href="http://www.ibm.com/developerworks/library/j-test.html">Testing, Fun, Really</a></em>.</p>
+</blockquote>
+
+<p>Use these guidelines when writing unit tests (from Jeff Canna, <em><a href="http://www.ibm.com/developerworks/library/j-test.html">Testing, Fun, Really</a></em>):</p>
+
+<ul>
+  <li>“Write the unit test before writing code for class it tests.</li>
+  <li>“Capture code comments in unit tests.</li>
+  <li>“Test all the public methods that perform an “interesting” function (that is, not getters and setters, unless they do their getting and setting in some unique way).</li>
+  <li>“Put each test case in the same package as the class it’s testing to gain access to package and protected members.</li>
+  <li>“Avoid using domain-specific objects in unit tests.”</li>
+</ul>
+
+<h3 id="unit-testing-of-our-binary-tree">Unit testing of our binary tree</h3>
+
+<p>Today’s Terminal <a href="/engs50/Notes/unittest/script.txt">script</a> is available.</p>
+
+<p>Unzip the <a href="/engs50/Examples/trees.zip">tree examples file</a>. The tree9 example
+demonstrated a binary-tree data structure. Here we enhance it to become treeA (to a computer scientist, <code class="highlighter-rouge">A</code> comes next after <code class="highlighter-rouge">9</code>).</p>
+
+<p>Look at treeA/tree.c and its Makefile and you’ll notice three things:</p>
+
+<ul>
+  <li>The code now has a <code class="highlighter-rouge">main()</code> function at the bottom of the file.
+It is protected inside <code class="highlighter-rouge">#ifdef UNIT_TEST ... #endif</code> so it is only compiled-in when we want to compile a unit test.</li>
+  <li>Preceding <code class="highlighter-rouge">main()</code> is an <code class="highlighter-rouge">#include "unittest.h"</code> to pick up several <em>preprocessor macros</em>, which we explain below.</li>
+  <li>The <code class="highlighter-rouge">Makefile</code> now has a <code class="highlighter-rouge">unittest</code> target, which builds a distinct executable, and a <code class="highlighter-rouge">unit</code> target, which runs it.</li>
+</ul>
+
+<blockquote>
+  <p>The <code class="highlighter-rouge">unittest</code> target is unusual in that it explicitly mentions dependency on <code class="highlighter-rouge">test.c</code>.
+Normally Make automatically recognizes the dependency between <code class="highlighter-rouge">.o</code> files and <code class="highlighter-rouge">.c</code> files, so we rarely see rules with dependency on <code class="highlighter-rouge">.c</code> files.
+Here, because there is no <code class="highlighter-rouge">unittest.c</code>, we always build <code class="highlighter-rouge">unittest</code> from <code class="highlighter-rouge">tree.c</code> with a special <code class="highlighter-rouge">-D</code> flag and do not use <code class="highlighter-rouge">tree.o</code>; we must explicitly list all the pieces that go into building <code class="highlighter-rouge">unitest</code>.</p>
+</blockquote>
+
+<p><strong><em>Preprocessor macros.</em></strong></p>
+
+<p>The unit test makes heavy use of some <em>macros</em>, which are recognized and textually replaced by the C preprocessor before the C compiler even runs.
+They are so useful I’ve put them in a separate <code class="highlighter-rouge">unittest.h</code> file, and textually include them in <code class="highlighter-rouge">test.c</code> when <code class="highlighter-rouge">UNIT_TEST</code> has been defined.
+I show the core of <code class="highlighter-rouge">unittest.h</code> below.</p>
+
+<p>These are <em>macros.</em>
+Note how I define fragments of code with each <code class="highlighter-rouge">#define</code>; the first two even take parameters.
+When scanning C code, the preprocessor does <em>textual substitution</em> for each defined symbol - it does not evaluate the code at all, it just substitutes the remainder of the line (after the symbol and after a space) into the C program wherever it sees that symbol, optionally inserting the parameter wherever it appears in the macro body.
+Because each definition must appear on one “line”, I had to use a <em>line continuation</em> character (backslash in the last character of the line) to let me format the definitions in a human-readable way.
+I lined up the backslashes so they all look neat.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// each test should start by setting the result count to zero
+</span><span class="cp">#define START_TEST_CASE(name) int _failures=0; char *_testname = (name);
+</span>
+<span class="c1">// Check a condition; if false, print warning message.
+// e.g., EXPECT(dict-&gt;start == NULL).
+// note: the preprocessor 
+//   converts __LINE__ into line number where this macro was used, and
+//   converts "#x" into a string constant for arg x.
+</span><span class="cp">#define EXPECT(x)                                               \
+  if (!(x)) {                                                   \
+    _failures++;                                                \
+    printf("Fail %s Line %d: [%s]\n", _testname, __LINE__, #x); \
+  }
+</span>
+<span class="c1">// return the result count at the end of a test
+</span><span class="cp">#define END_TEST_CASE                                                   \
+  if (_failures == 0) {                                                 \
+    printf("PASS test %s\n\n", _testname);                              \
+  } else {                                                              \
+    printf("FAIL test %s with %d errors\n\n", _testname, _failures);    \
+  }
+</span>
+<span class="cp">#define TEST_RESULT (_failures)
+</span></code></pre></div></div>
+
+<p>The preprocessor defines a special macro <code class="highlighter-rouge">__LINE__</code> that is set to the line number of the original source file, as each source line is processed; this is great for printing out the line number where our test case failed.</p>
+
+<p>The preprocessor also has special syntax <code class="highlighter-rouge">#parameter</code> that substitutes a C string constant for the text of the parameter.
+You can see it right at the end of the <code class="highlighter-rouge">EXPECT</code> macro.
+Thus, <code class="highlighter-rouge">EXPECT(tree != NULL)</code> will produce code that ends with <code class="highlighter-rouge">"tree != NULL");</code> enabling us to print the line number <em>and</em> the condition that failed.
+You can’t do that with C, only with the preprocessor!</p>
+
+<p><em>Warning: I strongly discourage the use of preprocessor macros.</em>
+There are times, however, where they are the right tool for the job, and this is one of those times.</p>
+
+<p>The macros are meant to be used for constructing small unit tests like this one:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">/////////////////////////////////////
+// create and validate an empty tree
+</span><span class="kt">int</span> <span class="nf">test_newtree0</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">START_TEST_CASE</span><span class="p">(</span><span class="s">"newtree0"</span><span class="p">);</span>
+  <span class="n">tree_t</span> <span class="o">*</span><span class="n">tree</span> <span class="o">=</span> <span class="n">tree_new</span><span class="p">();</span>
+  <span class="n">EXPECT</span><span class="p">(</span><span class="n">tree</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+  <span class="n">EXPECT</span><span class="p">(</span><span class="n">tree</span><span class="o">-&gt;</span><span class="n">root</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">);</span>
+
+  <span class="n">EXPECT</span><span class="p">(</span><span class="n">tree_find</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">"hello"</span><span class="p">)</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">);</span>
+
+  <span class="n">tree_delete</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+  <span class="n">EXPECT</span><span class="p">(</span><span class="n">count_net</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+
+  <span class="n">END_TEST_CASE</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">TEST_RESULT</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the above test, I create a new (empty) tree, try to find something in it, and delete the tree.
+Notice, though, that I actually peek <em>inside</em> the <code class="highlighter-rouge">struct tree</code> to verify that all its members are set correctly.</p>
+
+<p>Note, too, how I used those new macros - using <code class="highlighter-rouge">START_TEST_CASE()</code> to give the test a name and initialize everything, <code class="highlighter-rouge">EXPECT()</code> to indicate the conditions I expect to be true, <code class="highlighter-rouge">END_TEST_CASE</code> to print the summary and clean up, and <code class="highlighter-rouge">return TEST_RESULT</code> to provide a return value for this function.
+Here’s how that code looks after running it through the preprocessor with <code class="highlighter-rouge">gcc -DUNIT_TEST -E tree.c</code>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">test_newtree0</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">_failures</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="kt">char</span> <span class="o">*</span><span class="n">_testname</span> <span class="o">=</span> <span class="p">(</span><span class="s">"newtree0"</span><span class="p">);;</span>
+  <span class="n">tree_t</span> <span class="o">*</span><span class="n">tree</span> <span class="o">=</span> <span class="n">tree_new</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">tree</span> <span class="o">!=</span> <span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">)))</span> <span class="p">{</span> <span class="n">_failures</span><span class="o">++</span><span class="p">;</span> <span class="n">printf</span><span class="p">(</span><span class="s">"Fail %s Line %d: [%s]</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">_testname</span><span class="p">,</span> <span class="mi">244</span><span class="p">,</span> <span class="s">"tree != NULL"</span><span class="p">);</span> <span class="p">};</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">tree</span><span class="o">-&gt;</span><span class="n">root</span> <span class="o">==</span> <span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">)))</span> <span class="p">{</span> <span class="n">_failures</span><span class="o">++</span><span class="p">;</span> <span class="n">printf</span><span class="p">(</span><span class="s">"Fail %s Line %d: [%s]</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">_testname</span><span class="p">,</span> <span class="mi">245</span><span class="p">,</span> <span class="s">"tree-&gt;root == NULL"</span><span class="p">);</span> <span class="p">};</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">tree_find</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">"hello"</span><span class="p">)</span> <span class="o">==</span> <span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">)))</span> <span class="p">{</span> <span class="n">_failures</span><span class="o">++</span><span class="p">;</span> <span class="n">printf</span><span class="p">(</span><span class="s">"Fail %s Line %d: [%s]</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">_testname</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="s">"tree_find(tree, </span><span class="se">\"</span><span class="s">hello</span><span class="se">\"</span><span class="s">) == NULL"</span><span class="p">);</span> <span class="p">};</span>
+
+  <span class="n">tree_delete</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">));</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">count_net</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span> <span class="n">_failures</span><span class="o">++</span><span class="p">;</span> <span class="n">printf</span><span class="p">(</span><span class="s">"Fail %s Line %d: [%s]</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">_testname</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="s">"count_net() == 0"</span><span class="p">);</span> <span class="p">};</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">_failures</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="n">printf</span><span class="p">(</span><span class="s">"PASS test %s</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">_testname</span><span class="p">);</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">printf</span><span class="p">(</span><span class="s">"FAIL test %s with %d errors</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">_testname</span><span class="p">,</span> <span class="n">_failures</span><span class="p">);</span> <span class="p">};</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">_failures</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If you look closely, you can see the original bits of code (like <code class="highlighter-rouge">tree_delete(tree, NULL)</code> (with <code class="highlighter-rouge">NULL</code> expanded!) as well as the expanded <code class="highlighter-rouge">EXPECT</code> and other macros.</p>
+
+<p>Then the <code class="highlighter-rouge">main()</code> program runs a series of unit tests, and prints an error if any of them failed:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span>
+<span class="nf">main</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">failed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">failed</span> <span class="o">+=</span> <span class="n">test_newtree0</span><span class="p">();</span>
+  <span class="n">failed</span> <span class="o">+=</span> <span class="n">test_newtree1</span><span class="p">();</span>
+  <span class="n">failed</span> <span class="o">+=</span> <span class="n">test_treeleft</span><span class="p">();</span>
+  <span class="n">failed</span> <span class="o">+=</span> <span class="n">test_treefind</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">failed</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"FAIL %d test cases</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">failed</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">failed</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"PASS all test cases</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Here’s what the output looks like when everything passes:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ make unit
+gcc -Wall -pedantic -std=c11 -ggdb    -c -o memory.o memory.c
+gcc -Wall -pedantic -std=c11 -ggdb  -DUNIT_TEST tree.c memory.o -o unittest
+./unittest
+PASS test newtree0
+
+PASS test newtree1
+
+PASS test treeleft
+
+  ann(1)
+   bob(2)
+    cheri(3)
+ dave(4)
+PASS test treefind
+
+PASS all test cases
+</code></pre></div></div>
+
+<p>To see what it looks like when a failure occurs, I could either break the tree code (which I’d rather not do!) or break the test code; I’ll do the latter by changing one line</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">EXPECT</span><span class="p">(</span><span class="n">tree_find</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">"abcd"</span><span class="p">)</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">data</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>to</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">EXPECT</span><span class="p">(</span><span class="n">tree_find</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">"abcd"</span><span class="p">)</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>and run the test again:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ make -k unit
+gcc -Wall -pedantic -std=c11 -ggdb  -DUNIT_TEST tree.c memory.o -o unittest
+./unittest
+PASS test newtree0
+
+Fail newtree1 Line 271: [tree_find(tree, "abcd") == NULL]
+FAIL test newtree1 with 1 errors
+
+PASS test treeleft
+
+  ann(1)
+   bob(2)
+    cheri(3)
+ dave(4)
+PASS test treefind
+
+FAIL 1 test cases
+make: *** [unit] Error 1
+</code></pre></div></div>
+
+<p>Notice how Make exited with error; that’s because <code class="highlighter-rouge">unittest</code> exited with non-zero status: note the code at end of <code class="highlighter-rouge">main()</code>.</p>
+
+<h2 id="cunit-test-framework">CUnit test framework</h2>
+
+<p>Although we don’t have time to study any professional frameworks, there are several C unit testing frameworks available on the Internet: <a href="https://libcheck.github.io/check/">Check</a> and <a href="http://cunit.sourceforge.net/">CUnit</a>.
+Here’s an <a href="http://cunit.sourceforge.net/example.html">example</a> using CUnit.</p>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a> your group will design a unit test for one of our other modules.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

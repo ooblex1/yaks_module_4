@@ -26,12 +26,13 @@
 
 //Saves the passed webpage in a file with the passed id as its name, in a directory with the passed name
 int32_t pagesave(webpage_t *pagep, int id, char *dirname) {
-	if (pagep == NULL || id == NULL || dirname == NULL) {
+	if (pagep == NULL || id < 0 || dirname == NULL) {
 		printf("pagep, id or dirname is null! \n");
 		return 1;
 	}
 	char* path = (char*)malloc(sizeof(strlen(dirname))+20);
 	sprintf(path,"%s/%d",dirname,id); //printing into file
+
 	FILE *fp = fopen(path,"w");
 	if (fp == NULL) {
 		printf("usage: directory not found");
@@ -104,62 +105,51 @@ int main(int argc,char *argv[]) {
       		exit(EXIT_FAILURE);
 		}
 
-		char* path = (char*)malloc(sizeof(strlen(pagedir))+20);
-		strcpy(path,pagedir);
-		strcpy(path,".crawler");
-		FILE *fp = fopen(path,"w");
-		if (fp == NULL) {
-			printf("usage: directory not found");
-      		exit(EXIT_FAILURE);
-		}
-		fclose(fp);
-		free(path);
 				
     //new seed url webpage
-    webpage_t *new_page = webpage_new(seedurl, maxdepth, NULL);
-
+    webpage_t *new_page = webpage_new(seedurl, 0, NULL);
     //loop through all pages til maxdepth and add to queue+hash only when url different from hash
-    int pos = 0;
     char *result;
 
     queue_t* internal_q = qopen();
     hashtable_t* visited_ht = hopen(100);
 
-    hput(visited_ht,(void*)seedurl,seedurl,strlen(seedurl));
-    qput(internal_q,(void*)new_page);
+	//use strcpy with mem alloc to copy seedurl
+	char* str_seedurl = calloc(strlen(seedurl) + 1, sizeof(char));
+	strcpy(str_seedurl,seedurl);
+    hput(visited_ht,str_seedurl,str_seedurl,strlen(seedurl));
+    qput(internal_q,new_page);
+	
 	//pop it get webpage <- current and read through it
+    webpage_t *current;
+	int id = 1;
+	while ((current = qget(internal_q)) != NULL) {
+		printf("getting a webpage \n");
+		int depth = webpage_getDepth(current);
+		if (webpage_fetch(current)) {
+			pagesave(current,id,pagedir);
+			id++;
 
-    webpage_t *current = (webpage_t*)qget(internal_q);
-	int32_t savestat = 1;
-	int32_t status = 1;
-	while (status <= maxdepth) {
-		while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
-			if(IsInternalURL(result) && (hsearch(visited_ht,inHash,result,strlen(result))==NULL)){
-				hput(visited_ht,(void*)result,result,strlen(result));
-				current = webpage_new(result, 1, NULL);
-				savestat = pagesave(current,pos,pagedir);
-				qput(internal_q,current);
-			} else {
-				free(result);
+			if (depth < maxdepth){
+
+				int pos = 0;
+				while ((pos = webpage_getNextURL(current, pos, &result)) > 0) {
+					if(IsInternalURL(result) && (hsearch(visited_ht,inHash,result,strlen(result))==NULL)){
+						hput(visited_ht,result,result,strlen(result));				
+						new_page = webpage_new(result, depth+1, NULL);
+						qput(internal_q,new_page);
+					} else {
+						free(result);
+					}
+				}
 			}
 		}
-		new_page = (webpage_t*)qget(internal_q);
-		pos = 0;
-		status++;
+		webpage_delete(current);
 	}
-//write a void fnc for close hashtable (input pointer) and free that element the pointer is pointing to
-    //printing
-    printf("printing queue\n");
-    qapply(internal_q,printURL);
-    printf("printing hash\n");
-    happly(visited_ht, printHash);
-
-    // free all the data structure
-	webpage_delete(new_page);
-	deletePagesQ(internal_q);
+	
+	// free data structure
 	hclose(visited_ht);
 	qclose(internal_q);
 
     exit(EXIT_SUCCESS);
-	
 }

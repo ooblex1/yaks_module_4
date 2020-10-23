@@ -1,0 +1,14 @@
+https://thayer.github.io/engs50/Examples/clean
+2
+132
+#!/bin/csh -f
+set nonomatch
+set echo
+rm -f a.out
+rm -f *~
+rm -f *.o
+rm -fr *.dSYM
+foreach m (*/Makefile)
+    make -C $m:h clean
+end
+

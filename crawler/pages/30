@@ -1,0 +1,784 @@
+https://thayer.github.io/engs50/Notes/bugs/
+2
+64241
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Bugs &amp; Testing</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/bugs/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Bugs & Testing</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<p>In this lecture we talk about bugs and introduce the art of testing.</p>
+
+<ul>
+  <li>types of bugs</li>
+  <li>the difference between <em>debugging</em> and <em>testing</em></li>
+  <li>when and why to test</li>
+  <li>various approaches to testing</li>
+</ul>
+
+<p>But first, let’s talk about bugs.</p>
+
+<h2 id="bugs">Bugs</h2>
+
+<blockquote>
+  <p>From <em><a href="http://www5.in.tum.de/~huckle/FightingBugs.pdf">Fighting Bugs: Remove, Retry, Replicate, and Rejuvenate</a></em>, by Grottke and Trivedi.</p>
+</blockquote>
+
+<p><strong><em>Bohr bugs</em></strong>.
+Most bugs are reproducible.
+They always occur under the same set(s) of circumstances.
+These have been described as <em>Bohr bugs</em>, in reference to the simple atomic model of Niels Bohr that brought consistency and predictability to the study of physics at the atomic level.</p>
+
+<p><strong><em>Mandelbugs</em></strong>.
+However, bugs don’t always cooperate.
+It’s a common experience to have bugs “disappear” every time you try to show it to someone else, only to return later after the other person has left.</p>
+
+<p>There could be many explanations.
+G&amp;T mentioned several: (1) varying error-propagation delay and (2) variations in systems outside your software, such as variations in the compiler (and its configuration), user account configuration, operating system (and its configuration), network connection (or unreliability of said connection), to analog or sensor hardware (which sometime has non-deterministic behavior), or variations in the physical environment (for software that senses or interacts with the real world).</p>
+
+<p>Bugs that don’t appear to be the result of a logical chain of events are sometimes called <em>Mandelbugs</em> (after Benoit Mandelbrot, a leading mathematician known for his work on Fractals).</p>
+
+<p><strong><em>Heisenbugs</em></strong>.
+A subset of Mandelbugs are the <em>Heisenbugs</em>, named after Werner Heisenberg’s Uncertainty Principle.
+These also result in chaotic or unpredictable behavior, but they are a little tougher to figure out because their behavior can change when you try to examine them.
+Prime examples of Heisenbugs are some timing problems and others where the very act of probing the bug can introduce side effects.</p>
+
+<p><strong><em>Bit rot</em></strong>.
+Finally, there are aging-related bugs, also referred to as <em>bit rot</em>.
+Systems that run for a long time can eventually suffer a failure due to these slow-effect bugs.
+They are usually BohrBugs, since they are repeatable, but they are seldom found in testing due to the long duration before they cause trouble.
+(Example: Slow memory leaks.) These are the bugs that are most often handled by establishing policies for a schedule on which applications or computers are periodically restarted even when all seems well.
+This practice doesn’t come without a cost, especially if you think of the personnel time required to do it and the inconvenience to system users/customers.</p>
+
+<p>Another form of bit rot occurs to software that needs to live for years, spanning many generations of the underlying software and hardware.
+A program that compiles today may not compile next year, because of changes in the include files or libraries, and even the compiler.
+Even if it compiles, it may not run properly, because of changes in the underlying operating system or its configuration, changes in the hardware if the system has migrated to a new server, or changes in the surrounding environment (such as remote servers to which the software needs to connect).</p>
+
+<h3 id="three-motivational-anecdotes">Three motivational anecdotes</h3>
+
+<h4 id="proven-program-found-to-have-a-bug-20-years-later">Proven program found to have a bug 20 years later</h4>
+
+<blockquote>
+  <p>adapted from Joshua Bloch’s <a href="http://bit.ly/FMKax">blog</a>.</p>
+</blockquote>
+
+<p>Jon Bentley (Author of <em>Programming Pearls</em> and other books) observed that a relatively simple piece of code for a binary sort that he had proven to be correct during a lecture at CMU had a bug in it that wasn’t discovered until 20 years later.
+Here’s the code:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="mi">1</span><span class="o">:</span>     <span class="kt">int</span> <span class="n">binarySearch</span><span class="p">(</span><span class="kt">int</span><span class="p">[]</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span> <span class="kt">int</span> <span class="n">key</span><span class="p">)</span> <span class="p">{</span>
+    <span class="mi">2</span><span class="o">:</span>         <span class="kt">int</span> <span class="n">low</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mid</span><span class="p">,</span> <span class="n">midVal</span><span class="p">;</span>
+    <span class="mi">3</span><span class="o">:</span>         <span class="kt">int</span> <span class="n">high</span> <span class="o">=</span> <span class="n">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="mi">4</span><span class="o">:</span>
+    <span class="mi">5</span><span class="o">:</span>         <span class="k">while</span> <span class="p">(</span><span class="n">low</span> <span class="o">&lt;=</span> <span class="n">high</span><span class="p">)</span> <span class="p">{</span>
+    <span class="mi">6</span><span class="o">:</span>             <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">low</span> <span class="o">+</span> <span class="n">high</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="mi">7</span><span class="o">:</span>             <span class="n">midVal</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">mid</span><span class="p">];</span>
+    <span class="mi">8</span><span class="o">:</span>
+    <span class="mi">9</span><span class="o">:</span>             <span class="k">if</span> <span class="p">(</span><span class="n">midVal</span> <span class="o">&lt;</span> <span class="n">key</span><span class="p">)</span>
+    <span class="mi">10</span><span class="o">:</span>                 <span class="n">low</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="mi">11</span><span class="o">:</span>             <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">midVal</span> <span class="o">&gt;</span> <span class="n">key</span><span class="p">)</span>
+    <span class="mi">12</span><span class="o">:</span>                 <span class="n">high</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="mi">13</span><span class="o">:</span>             <span class="k">else</span>
+    <span class="mi">14</span><span class="o">:</span>                 <span class="k">return</span> <span class="n">mid</span><span class="p">;</span> <span class="c1">// key found
+</span>    <span class="mi">15</span><span class="o">:</span>         <span class="p">}</span>
+    <span class="mi">16</span><span class="o">:</span>         <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">low</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>  <span class="c1">// key not found.
+</span>    <span class="mi">17</span><span class="o">:</span>     <span class="p">}</span>
+</code></pre></div></div>
+
+<p>The bug was found to be in line 6:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="mi">6</span><span class="o">:</span>             <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">low</span> <span class="o">+</span> <span class="n">high</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>This looks correct, since it’s purpose is to find the average of <code class="highlighter-rouge">low</code> and <code class="highlighter-rouge">high</code>, rounded down to the nearest integer.
+However, if the sum of <code class="highlighter-rouge">low</code> and <code class="highlighter-rouge">high</code> exceed the maximum signed int value (<code class="highlighter-rouge">2^31-1</code> on some architectures), the sum goes negative and the resulting value for <code class="highlighter-rouge">mid</code> is also.</p>
+
+<p>So how would you fix it?
+The following would work:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="mi">6</span><span class="o">:</span>             <span class="n">mid</span> <span class="o">=</span> <span class="n">low</span> <span class="o">+</span> <span class="p">((</span><span class="n">high</span><span class="o">-</span><span class="n">low</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h4 id="missile-system-looking-in-the-wrong-place">Missile system looking in the wrong place</h4>
+
+<p>From the February 1992 GAO report to the House of Representatives’ Subcommittee on Investigations and Oversight, Committee on Science, Space, and Technology:</p>
+
+<blockquote>
+  <p><em>On February 25, 1991, a Patriot missile defense system operating at Dhahran, Saudi Arabia, during Operation Desert Storm failed to track and intercept an incoming Scud.
+This Scud subsequently hit an Army barracks, killing 28 Americans. …
+ The Patriot battery at Dhahran failed to track and intercept the Scud missile because of a software problem in the system’s weapons control computer.
+This problem led to an inaccurate tracking calculation that became worse the longer the system operated.
+At the time of the incident, the battery had been operating continuously for over 100 hours.
+By then, the inaccuracy was serious enough to cause the system to look in the wrong place for the incoming Scud. …
+ The Patriot had never before been used to defend against Scud missiles nor was it expected to operate continuously for long periods of time.
+Two weeks before the incident, Army officials received Israeli data indicating some loss in accuracy after the system had been running for 8 consecutive hours.
+Consequently, Army officials modified the software to improve the system’s accuracy.
+However, the modified software did not reach Dhahran until February 26, 1991–the day after the Scud incident.</em></p>
+</blockquote>
+
+<p>The problem was that in order to predict where an incoming missile <em>would be</em>, the system needed its velocity and the time expressed as real numbers to do the calculations.
+Unfortunately, the time was maintained as an integer representing the number of tenths of a second since the system began operating.
+The problem was that the longer it was running, the larger the error would be when converting the integer time into a real number.
+Thus, the Patriot was looking “in the wrong place.”</p>
+
+<h4 id="apple-ssl-bug-example">Apple SSL Bug example</h4>
+
+<p>Sometimes software updates add new bugs that wouldn’t be caught without running all the tests again.
+Here’s an example from February 2014 in Apple MacOS X and iOS where hackers could trick those systems into accepting SSL (TLS) certificates that should be rejected.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="p">.</span> <span class="p">.</span> <span class="p">.</span>
+    <span class="n">hashOut</span><span class="p">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">hashes</span> <span class="o">+</span> <span class="n">SSL_MD5_DIGEST_LEN</span><span class="p">;</span>
+    <span class="n">hashOut</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">SSL_SHA1_DIGEST_LEN</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">SSLFreeBuffer</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hashCtx</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">ReadyHash</span><span class="p">(</span><span class="o">&amp;</span><span class="n">SSLHashSHA1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">hashCtx</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">SSLHashSHA1</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hashCtx</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">clientRandom</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">SSLHashSHA1</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hashCtx</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">serverRandom</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">SSLHashSHA1</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hashCtx</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">signedParams</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>
+        <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>  <span class="cm">/* MISTAKE! THIS LINE SHOULD NOT BE HERE */</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">err</span> <span class="o">=</span> <span class="n">SSLHashSHA1</span><span class="p">.</span><span class="n">final</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hashCtx</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">hashOut</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>
+
+    <span class="n">err</span> <span class="o">=</span> <span class="n">sslRawVerify</span><span class="p">(...);</span>
+    <span class="p">.</span> <span class="p">.</span> <span class="p">.</span>
+</code></pre></div></div>
+
+<p>Yes, C does have a <code class="highlighter-rouge">goto</code> statement.
+It works as expected, providing an immediate transfer to the specified label.</p>
+
+<p>Here the programmer is verifying the certificate; if any of the checks fail the <code class="highlighter-rouge">err</code> variable is set non-zero and the code exits to the failure handler.
+Unfortunately, the programmer inserted two <code class="highlighter-rouge">goto fail</code>statements instead of just one.
+As a result, even if <code class="highlighter-rouge">err==0</code> the code transfers to the fail section.
+That returned with a return code of <code class="highlighter-rouge">err</code> which, if <code class="highlighter-rouge">err==0</code> means success, means the certificate is reported as valid, and ultimately accepted.
+This bug could allow website spoofing or the acceptance of a bogus certificate containing a mismatched private key.</p>
+
+<p>This bug was overlooked because the second <code class="highlighter-rouge">goto</code> is indented - but it is not part of the <code class="highlighter-rouge">if</code> statement.
+Proper use of CS50 style (putting brackets around every code block) would have prevented this bug from manifesting itself!</p>
+
+<h4 id="loss-of-the-mars-climate-orbiter-and-mars-polar-lander">Loss of the Mars Climate Orbiter and Mars Polar Lander</h4>
+
+<p>From <a href="https://en.wikipedia.org/wiki/List_of_software_bugs">Wikipedia</a>.</p>
+
+<blockquote>
+  <p><em>NASA Mars Polar Lander was destroyed because its flight software mistook vibrations due to atmospheric turbulence for evidence that the vehicle had landed and shut off the engines 40 meters from the Martian surface.</em></p>
+</blockquote>
+
+<blockquote>
+  <p><em>Its sister spacecraft Mars Climate Orbiter was also destroyed, due to software on the ground generating commands in pound-force (lbf), while the orbiter expected newtons (N).</em></p>
+</blockquote>
+
+<h4 id="more-examples">More examples</h4>
+
+<ul>
+  <li><em><a href="http://royal.pingdom.com/2009/03/19/10-historical-software-bugs-with-extreme-consequences/">Historical software bugs with extreme consequences</a></em>, from a blog</li>
+  <li><em><a href="https://en.wikipedia.org/wiki/List_of_software_bugs">List of software bugs</a></em>, Wikipedia</li>
+</ul>
+
+<h2 id="testing">Testing</h2>
+
+<blockquote>
+  <p>“Testing can demonstrate the presence of bugs but not their absence.”
+ – Edsger Dijkstra</p>
+</blockquote>
+
+<p>This quote is a good to keep in mind when you are developing code.
+What is the difference between debugging and testing?
+You debug when you know or have identified problems in your code.
+Testing is the art of systematically trying to break code, which you think (hope?) is bug free.
+We test throughout the software life cycle because it is typically much less expensive to fix a bug earlier in the software’s life than later.</p>
+
+<p>These CS50 lectures are strongly influenced by <em><a href="http://www.amazon.com/Practice-Programming-Addison-Wesley-Professional-Computing/dp/020161586X/ref=pd_bbs_sr_2?ie=UTF8&amp;s=books&amp;qid=1199226460&amp;sr=1-2">The Practice of Programming</a>,</em> by Brian Kernighan and Rob Pike, an outstanding book that will advance your knowledge on good programming practices.
+The notes use a number of programming examples from their Chapter 6 on Testing.</p>
+
+<h3 id="kinds-of-testing">Kinds of testing</h3>
+
+<p>There are many kinds of testing, each with its own purpose:</p>
+
+<p><strong>Unit testing:</strong>
+The goal of unit testing is to verify that each functional unit of the system is working properly.
+It’s written from the unit developer’s perspective, and aims to test the internal workings of the unit.
+If this testing isn’t done well, <em>all</em> of the subsequent testing is more painful, slow, and sometimes meaningless!</p>
+
+<p><strong>Functional testing:</strong>
+The goal of functional testing is to verify that the unit, module, sub-system, or system is doing what its user wants.
+For a system, the ‘user’ is the customer; for a unit, the ‘user’ may be a developer of other components that depend on this unit.
+This testing usually requires “scaffolding” or a “test harness” to exercise the device or unit under test.</p>
+
+<blockquote>
+  <p>“Unit tests tell a developer that the code is doing things right; functional tests tell a developer that the code is doing the right things.” – Jeff Canna, <em><a href="http://www.ibm.com/developerworks/library/j-test.html">Testing, Fun, Really</a></em>.</p>
+</blockquote>
+
+<p><strong>Glass-box testing and black-box testing:</strong>
+These refer to two types of unit testing (or functional testing).
+In <em>glass-box testing</em> you can peek inside the thing being tested.
+In <em>black-box testing</em> you can only access the thing’s public API: you can send the box input and see only what comes out of the box.
+Both approaches have value, but the former is only useful if you have the source code to the thing being tested.
+Unit testing is typically glass-box, whereas functional testing is usually black-box.</p>
+
+<p><strong>Integration testing:</strong>
+After unit testing, the integration test verifies that the units (modules) can communicate properly with each others.
+Interfaces defined by the units (modules) are properly implemented and used.
+No special channels or connections should be used, even if they make things run faster!</p>
+
+<p><strong>System testing:</strong>
+Also known as “big bang” testing, this is where you put the whole thing together and run tests to ensure that it meets the stated requirements without causing any unexpected side-effects.
+  If you skip over the integration tests, you may encounter serious problems in system tests - problems that may be very expensive to fix.
+(Consider this example of <a href="http://giphy.com/gifs/unit-test-integration-3o7rbPDRHIHwbmcOBy">unit tests without an integration test</a>).</p>
+
+<p><strong>Regression testing:</strong>
+Regression testing is an automated means of running (and re-running) unit tests, integration tests, and sometimes system tests, each time you prepare a new release.
+(For unit and integration tests, each time you ‘git push’!
+Indeed, some source-code control systems automatically run unit and integration tests before a commit is accepted, rejecting the commit if any tests fail.)</p>
+
+<p><strong>Usability testing:</strong>
+This is testing with real users.
+Not other programmers or engineers, and not friends and neighbors, but the real users.
+When this isn’t possible, you have to really work hard to find objective testers who will act like the end users.
+People who have (or can simulate) the same level of experience, biases, and past experience are the kinds of usability testers you want.</p>
+
+<p>In some products, you must also conduct <em>accessability testing</em> to determine whether your software is accessible for people with various disabilities.</p>
+
+<p><strong>Security testing:</strong>
+Security tests verify the security of the system, e.g., to ensure that sensitive data are always encrypted, passwords and credit-card numbers are masked, and sensitive data is securely erased immediately after use.
+Sometimes, the team hires outside testers to conduct <em>penetration tests</em>, in which the tester tries to break the system or leak sensitive information.
+ Unfortunately, one can never prove that a system is ‘secure’, that is, it has no bugs that lead to the failure of security or privacy properties.
+Remember Dijkstra’s quote about testing: one can only demonstrate the presence of bugs, not their absence.
+This is especially true for security!</p>
+
+<p><strong>Performance testing:</strong>
+Most software needs to perform ‘well’ according to one or more metrics, whether implicit or explict.
+Performance metrics include speed (how long does it take to complete a task), throughput (how many tasks completed per second), memory (code size, stack size, heap usage), network bandwidth, energy (battery drain), or cost (in dollars, such as when using cloud resources billed by usage).
+Performance testing subjects the software to various loads, measuring the relevant metrics, to determine whether the system performs within acceptable bounds.</p>
+
+<p><strong>Acceptance testing:</strong>
+The ultimate test: whether the customer accepts your product.
+Most of the time these tests are similar to the system tests.
+However, you will occasionly encounter new, previously unstated “requirements” during acceptance testing.</p>
+
+<p>Finally, the most important tip of all on testing from The <a href="http://pragprog.com/the-pragmatic-programmer/extracts/tips">Pragmatic Programmer</a>:</p>
+<blockquote>
+  <p>Find bugs once.</p>
+</blockquote>
+
+<p>Once you or one of your testers (or even a customer) find a bug, that should be the last time a human finds that bug.
+Once identified and fixed, your automated tests should be extended to check for that same bug every time they are run.
+Finding a bug during regression testing is a lot better than how it was found the first time.</p>
+
+<h2 id="tips-for-testing">Tips for Testing</h2>
+
+<p>Once again, <strong>the difference between debugging and testing</strong>:</p>
+
+<ul>
+  <li><strong>Testing</strong> is a determined, systematic attempt to break a program that you think should be working.
+As discussed above, tools and a test harness can automate this process.</li>
+  <li><strong>Debugging</strong> is what you do when you know that the program crashes (e.g., segfaults), fails (e.g., answers queries incorrecly), underperforms (e.g., runs slowly) or acts inconsistently (e.g., intermittently fails on certain conditions).
+These are all bugs that testing can find.
+Better to find them and fix them.</li>
+</ul>
+
+<h3 id="test-early-test-often-test-automatically">Test Early. Test Often. Test Automatically.</h3>
+
+<p>That’s a <a href="http://pragprog.com/the-pragmatic-programmer/extracts/tips">Pragmatic Programmer Tip</a>.</p>
+
+<p>We should begin testing as soon as we have something to test (Makefile, parsing arguments, initialization, scaffolding, first units).
+The sooner you find your bugs, the cheaper it will be in terms of your time, others’ time, and downstream support costs.</p>
+
+<p><a href="http://pragprog.com/the-pragmatic-programmer/extracts/tips">Pragmatic Programmer Tip</a>:</p>
+<blockquote>
+  <p>The coding ain’t done ‘til all the tests run.</p>
+</blockquote>
+
+<p>Furthermore:</p>
+
+<ul>
+  <li>Code that isn’t tested does not work.</li>
+  <li>Code that isn’t regression tested eventually stops working.</li>
+  <li>Code that isn’t <em>automatically</em> regression tested to prove it works, does not work.</li>
+</ul>
+
+<p>Thus, you should build automated testing code (unit tests, Makefile rules, shell scripts, test data) from the very beginning.</p>
+
+<h3 id="i-write-bug-free-code---testing-is-a-waste-of-time">I write bug free code - testing is a waste of time</h3>
+
+<p>Many people have the attitude that testing code is a waste of time and boring - why do it?
+As Fred Brooks said, “All programmers are optimists”!</p>
+
+<p>Consider the software lifecycle discussed in class: requirements, design, coding, testing, debugging, integration, and delivery.
+Professional programmers will tell you that testing and debugging take the largest chunk of time.
+Thus, it’s smart to <em>develop tools to automate the testing of code</em>.</p>
+
+<p>Perhaps the most important tools are for <em>regression testing</em>, which systematically retest the code periodically.
+Each of those words is important:</p>
+
+<ul>
+  <li><em>retest:</em> they test older parts of the code even as you develop new parts of the code - just in case your new code broke the old code.</li>
+  <li><em>systematic:</em> they run automatically through a large number of tests, validating the results of each test, so neither carelessness nor laziness causes you to overlook important tests.</li>
+  <li><em>periodic:</em> they run at critical points in the development process; certainly, right before a new release, but in many organizations they run as part of a “nightly build” that compiles and tests the entire system and all of its units.
+Woe to the programmer who “breaks the nightly build”!</li>
+</ul>
+
+<p>If all the regression tests pass then you have some confidence that your new code did not introduce additional problems.
+A more accurate statement might be “the changes didn’t reintroduce any of the bugs that I already knew might exist.”</p>
+
+<h3 id="write-the-unit-test-code-first-and-keep-it-with-the-objectfunctions">Write the unit-test code first, and keep it with the object/functions</h3>
+
+<p>As Jeff Canna observed, it’s best to write the test code <em>before</em> you write the real code.
+This ensures that you’re paying attention to the specifications first, and not just leaping into the code.
+When writing these unit tests, try to avoid any testing or dependence on things outside of the unit.
+Aim to produce a unit test for <em>every</em> function or method that some other code or user will invoke.</p>
+
+<h3 id="test-as-you-write-code">Test as you write code</h3>
+
+<p>The earlier you find a problem with your code the better; it will save significant time and your company money.
+You will also get respect from other programmers.</p>
+
+<p>I expect most of you sit at the terminal and hack at the code to reveal and fix bugs - you hack in some printfs and run your code again, iterating hundreds of times.
+This brute-force method is dumb, slow, and error prone - you’ll get no respect in industry for this approach.
+Read your code, think like a computer, and write test code as you write the real code.</p>
+
+<h3 id="use-c-idioms-and-be-consistent-when-you-write-code">Use C idioms and be consistent when you write code</h3>
+
+<p>You already know many C idioms even if we haven’t always labeled them that way.
+In C, there are many ways to write a simple loop:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="c1">// example 1
+</span>      <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;=</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+          <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span><span class="p">;</span>
+
+      <span class="c1">// example 2
+</span>      <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="p">)</span>
+          <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span><span class="p">;</span>
+
+      <span class="c1">// example 3
+</span>      <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span> <span class="o">--</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="p">)</span>
+          <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>As in any human language, C has <em>idioms</em>, that is, conventional ways that experienced programmers write common pieces of code.
+Idioms aid understanding because they are immediately recognizable and any errors in their use is also quickly discernible.</p>
+
+<p>All of the loops above would work… but they do not follow the C idiom for such loops.
+The idiomatic C <code class="highlighter-rouge">for</code> loop is:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="c1">// Idiomatic form
+</span>      <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">)</span>
+          <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>Being consistent when programming C will help enormously.
+For example, if you are use to writing idiomatic code then when you see a piece of code that is not idiomatic you should stop and take a close look at that code: maybe a boundary problem is more likely?
+If code is written the same way each time then when you see code that is not idiomatic it either suggests poor code or some genuine difference exists that the idiom does not cover.
+Either way: take a second close look to convince yourself its one or the other.</p>
+
+<p>Here are some more examples of C idioms that you should be familiar with:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="c1">// Infinite loop idioms
+</span>      <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>
+         <span class="p">....</span>
+      <span class="p">}</span>
+
+      <span class="c1">// or
+</span>
+      <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+         <span class="p">....</span>
+      <span class="p">}</span>
+
+      <span class="c1">// malloc, string copy idiom
+</span>      <span class="kt">char</span> <span class="o">*</span><span class="n">newp</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">strlen</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">newp</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+      		<span class="n">strcpy</span><span class="p">(</span><span class="n">newp</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+      <span class="k">else</span> 
+      		<span class="c1">// handle the malloc error
+</span>
+      <span class="c1">// copying characters from stdin to stdout until end of file
+</span>      <span class="k">while</span> <span class="p">((</span><span class="n">c</span> <span class="o">=</span> <span class="n">getchar</span><span class="p">())</span> <span class="o">!=</span> <span class="n">EOF</span><span class="p">)</span>
+           <span class="n">putchar</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+
+      <span class="c1">// traversal of a null-terminated string
+</span>      <span class="k">for</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">p</span><span class="o">=</span><span class="n">string</span><span class="p">;</span> <span class="o">*</span><span class="n">p</span> <span class="o">!=</span> <span class="sc">'\0'</span><span class="p">;</span> <span class="n">p</span><span class="o">++</span><span class="p">)</span>
+          <span class="c1">// do something with *p  
+</span>
+</code></pre></div></div>
+
+<p>Write in idioms as much as possible; it makes it easier to spot bugs - and harder to create them.</p>
+
+<h3 id="test-code-at-its-boundaries">Test code at its boundaries</h3>
+
+<p>In what follows, we use a series of code snippets from [KP, 1999] to illustrate how to code to remove <em>boundary bugs</em>, i.e., those that appear at the ‘boundary cases’ of a loop or function (sometimes called ‘edge cases’).
+Boundary testing assumes you test a small snippet of code at a time - sort of micro testing of code sequences.
+The examples (below) do not use idioms and are poorly written to cater for boundary bugs.
+Every time <em>you</em> write a loop, verify the boundary cases to ensure the execution goes through the loop the correct number of times.</p>
+
+<p>For example, in the code below we probe the following boundaries:</p>
+
+<ol>
+  <li>empty input</li>
+  <li>a single input character</li>
+  <li>an exactly full array - but could be a <code class="highlighter-rouge">malloc</code>‘ed buffer.</li>
+</ol>
+
+<p>Consider the following code snippet from [KP, 1999]:</p>
+
+<h3 id="boundary-test-empty-line-input-with-only-newline">BOUNDARY TEST: empty line (input with only newline)</h3>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="c1">// read characters from stdin into a string
+</span>      <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+      <span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="n">MAX</span><span class="p">];</span>
+
+      <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">getchar</span><span class="p">())</span> <span class="o">!=</span> <span class="sc">'\n'</span> <span class="o">&amp;&amp;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">MAX</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+          <span class="p">;</span>
+      <span class="n">s</span><span class="p">[</span><span class="o">--</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>Looking at this code the first thing that should strike us is that it’s not a C idiom.
+That should make us look very closely at the loop logic; particularly, the loop’s conditional logic.
+Maybe, after studying the code and thinking about characters being input we convince ourselves that the code is non idiomatic but works.
+Now start to test boundaries.
+Consider the case where the user simply types ‘return’.
+The resulting code would terminate immediately on the first iteration with <code class="highlighter-rouge">i</code> still set to zero.
+Outside the loop, the assignment statement will write to s[i-1], which is <em>before the start of the array</em>.
+Not a good idea!</p>
+
+<h3 id="boundary-test-empty-line-input-with-only-eof-character">BOUNDARY TEST: empty line (input with only EOF character)</h3>
+
+<p>OK. The smart thing to do is rewrite this convoluted loop as an idiom and solve the problem; for example:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">MAX</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="c1">// note we switch ++i =&gt; i++, the idiom
+</span>           <span class="k">if</span> <span class="p">((</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">getchar</span><span class="p">())</span> <span class="o">==</span> <span class="sc">'\n'</span><span class="p">)</span>
+              <span class="k">break</span><span class="p">;</span>
+      <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>Inspecting the code above we can easily see that the previous boundary problem is solved with the new idiomatic code.
+It handles the case when the input is solely a newline beautifully.
+If we mentally compute through reading 1, 2 or 3 characters we see it also works; for example <code class="highlighter-rouge">a b c \n</code> works.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>	<span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="n">is</span> <span class="n">a</span>    <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">is</span> <span class="n">b</span>    <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">is</span> <span class="n">c</span>    <span class="n">s</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">is</span> <span class="err">\</span><span class="mi">0</span>
+</code></pre></div></div>
+
+<p>Looks good.</p>
+
+<p>But what if we get an empty line and the first character is an <code class="highlighter-rouge">EOF</code>?
+It breaks.
+Another pesky bug in our code.
+Someone typing control-D (<code class="highlighter-rouge">EOF</code>) would not be an unlikely occurrence.</p>
+
+<p>OK. Let’s fix this boundary bug.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">MAX</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+           <span class="k">if</span> <span class="p">((</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">getchar</span><span class="p">())</span> <span class="o">==</span> <span class="sc">'\n'</span> <span class="o">||</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">EOF</span><span class="p">)</span>
+              <span class="k">break</span><span class="p">;</span>
+      <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'\0'</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>That works!
+Nice piece of code now.
+Looks like we are done.</p>
+
+<p>Em… are you sure?
+There are other boundary problems that could lurk here.
+What happens if the array is nearly full - does it work?
+What happens if the array is exactly full?
+Or over full?
+What happens if the array is full and then followed by a newline?
+Are these boundary conditions catered for?
+We will leave you to determine the answer to that question.</p>
+
+<p>You get the idea.
+Bugs lurk at boundaries.
+Conversely, if code works at boundaries it is likely to work elsewhere.</p>
+
+<h3 id="break-building-blocks-on-purpose">Break building blocks on purpose</h3>
+
+<p>Consider one of your important ‘building block’ functions.
+Now break it!
+Have it still operate, but just produce goofy results.
+For example, in our TSE programs, suppose the hash function always returned the same hash value?
+What would your program do?
+Would it run, perhaps more slowly, or would it crash?</p>
+
+<p>Many of you use the<code class="highlighter-rouge">count_malloc()</code> function to help track the balance of <code class="highlighter-rouge">malloc</code> and <code class="highlighter-rouge">free</code> calls.
+If you use them for every memory allocation and free, they are a great place to insert debugging code and breakpoints.
+They are also a great place for testing!</p>
+
+<p>For example, you could cause it to cause an out-of-memory situation after some number of calls (as suggested by Kernighan and Pike):</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Usage example: gcc -DMEMORYTESTLIMIT=50 ...
+</span><span class="kt">void</span> <span class="o">*</span>
+<span class="nf">count_malloc</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="cp">#ifdef MEMORYTESTLIMIT
+</span>  <span class="k">if</span> <span class="p">(</span><span class="n">nmalloc</span> <span class="o">&gt;=</span> <span class="n">MEMORYTESTLIMIT</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="c1">// fake an out-of-memory condition
+</span><span class="cp">#endif
+</span>
+  <span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ptr</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="n">nmalloc</span><span class="o">++</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">ptr</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="test-pre--and-post-conditions">Test pre- and post-conditions</h3>
+
+<p>It is always a good idea to test for pre- and post-conditions: <em>pre-conditions</em> are those you expect to be true before some block of code; <em>post-conditions</em> are those you expect to be true after some block of code executes.
+For example, we have already used defensive program to check input values are with in range - an example of pre-condition testing.
+Let’s look at another simple example out of [KP, 1999] that computes the average of n elements in an array <code class="highlighter-rouge">a[]</code>.
+Closer inspection of the code reveals that there is a problem if <code class="highlighter-rouge">n</code> is less than or equal to <code class="highlighter-rouge">0</code>.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">float</span> <span class="nf">avg</span><span class="p">(</span><span class="kt">float</span> <span class="n">a</span><span class="p">[],</span> <span class="kt">int</span> <span class="n">n</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">float</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">0</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+  <span class="k">return</span> <span class="n">sum</span> <span class="o">/</span> <span class="n">n</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>A natural question is what to do if someone calls <code class="highlighter-rouge">avg()</code> with <code class="highlighter-rouge">n=0</code>?
+An array of zero elements does not make much sense but an average of <code class="highlighter-rouge">0</code> does.
+Should our code catch the division by zero, perhaps with an assert or abort, or complain, or be silent?
+One reasonable approach is to just return <code class="highlighter-rouge">0</code> as the average if <code class="highlighter-rouge">n</code> is less than or equal to zero.
+While the code is idiomatic in style we need to tweak it to test pre-condition, as shown below - note: <code class="highlighter-rouge">return n&lt;=0 ? 0.0 : sum/n;</code></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">double</span> <span class="nf">avg</span><span class="p">(</span><span class="kt">double</span> <span class="n">a</span><span class="p">[],</span> <span class="kt">int</span> <span class="n">n</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="kt">float</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">0</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+  <span class="k">return</span> <span class="n">sum</span><span class="o">/</span><span class="n">n</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="use-assert">Use ‘assert’</h3>
+
+<p>C provides an assertion facility in <code class="highlighter-rouge">assert.h</code> useful for pre- and post-condition testing.
+Asserts are usually used for unexpected failure where there is no clean way to recover the logic control.
+For example our above <code class="highlighter-rouge">avg()</code> function could include a different solution using the assert function:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">float</span> <span class="nf">avg</span><span class="p">(</span><span class="kt">float</span> <span class="n">a</span><span class="p">[],</span> <span class="kt">int</span> <span class="n">n</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="kt">float</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">0</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+
+  <span class="k">return</span> <span class="n">sum</span><span class="o">/</span><span class="n">n</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If the assertion is in fact violated it will cause an abort and standard message to be printed out:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Assertion failed: n &gt; 0, file avgtest.c, line 7 
+Abort(crash)
+</code></pre></div></div>
+
+<p>Assertions should be used only for testing “this should never happen” kinds of conditions…
+other errors, especially those caused by the user, should be handled more gracefully.</p>
+
+<p>We wrote an own <code class="highlighter-rouge">assert</code> function for use in most of my TSE code;</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="o">*</span>
+<span class="nf">assertp</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"MALLOC FAILED: %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
+    <span class="n">exit</span> <span class="p">(</span><span class="mi">99</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">p</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Notice that it acts like a pass-through function, when all is well.
+The pointer coming from <code class="highlighter-rouge">malloc</code> is returned by <code class="highlighter-rouge">assertp</code> and is saved in the variable.
+At that point it is assured to be non-NULL.
+When <code class="highlighter-rouge">assertp</code> receives a NULL pointer, it prints a message to <code class="highlighter-rouge">stderr</code> and exits.</p>
+
+<p>I use it at the top of most functions to verify that all inbound pointers are not NULL (where NULL is not valid or expected):</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">assertp</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s">"page_save gets NULL page"</span><span class="p">);</span>
+  <span class="n">assertp</span><span class="p">(</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">url</span><span class="p">,</span> <span class="s">"page_save gets NULL page-&gt;url"</span><span class="p">);</span>
+  <span class="n">assertp</span><span class="p">(</span><span class="n">page</span><span class="o">-&gt;</span><span class="n">html</span><span class="p">,</span> <span class="s">"page_save gets NULL page-&gt;html"</span><span class="p">);</span>
+  <span class="n">assertp</span><span class="p">(</span><span class="n">pageDirectory</span><span class="p">,</span> <span class="s">"page_save gets NULL pageDirectory"</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="test-for-the-unexpected-aka-defensive-programming">Test for the unexpected: aka, defensive programming</h3>
+
+<p>Your crawler and indexer uses defensive programming for checking that the input arguments are logically correct: e.g., that a path actually existed.
+But a useful technique when coding is to “expect the unexpected”, or code for the unexpected.
+Adding checks for <code class="highlighter-rouge">n  &lt; 0</code> in <code class="highlighter-rouge">avg()</code> is an example.
+Another is below:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">if</span> <span class="p">(</span><span class="n">grade</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">grade</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span>  <span class="c1">// can't happen at Dartmouth
+</span>    <span class="n">letter</span> <span class="o">=</span> <span class="sc">'?'</span><span class="p">;</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">grade</span> <span class="o">&gt;=</span> <span class="mi">90</span><span class="p">)</span>
+    <span class="n">letter</span> <span class="o">=</span> <span class="sc">'A'</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="p">....</span>
+</code></pre></div></div>
+
+<p>Other examples include:</p>
+
+<ol>
+  <li>Out of range subscripts</li>
+  <li>NULL pointers</li>
+  <li>Divide by zero</li>
+</ol>
+
+<p>This is especially important for physical systems.
+The controlling software must be aware of the limitations of the physical system.
+Otherwise, seeming valid, if perhaps unusual, software interactions could lead to disaster: See <a href="http://www.youtube.com/watch?v=fJyWngDco3g">this video</a> of the effect of some process control software hacking.</p>
+
+<h3 id="plan-for-automate-able-and-repeatable-tests">Plan for automate-able and repeatable tests</h3>
+
+<p>K&amp;P recommend that the test output should always contain all of the input parameter settings so that the results can be matched to the parameter settings.
+Furthermore, you need to be able to precisely recreate the conditions of that test as accurately as possible.
+Some situations complicate this goal.
+If your program uses random numbers, you will need some way to set and print the starting seed so that you can ensure the same sequence of random numbers for each test run.
+Alternatively, you can have a file of “random” numbers for use during test - the random number function just reads the next one from the file.</p>
+
+<p>Another situation which poses a challenge here is testing in the presence of asynchronous processes.
+These could be as simple as a collection of independent and variable length timers or as complicated as a distributed real-time process control system managing the flow of product through a refinery process.</p>
+
+<h3 id="always-check-error-returns-from-functions">Always check error returns from functions</h3>
+
+<p>A really good programmer will always check the return status from functions, system calls, and libraries.
+If you neglect to look at the return status … how do you know that the function really worked?
+If your code assumes it did not fail but it did, then the resulting segfault or error will be hard to debug.
+Better to always check the error status returned by functions.</p>
+
+<p>Another example from Kernighan and Pike:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">fp</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s">"w"</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fp</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// file could not be opened
+</span>  <span class="p">}</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">some</span> <span class="n">expression</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="p">...);</span>  <span class="c1">// but... what if there is an error?
+</span>  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">==</span> <span class="n">EOF</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// some output error occurred
+</span>  <span class="p">}</span>
+</code></pre></div></div>
+
+<p>The error status of <code class="highlighter-rouge">fprintf</code> is not checked; what if it fails?
+The data written  may have been lost.</p>
+
+<h3 id="summary">Summary</h3>
+
+<ol>
+  <li>Test incrementally and build confidence in your code.</li>
+  <li>Write unit tests that can be re-run once fixes or changes have been made.</li>
+  <li>Write self-contained unit tests
+    <ul>
+      <li>Test inputs and outputs.</li>
+      <li>Test the dataflow through the program.</li>
+      <li>Test all the execution paths through the program.</li>
+    </ul>
+  </li>
+  <li>Stress-test the code; start simple and advance (test crawler at depths 1 .. 5 for example).</li>
+  <li>Don’t implement new features if there are known bugs in the system.</li>
+  <li>The target runtime environment is as important a design and implementation point as the purpose of the code.
+Design <em>and</em> test with that environment in mind.</li>
+  <li>Test for portability: run code and tests on multiple machines/OSs.</li>
+  <li>Before shipping code make sure that the any debug/test modes are turned off.</li>
+</ol>
+
+<p>If you follow at least 50% of the tips in these notes you will write better code and it will have considerably fewer bugs.</p>
+
+<h2 id="tips-from-google">Tips from Google</h2>
+
+<p><a href="http://code.google.com/p/googletest/wiki/V1_6_Primer">Google’s C++ Testing Frameworks</a> puts the goals of testing this way (and it’s clearly applicable to C programming and unit testing as well as functional and system testing):</p>
+
+<ul>
+  <li>Tests should be independent and repeatable</li>
+  <li>Tests should be portable and reusable</li>
+  <li>When tests fail, they should provide as much information as possible about the failure</li>
+  <li>The testing framework should handle all the tracking of successful and unsuccessful tests for you</li>
+  <li>Tests should be as fast as possible</li>
+</ul>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a> we will review the feedback from the mid-term survey.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

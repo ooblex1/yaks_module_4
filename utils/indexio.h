@@ -11,17 +11,6 @@
 #include <hash.h>
 #include <queue.h>
 
-typedef struct wordDoc_t{
-	char* word;
-	queue_t* doc_q;
-} wordDoc_t;
-
-/*
-typedef struct doc_t{
-	int document;
-	int count;
-} doc_t;
-*/
 
 
 

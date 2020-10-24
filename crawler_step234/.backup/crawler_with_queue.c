@@ -1,7 +1,7 @@
 /* crawler.c --- 
  * 
  * 
- * Author: Ye Zhang, (add names here)
+ * Author: Ye Zhang
  * Created: Thu Oct 15 16:40:16 2020 (-0400)
  * Version: 1
  * 
@@ -35,6 +35,15 @@ void printURL(void *p) {
 
 }
 
+// helper function used to delete queue content
+void deletePages(void* qp){
+    queue_t* queue = (queue_t*)qp;
+    webpage_t *current_page;
+    while ( ( current_page = (webpage_t*)qget(queue) )!=NULL ){
+        webpage_delete(current_page);
+    }
+}
+
 //int main(int argc,char *argv[]) {
 int main(){
 
@@ -44,17 +53,15 @@ int main(){
 	if(! webpage_fetch(new_page)) {
 		exit(EXIT_FAILURE);
 	}
-    //char *html = webpage_getHTML(new_page);
-    //printf("Found html: %s\n", html);
-    //free(html); 
+
+
+    queue_t* internal_q = qopen();
 
     int pos = 0;
     char *result;
     char *location;
-    webpage_t *current;
 
-    queue_t* internal_q = qopen();
- 
+    webpage_t *current;
     while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
     	location = "external";
     	if (IsInternalURL(result)) {
@@ -67,6 +74,7 @@ int main(){
       	//webpage_delete(new_page);
     }
 
+
     //printing
     qapply(internal_q, printURL);
 
@@ -74,6 +82,7 @@ int main(){
 	// free all the data structure
 	webpage_delete(new_page);
 
+    deletePages(internal_q);
 
 	qclose(internal_q);
 

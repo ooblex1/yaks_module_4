@@ -1,13 +1,14 @@
 /* crawler.c --- 
  * 
  * 
- * Author: Ye Zhang, Kevin Larkin, Aadhya Kocha
+ * Author: Ye Zhang
  * Created: Thu Oct 15 16:40:16 2020 (-0400)
  * Version: 2
  * 
  * Description: craws the web form a given seed to a given maxDepth and 
  * catches the content of the pages it finds, one page per file, 
  * in a given directory
+ * code for step 3
  * 
  */
 
@@ -20,95 +21,85 @@
 #include "queue.h"
 #include "hash.h"
 
+void printURL(void *p) {
+	webpage_t *wpp = (webpage_t *)p;
+	char *url = webpage_getURL(wpp);
+	
+	if (url != NULL) {
+		printf("%s\n", url);
+	} else{
+		printf("url is empty");
+	}
 
-//desice whether the given url is internal
-bool isInternal((char* url char*seedurl){
-	if (strstr(url, seedurl) != NULL) {
-    	return true;
+}
+
+void printHash(void *p){
+	char* urlp = (char *)p;
+	if (urlp != NULL) {
+		printf("%s\n", urlp);
+	} 
+}
+
+// helper function used to delete queue content
+void deletePagesQ(void* qp){
+    queue_t* queue = (queue_t*)qp;
+    webpage_t *current_page;
+    while ( ( current_page = (webpage_t*)qget(queue) )!=NULL ){
+        webpage_delete(current_page);
     }
-    return false;
 }
 
 
-//int main(int argc,char *argv[]) {
+//used in h search, whether url is in the hash table
+bool inHash(void* elp, const void* keyp){
+	if (elp == NULL){
+		return NULL;
+	}
+	char* el = (char *)elp;
+	char* key = (char *)keyp;
+	return strcmp(el,key)==0;
+}
+
 int main(){
 
-	/* check arguments
-	if(argc != 4){
-		printf("usage: crawler <seedurl> <pagedir> <maxdepth>\n");
-		exit(EXIT_FAILURE);
-	}
-	
-	char* seedurl = argv[1];
-	char* pagedir = argv[2];
-	int maxdepth = atoi(argv[3]);
-	*/
-
 	//create new webpage
-	char *seedurl = "https://thayer.github.io/engs50/";
-	int maxdepth = 0;
-	webpage_t *new_page = webpage_new(seedurl, maxdepth, NULL);
+	webpage_t *new_page = webpage_new("https://thayer.github.io/engs50/", 0, NULL);
 
-	
-    queue_t* internal_q = qopen();
-	hashtable_t* visited_url_ht = hopen(100);
-
-	// put seedurl in queue and hashtable
-	if (webpage_fetch(new_page)){
-		hput(visited_url_ht,(void*)seedurl,seedurl,strlen(seedurl));
-		//qput(internal_q,(void*)new_page);
-		//saving to dir here?
-	} else {
-		webpage_delete(new_page);
-		//qclose(internal_q);
-		hclose(visited_url_ht);
+	if(! webpage_fetch(new_page)) {
 		exit(EXIT_FAILURE);
 	}
 
-	//loop through all URL's to put them into hash and queue
-	//only when webpage is not in queue or hash will it be put into both
-	int pos = 0;
-	char* result;
+    int pos = 0;
+    char *result;
 
-	while (webpage_getDepth(next)<maxdepth && (pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
+    queue_t* internal_q = qopen();
+    hashtable_t* visited_ht = hopen(30);
 
-	}
+    webpage_t *current;
+    while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
+    	if(IsInternalURL(result) && (hsearch(visited_ht,inHash,result,strlen(result))==NULL)){
+    		hput(visited_ht,result,result,strlen(result));
+    		current = webpage_new(result, 1, NULL);
+    		qput(internal_q,current);
+    	} else{
+    		free(result);
+    	}
+    }
 
-	webpage_t *next;
-	while ( ( next = (webpage_t*)qget(qp) )!=NULL ){
+    //printing
+    printf("printing queue\n");
+    qapply(internal_q,printURL);
 
-		while (webpage_getDepth(next)<maxdepth && (pos = webpage_getNextURL(next, pos, &result)) > 0) {
+    printf("printing hash\n");
+    happly(visited_ht, printHash);
 
-			printf("Found url: %s  \n", result);
-			if (IsInternalURL(result)){
-				
-				printf("Internal URL.\n");
-				
-				if(hsearch(visited_ht,searchurl,result,strlen(result))==NULL){
-					webpage_t* inter_web = webpage_new(result, webpage_getDepth(next)+1, NULL);
-					hput(visited_ht,(void*)result,result,strlen(result));
-					qput(qp,(void*)inter_web);
-				} else
-					free(result);
-			} else {
-				printf("External URL.\n");
-				free(result);
-			}
-		}
-		webpage_delete((void*)next);
-	}
-
-
-	free(result);
-    free(location);
-    free(key_word);
 
 	// free all the data structure
 	webpage_delete(new_page);
+	deletePagesQ(internal_q);
 
-	//hremove(visited_ht,searchurl,seedurl,strlen(seedurl));
+	qclose(internal_q);
 	hclose(visited_ht);
-	//qclose(internal_q);
 
 	exit(EXIT_SUCCESS);
 	

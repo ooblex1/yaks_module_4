@@ -48,11 +48,11 @@ int main(void) {
 	
 	int pos = 0;
 	int32_t savestat = 1;
-	char *result;
+	char *result, old_url[100], new_url[100];
 	queue_t *internal_q = qopen();
 	hashtable_t *visited_ht = hopen(30);
 	webpage_t *current, *original, *retrieved;
-
+	
 	while ((pos = webpage_getNextURL(new_page, pos, &result)) > 0) {
 		if (IsInternalURL(result) && (hsearch(visited_ht, inHash, result, strlen(result)) == NULL)) {
 			hput(visited_ht, result, result, strlen(result));
@@ -84,20 +84,28 @@ int main(void) {
 	
 	retrieved = pageload(771, "pages");
 
-	if (retrieved->url != original->url) {
-		printf("FAILURE: Retrieved webpage's URL does not match original webpage's URL\n");
+	/*
+	if (retrieved != original) {
+		printf("FAILURE: They don't match\n");
 		exit(EXIT_FAILURE);
 	}
-	
-	if (retrieved->depth != original->depth) {
+	*/
+	strcpy(new_url, webpage_getURL(retrieved));
+	strcpy(old_url, webpage_getURL(original));			 
+	if (strcmp(new_url, old_url) != 0) {
+		printf("FAILURE: Retrieved webpage's URL does not match original webpage's URL\n");
+		printf("original URL: %s; retrieved URL: %s\n", old_url, new_url);
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	if (webpage_getDepth(retrieved) != webpage_getDepth(original)) {
 		printf("FAILURE: Retrieved webpage's depth does not match original webpage's depth\n");
 		exit(EXIT_FAILURE);
 	}
-	if (retrieved->html_len != original->html_len) {
+	if (webpage_getHTMLlen(retrieved) != webpage_getHTMLlen(original)) {
 		printf("FAILURE: Retrieved webpage's html length does not match original webpage's html length\n");
 		exit(EXIT_FAILURE);
 	}
-	if (retrieved->html != original->html) {
+	if (webpage_getHTML(retrieved) != webpage_getHTML(original)) {
 		printf("FAILURE: Retrieved webpage's html does not match original webpage's html\n");
 		exit(EXIT_FAILURE);
 	}
@@ -105,6 +113,7 @@ int main(void) {
 	printf("SUCCESS: Retrieved webpage matches original webpage\n");
 	
 	webpage_delete(new_page);
+	webpage_delete(retrieved);
 	deletePagesQ(internal_q);
 
 	qclose(internal_q);

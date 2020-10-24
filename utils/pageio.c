@@ -170,7 +170,7 @@ webpage_t *pageload(int id, char *dirnm) {
 											printf("EOF at k = %d\n", k);
 										}
 										html[k] = (char)ch;
-										printf("%c", (char)ch);
+										//printf("%c", (char)ch);
 									}
 									
 									if (stop == false) {

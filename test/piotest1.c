@@ -9,20 +9,12 @@
  * 
  */
 
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include "hash.h"
 #include "pageio.h"
-#include "queue.h"
 #include "webpage.h"
 
 int main(void) {
-	
 	webpage_t *wp = pageload(1, "../crawler/pages");
 	
 	pagesave(wp, 1000, "../crawler/pages");

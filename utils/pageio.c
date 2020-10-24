@@ -32,10 +32,12 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 	int nlen = strlen(dirnm) + 16, stat, pdep, plen;
 	int32_t result = 1;
 	char outn[5], mdir[nlen], cmod[nlen], remv[nlen], path[nlen], *purl, *html;
-	
+
 	purl = webpage_getURL(pagep);
 	pdep = webpage_getDepth(pagep);
 	plen = webpage_getHTMLlen(pagep);
+	if((html = (char *)malloc(plen + 1)) == NULL)
+		return 1;
 	html = webpage_getHTML(pagep);
 	
 	sprintf(outn, "%d", id);
@@ -81,6 +83,8 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 	} else {
 		printf("ERROR: Failed to make directory \"%s\"\n", dirnm);
 	}
+
+	//free(html);
 	
 	return result;
 }
@@ -102,11 +106,12 @@ webpage_t *pageload(int id, char *dirnm) {
 	fscanf(fp, "%s", url);
 	fscanf(fp, "%d", &depth);
 	fscanf(fp, "%d", &html_length);
-	if((html = (char *)malloc(html_length)) == NULL)
+	if((html = (char *)malloc(html_length + 1)) == NULL)
 		return NULL;
 	for(p=html,i=0; i<html_length; i++,p++)
 		*p = fgetc(fp);
 	if((result=webpage_new(url,depth,html)) == NULL)
 		return NULL;
+	//free(html);
 	return result;
 }

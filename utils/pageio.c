@@ -63,8 +63,8 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 			if (access(path, W_OK) == 0 && purl != NULL && html != NULL) {
 				fprintf(outf, "%s\n", purl);
 				fprintf(outf, "%d\n", pdep);
-				fprintf(outf, "%d\n", plen);
-				fprintf(outf, "%s", html);
+				fprintf(outf, "%d", plen);
+				fprintf(outf, "%s\n\n", html);
 				
 	 			result = 0;
 			} else {
@@ -91,108 +91,22 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
  * returns: non-NULL for success; NULL otherwise
  */
 webpage_t *pageload(int id, char *dirnm) {
-	//put later: webpage_t *result = webpage_new(url, depth, html);
-	webpage_t *result = NULL;
-	FILE *in_f;
-	int trash, i, j, k, nlen = strlen(dirnm) + 16, u = 0, d = 0, s = 48, uc = 0, sc = 0, sd[10], depth, html_length;
-	char ch, outn[5], path[nlen], url[MAXLEN];
-	bool stop = false;
+	webpage_t *result;
+	FILE *fp;
+	char filename[MAXLEN], url[MAXLEN], *html, *p;
+	int i, depth, html_length;
 	
-	sprintf(outn, "%d", id);
-	strcpy(path, "./");
-	strcat(path, dirnm);
-	strcat(path, "/");
-	strcat(path, outn);
-	
-	//check if directory and file exist and file is readable
-	if (access(dirnm, F_OK) == 0) {
-		if (access(path, R_OK) != 0) {
-			printf("ERROR: File not found or is unreadable\n");
-			//result = NULL;
-		} else {
-			if ((in_f = fopen(path, "r")) != NULL) {
-				while (u != 10 && u != EOF && uc < MAXLEN) {
-					u = fgetc(in_f);
-					url[uc] = (char)u;
-					uc++;
-				}
-				
-				if (u == EOF || uc >= MAXLEN) {
-					printf("ERROR: Save file ended prematurely and/or URL exceeds 100 characters\n");
-					//result = NULL;
-				} else {
-					d = getc(in_f);
-					
-					if (d == EOF || d < 48 || d > 57) {
-						printf("ERROR: Save file ended prematurely and/or invalid depth value\n");
-						//result = NULL;
-					} else {
-						depth = d - 48;
-						
-						trash = getc(in_f);
-						if (trash == EOF) {
-							printf("ERROR: Save file ended prematurely\n");
-							//result = NULL;
-						} else {
-							if (trash != 10) {
-								printf("ERROR: Invalid depth read from save file\n");
-								//result = NULL;
-							} else {
-								while (s != EOF && s > 47 && s < 58 && sc < 10) {
-									printf("in while loop: s = %d\n", s);
-									s = fgetc(in_f);
-									sd[sc] = s - 48;
-									
-									for (i = 0; i < sc - 1; i++) {
-										printf("in i for loop: s = %d\n", s);
-										sd[i] = sd[i] * 10;
-									}
-
-									sc++;
-									printf("finished this iter. of while loop: s = %d\n", s);
-								}
-
-								for (j = 0; j < sc - 1; j++) {
-									printf("in j for loop: sd[%d] = %d\n", j, sd[j]);
-									html_length += sd[j];
-								}
-								
-								if (s != 10) {
-									printf("ERROR: Save file ended prematurely and/or html length exceeds 1 billion or was formatted incorrectly. html_length = %d, j = %d, sc = %d, sd[0] = %d, s = %d, trash = %d, depth = %d, d = %d, u = %d, uc = %d\n", html_length, j, sc, sd[0], s, trash, depth, d, u, uc);
-									//result = NULL;
-								} else {
-									char html[html_length];
-									printf("html_length = %d\n", html_length);
-									for (k = 0; k < (html_length - 1) && stop == false; k++) {
-										ch = fgetc(in_f);
-										if (ch == EOF) {
-											stop = true;
-											printf("EOF at k = %d\n", k);
-										}
-										html[k] = (char)ch;
-										//printf("%c", (char)ch);
-									}
-									
-									if (stop == false) {
-										result = webpage_new(url, depth, html);
-									} else {
-										printf("ERROR: Save file ended prematurely and/or actual html length is shorter than claimed: k = %d, html[%d] = %c\n", k, k - 1, html[k - 1]);
-										//result = NULL;
-									}
-								}
-							}
-						}
-					}
-				}
-			} else {
-				printf("ERROR: Failed to open file\n");
-				//result = NULL;
-			}
-		}
-	} else {
-		printf("ERROR: Directory not found\n");
-		//result = NULL;
-	}
-	
+	sprintf(filename, "%s/%d", dirnm, id);
+	if((fp = fopen(filename, "r")) == NULL)
+		return NULL;
+	fscanf(fp, "%s", url);
+	fscanf(fp, "%d", &depth);
+	fscanf(fp, "%d", &html_length);
+	if((html = (char *)malloc(html_length)) == NULL)
+		return NULL;
+	for(p=html,i=0; i<html_length; i++,p++)
+		*p = fgetc(fp);
+	if((result=webpage_new(url,depth,html)) == NULL)
+		return NULL;
 	return result;
 }

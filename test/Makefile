@@ -6,5 +6,8 @@ all:			piotest1
 piotest1:	piotest1.c
 					gcc $(CFLAGS) piotest1.c $(LIBS) -o $@
 
+run:
+					./piotest1
+
 clean:
 					rm -f piotest1

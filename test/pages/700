@@ -1,0 +1,95 @@
+https://thayer.github.io/engs50/Labs/
+1
+2576
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Labs</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Labs</h1>
+  </header>
+
+  <div class="post-content">
+    <h1 id="this-is-a-legacy-page-and-not-used-please-refer-to-canvas-modules-for-assignments">This is a legacy page and not used. Please refer to Canvas Modules for assignments.</h1>
+
+<h2 id="click-to-view">Click to view!</h2>
+
+<ul>
+  <li><a href="Lab1/">Lab 1 - Bash</a>.</li>
+  <li><a href="Lab2/">Lab 2 - C</a>.</li>
+  <li><a href="Lab3/">Lab 3 - Data structures in C</a>.</li>
+  <li><a href="Lab4/">Lab 4 - TSE Crawler</a>.</li>
+  <li><a href="Lab5/">Lab 5 - TSE Indexer</a>.</li>
+  <li><a href="Lab6/">Lab 6 - TSE Querier</a>.</li>
+</ul>
+
+<p>Please follow the <a href="/engs50/Resources/CodingStyle.html">CS50 coding style</a>
+in C assignments.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>

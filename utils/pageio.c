@@ -94,8 +94,8 @@ webpage_t *pageload(int id, char *dirnm) {
 	//put later: webpage_t *result = webpage_new(url, depth, html);
 	webpage_t *result = NULL;
 	FILE *in_f;
-	int trash, i, j, k, nlen = strlen(dirnm) + 16, u = 0, d = 0, s = 0, uc = 0, sc = 0, sd[10], depth, html_length;
-	char outn[5], path[nlen], url[MAXLEN];
+	int trash, i, j, k, nlen = strlen(dirnm) + 16, u = 0, d = 0, s = 48, uc = 0, sc = 0, sd[10], depth, html_length;
+	char ch, outn[5], path[nlen], url[MAXLEN];
 	bool stop = false;
 	
 	sprintf(outn, "%d", id);
@@ -139,37 +139,44 @@ webpage_t *pageload(int id, char *dirnm) {
 								//result = NULL;
 							} else {
 								while (s != EOF && s > 47 && s < 58 && sc < 10) {
+									printf("in while loop: s = %d\n", s);
 									s = fgetc(in_f);
 									sd[sc] = s - 48;
 									
-									for (i = 0; i < sc; i++) {
+									for (i = 0; i < sc - 1; i++) {
+										printf("in i for loop: s = %d\n", s);
 										sd[i] = sd[i] * 10;
 									}
 
 									sc++;
+									printf("finished this iter. of while loop: s = %d\n", s);
 								}
 
-								for (j = 0; j < sc; j++) {
+								for (j = 0; j < sc - 1; j++) {
+									printf("in j for loop: sd[%d] = %d\n", j, sd[j]);
 									html_length += sd[j];
 								}
 								
 								if (s != 10) {
-									printf("ERROR: Save file ended prematurely and/or html length exceeds 1 billion or was formatted incorrectly\n");
+									printf("ERROR: Save file ended prematurely and/or html length exceeds 1 billion or was formatted incorrectly. html_length = %d, j = %d, sc = %d, sd[0] = %d, s = %d, trash = %d, depth = %d, d = %d, u = %d, uc = %d\n", html_length, j, sc, sd[0], s, trash, depth, d, u, uc);
 									//result = NULL;
 								} else {
 									char html[html_length];
-									
-									for (k = 0; k < html_length && stop == false; k++) {
-										html[k] = fgetc(in_f);
-										if (html[k] == EOF) {
+									printf("html_length = %d\n", html_length);
+									for (k = 0; k < (html_length - 1) && stop == false; k++) {
+										ch = fgetc(in_f);
+										if (ch == EOF) {
 											stop = true;
+											printf("EOF at k = %d\n", k);
 										}
+										html[k] = (char)ch;
+										printf("%c", (char)ch);
 									}
 									
 									if (stop == false) {
 										result = webpage_new(url, depth, html);
 									} else {
-										printf("ERROR: Save file ended prematurely and/or actual html length is shorter than claimed\n");
+										printf("ERROR: Save file ended prematurely and/or actual html length is shorter than claimed: k = %d, html[%d] = %c\n", k, k - 1, html[k - 1]);
 										//result = NULL;
 									}
 								}

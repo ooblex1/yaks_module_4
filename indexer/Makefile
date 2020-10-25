@@ -3,14 +3,14 @@ LIBS=-lutils -lcurl
 
 all: indexer indexer_step2 indexer_step34
 
-indexer:    	indexer.c    
-				gcc $(CFLAGS) $^ $(LIBS) -o $@
+indexer:    		indexer.c    
+					gcc $(CFLAGS) $^ $(LIBS) -o $@
 
-indexer_step2:    	indexer_step2.c    
-				gcc $(CFLAGS) $^ $(LIBS) -o $@
+indexer_step2:  	indexer_step2.c    
+					gcc $(CFLAGS) $^ $(LIBS) -o $@
 
 indexer_step34:    	indexer_step34.c    
-				gcc $(CFLAGS) $^ $(LIBS) -o $@
+					gcc $(CFLAGS) $^ $(LIBS) -o $@
 
 clean:
-				rm -f indexer indexer_step2 indexer_step34
+					rm -f indexer indexer_step2 indexer_step34

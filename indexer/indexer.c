@@ -23,12 +23,6 @@
 #include "pageio.h"
 #include "indexio.h"
 
-typedef struct word_count_t{
-	char* word;
-	queue_t* docq;
-} word_t;
-
-
 
 /* normalize word： at least 3 characters and lower case. 
 */ 
@@ -52,45 +46,6 @@ char *normalizeWord(char *word){
 
 int main(){
 
-	char* pagedir = "../crawler/pages";
-	webpage_t *current;
-	current = pageload(1,pagedir);
-
-
-	// hashtable for indexer
-	//hashtable_t *words_ht;
-	//words_ht=hopen(100);
-
-	char* result;
-	int pos=0;
-
-	//STEP2 Code
-	while ( (pos = webpage_getNextWord(current, pos, &result)) > 0) {
-
-		//normalize all words and then print
-		if(normalizeWord(result)!=NULL){
-			printf("normalized: %s\n", result);
-		}
-	}
-
-
-	//STEP3 Code
-	/*
-	while ( (pos = webpage_getNextWord(current, pos, &result)) > 0) {
-
-		// normalize all words
-		if(normalizeWord(result)!=NULL){
-				
-			? *exist_search;
-			exist_search=(word_t*)hsearch(???,searchWord,result,strlen(result));
-		}
-	}
-	*/
-
-				
-		
-	webpage_delete(current);
-
-
+	
 
 }

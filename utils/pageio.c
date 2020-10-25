@@ -36,8 +36,8 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 	purl = webpage_getURL(pagep);
 	pdep = webpage_getDepth(pagep);
 	plen = webpage_getHTMLlen(pagep);
-	if((html = (char *)malloc(plen + 1)) == NULL)
-		return 1;
+	//if((html = (char *)malloc(plen + 1)) == NULL)
+	//return 1;
 	html = webpage_getHTML(pagep);
 	
 	sprintf(outn, "%d", id);
@@ -65,8 +65,8 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 			if (access(path, W_OK) == 0 && purl != NULL && html != NULL) {
 				fprintf(outf, "%s\n", purl);
 				fprintf(outf, "%d\n", pdep);
-				fprintf(outf, "%d", plen);
-				fprintf(outf, "%s\n\n", html);
+				fprintf(outf, "%d\n", plen);
+				fprintf(outf, "%s\n", html);
 				
 	 			result = 0;
 			} else {
@@ -103,15 +103,17 @@ webpage_t *pageload(int id, char *dirnm) {
 	sprintf(filename, "%s/%d", dirnm, id);
 	if((fp = fopen(filename, "r")) == NULL)
 		return NULL;
-	fscanf(fp, "%s", url);
-	fscanf(fp, "%d", &depth);
-	fscanf(fp, "%d", &html_length);
+	fscanf(fp, "%s\n", url);
+	fscanf(fp, "%d\n", &depth);
+	fscanf(fp, "%d\n", &html_length);
 	if((html = (char *)malloc(html_length + 1)) == NULL)
 		return NULL;
 	for(p=html,i=0; i<html_length; i++,p++)
 		*p = fgetc(fp);
+	*p = '\0';
 	if((result=webpage_new(url,depth,html)) == NULL)
 		return NULL;
 	//free(html);
+	fclose(fp);
 	return result;
 }

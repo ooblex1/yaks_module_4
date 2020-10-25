@@ -19,5 +19,6 @@ int main(void) {
 	
 	pagesave(wp, 1000, "../crawler/pages");
 	
+	webpage_delete(wp);
 	exit(EXIT_SUCCESS);
 }

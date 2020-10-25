@@ -80,17 +80,45 @@ char *normalizeWord(char *word){
 
 int total = 0;
 
+void sumOneDoc(void *elp){
+	doc_t *docp = (doc_t *)elp;
+	if (docp != NULL){
+		int increment;
+		increment = docp->count;
+		total += increment;
+	}
+}
+
 void sumOneWord(void *elp){
 	wordDoc_t *el = (wordDoc_t *)elp;
-	doc_t *docq = el->doc_q;
-	int increment = docq->count;
-	total += increment; 
+	if (el != NULL){
+		queue_t *docq = el->doc_q;
+		qapply(docq,sumOneDoc);
+	}
 }
 
 void sumwords(void *htp){
 	hashtable_t *ht = (hashtable_t *)htp;
 	happly(ht, sumOneWord);
 	printf("sum of all counts: %d\n",total);
+}
+
+
+//helper function for debugging-prints all elements in hashtable
+
+void printWord(void *p){
+	wordDoc_t *current_word = (wordDoc_t *)p;
+	if (current_word != NULL){
+		printf("%s ", current_word->word);
+	}
+}
+
+//frees all elements in the hashtable and queue
+
+void freeHash(void *p){
+	wordDoc_t *current_word = (wordDoc_t*) p;
+	qclose(current_word->doc_q);
+	free(current_word->word);
 }
 
 
@@ -150,9 +178,9 @@ int main(){
 					new_doc->document = id; 
 					new_doc->count = 1;
 					qput(word_exist->doc_q,new_doc);
-				} else // if the doc is in the queue, increase count
+				} else {// if the doc is in the queue, increase count
 					doc_exist->count++;
-					
+				}
 				//free(result);
 
 			}
@@ -162,9 +190,15 @@ int main(){
 		}
 	}
 
-				
+	total = 0;	
 	sumwords(words_ht);	
+	//happly(words_ht,printWord);
 	webpage_delete(current);
+
+	//free all the queues in hashtable
+	happly(words_ht,freeHash);
+	hclose(words_ht);
+	exit(EXIT_SUCCESS);
 
 
 

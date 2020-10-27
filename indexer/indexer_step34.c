@@ -23,20 +23,6 @@
 #include "pageio.h"
 #include "indexio.h"
 
-//element of hash table
-typedef struct wordDoc_t{
-	char* word;
-	queue_t* doc_q;
-} wordDoc_t;
-
-//each hash table contains a word and a doc_t
-//doc c contains the document and count
-typedef struct doc_t{
-	int document;
-	int count;
-} doc_t;
-
-
 //below are functions called in main, to simplify structure
 
 //used in h search, whether word is in the hash table
@@ -118,7 +104,7 @@ void printWord(void *p){
 void freeHash(void *p){
 	wordDoc_t *current_word = (wordDoc_t*) p;
 	qclose(current_word->doc_q);
-	free(current_word->word);
+	//free(current_word->word);
 }
 
 
@@ -153,7 +139,7 @@ int main(){
 				doc_t* new_doc = (doc_t*)malloc(sizeof(doc_t));
 
 				//hash table element initialized
-				new_word->word = result;
+				strcpy(new_word->word, result);
 				new_word->doc_q = qopen();
 
 				//docs (element of queue) initialized
@@ -185,9 +171,9 @@ int main(){
 
 			}
 
-		}else{
-			free(result);
 		}
+		free(result);
+		
 	}
 
 	total = 0;	

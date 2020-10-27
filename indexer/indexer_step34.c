@@ -25,7 +25,7 @@
 
 //element of hash table
 typedef struct wordDoc_t{
-	char* word;
+	char word[100];
 	queue_t* doc_q;
 } wordDoc_t;
 
@@ -118,7 +118,7 @@ void printWord(void *p){
 void freeHash(void *p){
 	wordDoc_t *current_word = (wordDoc_t*) p;
 	qclose(current_word->doc_q);
-	free(current_word->word);
+	//free(current_word->word);
 }
 
 
@@ -153,7 +153,7 @@ int main(){
 				doc_t* new_doc = (doc_t*)malloc(sizeof(doc_t));
 
 				//hash table element initialized
-				new_word->word = result;
+				strcpy(new_word->word, result);
 				new_word->doc_q = qopen();
 
 				//docs (element of queue) initialized
@@ -185,9 +185,9 @@ int main(){
 
 			}
 
-		}else{
-			free(result);
 		}
+		free(result);
+		
 	}
 
 	total = 0;	

@@ -154,6 +154,7 @@ void indexBuild(hashtable_t *words_ht, int id, webpage_t *current) {
 				} else {// if the doc is in the queue, increase count
 					doc_exist->count++;
 				}
+				free(result);
 			}
 		}
 		else {

@@ -70,7 +70,7 @@ hashtable_t *indexload(char *indexnm){
     char word[50];
 
     FILE *f;
-    if((f = fopen("./oldindex", "r")) == NULL) {
+    if((f = fopen(indexnm, "r")) == NULL) {
         printf("file is empty! \n");
         return NULL;
     }

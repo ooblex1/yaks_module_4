@@ -143,6 +143,7 @@ void compareDocQ(queue_t *temp, queue_t *wordstruct_q){
 }
 
 /*
+//rank the final queue
 void rankfinal(queue_t *final_q){
     int ranks[500];
     doc_t *current;
@@ -158,6 +159,7 @@ void rankfinal(queue_t *final_q){
 
 }
 */
+
 
 void generateResult(char** words,hashtable_t *ht,int max) {
 
@@ -182,7 +184,7 @@ void generateResult(char** words,hashtable_t *ht,int max) {
         }
     }
 
-    rankfinal(temp_q);
+    //rankfinal(temp_q);
     qapply(temp_q,printcount);
     qclose(temp_q);
 

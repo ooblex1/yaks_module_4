@@ -154,6 +154,7 @@ void indexBuild(hashtable_t *words_ht, int id, webpage_t *current) {
 				} else {// if the doc is in the queue, increase count
 					doc_exist->count++;
 				}
+				free(result);
 			}
 		}
 		else {
@@ -163,35 +164,43 @@ void indexBuild(hashtable_t *words_ht, int id, webpage_t *current) {
 }
 
 int main(int argc,char *argv[]){
-
-	if(argc != 2){
-        printf("usage: indexer <id>\n");
+	
+	if(argc != 3){
+        printf("usage: indexer <pagedir> <indexnm>\n");
         printf("wrong argument number\n");
-        exit(EXIT_FAILURE);
-    }
-
-	char* pagedir = "../crawler/pages";
+				exit(EXIT_FAILURE);
+	}
+	
+	char* pagedir = argv[1];
+	char* indexnm = argv[2];
+	char path[50];
 	webpage_t *current;
 	int id = 1;
-	int endid = atoi(argv[1]);
-
+	
+	if (access(pagedir, F_OK) != 0) {
+		printf("ERROR: directory not found\n");
+		exit(EXIT_FAILURE);
+	}
+	sprintf(path,"%s/%d",pagedir,id);
+	
 	//hashtable for indexer
 	hashtable_t *words_ht;
 	words_ht=hopen(100);
-
-	while (id <= endid) {
+	
+	while (access(path, R_OK) == 0) {
 		current = pageload(id,pagedir);
 		indexBuild(words_ht,id,current);
 		webpage_delete(current);
 		id++;
+		sprintf(path,"%s/%d",pagedir,id);
 	}
 	sumwords(words_ht);
-	indexsave(words_ht,"../test/oldindex");
-
+	indexsave(words_ht,indexnm);
+	
 	//free all the queues in hashtable
 	happly(words_ht,freeHash);
 	hclose(words_ht);
-
+	
 	exit(EXIT_SUCCESS);
-
+	
 }

@@ -1,0 +1,92 @@
+https://thayer.github.io/engs50/Notes/indexer/activity.html
+3
+2464
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Activity - Design of TSE Indexer</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/indexer/activity.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Activity - Design of TSE Indexer</h1>
+  </header>
+
+  <div class="post-content">
+    <ol>
+  <li>
+    <p>Review the <a href="/engs50/Labs/Lab5/REQUIREMENTS.html">Indexer Requirements spec</a>.</p>
+  </li>
+  <li>
+    <p>What data structure would be a good representation for the <em>inverted index</em>?
+An inverted index allows maps from <em>words</em> to <em>document IDs</em> - given a word, which documents contain that word?
+And for each document, you’ll want to know how many times did that word appear in that document.</p>
+  </li>
+</ol>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

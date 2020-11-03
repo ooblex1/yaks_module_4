@@ -1,0 +1,579 @@
+https://thayer.github.io/engs50/Notes/design/survey.html
+4
+36685
+<html>
+
+<title> A Survey of Major Software Design Methodologies</title>
+<h3>
+A Survey of Major Software Design Methodologies
+</h3>
+<body>
+<p>
+	A methodology can be simply defined as a set of procedure that one
+follows from the beginning to the completion of the software development
+process.  The nature of the methodology is dependent on a number of
+factors, including the software development en vironment, the
+organization's practices, the nature or type of the software being
+developed, the requirements of the users, the qualification and training
+of the software development team, the available hardware and software
+resources, the availability o f existing design modules, and even the
+budget and the time schedule.  Since the 1970s, there have been a
+proliferation of software design methodologies.  Different methodologies
+have been developed to resolve different types of problems.  In describing
+these problems, it is often possible or necessary to group problems with
+similar characteristics together.  This is called the problem domain. 
+Many of these methodologies have evolved from the specific milieu where
+the software was developed.  By this it is meant that specific
+methodologies are often developed (to be applied) to resolve certain
+"classes" of problems, also called domain of application, for which it is
+well-suited.  Even though the design mechanics are different in each
+methodology (Pressman, 1992, p.319): </p>
+<p>
+"Yet, each of these methods have a number of common characteristics
+:  (1) a mechanism for the translation of information domain
+representation into design representation, (2) a notation for representing
+functional components and their interfaces, (3) he uristics for refinement
+and partitioning, and (4) guidelines for quality assessment."</p>
+<p>
+There are two broad categories of design methodologies : the systematic
+and the formal types.  As the name imply, the formal type makes extensive
+use of mathematical notations for the object transformations and for
+checking consistencies.  The systematic type are less mathematical and is
+consist of the procedural component, which prescribes what action or task
+to perform and the representation component, which prescribes how the
+software structure should be represented.  Generally, techniques from the
+sy stematic design methodologies can be integrated and can utilize
+representation schemes from other techniques when and as appropriate.  Due
+to the fact that methodologies have been developed from different milieu
+specifically to address certain problems o r groups of problems, there is
+no common baseline on which to evaluate or compare the methodologies
+against each other.  However, the underlying principles of the
+methodologies can be analyzed and examined for a better understanding of
+the basis for eac h methodology.  With a better understanding of the
+methodology, its domain of application can be more effectively applied or
+more accurately defined.  Generally, alternative design allows for
+important trade-off analysis before coding the software.  Thus ,
+familiarity with several methodologies makes creating competitive designs
+more logical and systematic with less reliance on inspiration.  It is not
+the intention of this section to explain the detailed mechanics of each of
+the methodologies but to disc uss specific principles of each methodology. 
+</P>
+<h4>
+Top-Down/ Bottom-Up Design</h4> 
+<p>	Top-down design directs designers to start with a top-level
+description of a system and then refine this view step by step.  With each
+refinement, the system is decomposed into lower-level and smaller modules. 
+Top-down decomposition requires identifying
+ the major higher-level system requirements and functions, and then
+breaking them down in successive steps until function-specific modules can
+be designed.  Thus, top-down design is a level-oriented design approach.
+</p>
+<p>	Top-down strategies have been the topic of some past studies
+(Miller & Lindamood, 1973; Budgen, 1989; Yourdon, 1979).  Top-down design
+reduces the scope and size of each module, and focuses more on specific
+issues.  It is by nature an iterative process w here each refinement will
+decompose a module into more specific and detailed sub-modules until it
+reaches a point where the "atomic" level is achieved.  Through this
+iterative process, the decisions make at the upper-levels will have a
+significant effect on subsequent decomposition at the lower-levels.  As a
+result, there is a possibility that decisions made at the upper level will
+result in an untenable or awkward or inefficient decomposition at the
+lower-levels.  To overcome this, there has to be a sign ificant amount of
+backtracking where the higher levels decisions have to be re-evaluated and
+then re-structured accordingly.  In order to minimize backtracking, often
+designers starts the decomposition at about the mid-level rather than at
+the top-level, or uses a top-down design but determines the lowest-level
+modules first.  This is in contrast to the bottom-up approach where the
+lowest modules or the basic features are determined first then additional
+modules or features are added. </p>
+<p>	The bottom-up approach has also been studied (Freeman & Wasserman,
+1983; Von Mayrhauser, 1990; Jalote, 1991).  In the bottom-up approach, the
+designers must identify a basic set of modules and their
+interrelationships that can be used as the foundation for the problem
+solution.  Higher-level concepts are then formulated based on these
+primitives.  Bottom-up design is also an iterative process, and can also
+result in significant backtracking if the primitives are not properly
+constructed.  The benefit of the bottom-up design is that it permits the
+assessment of the sub-modules during the system development process. 
+Whereas in the top-down design, performance evaluation can be done only
+when the complete system is integrated.  However, top-down design d oes
+allow for early evaluation of functional capabilities at the user level by
+using dummy routines for lower-level modules.  Thus, at the beginning of
+the project, the major interfaces can be tested, verified or exercised.
+The benefit in using the top-d own design is that the main focus is on the
+customers' requirement and the overall nature of the problem to be solved.
+Also debugging is easier than some other methods. </p>
+<p>	In reality, the pure top-down or bottom-up approach is seldom
+used.  The top-down approach is best-suited when the problem and its
+environment is well-defined, for example, in designing a compiler.  When
+the problem is ill-defined, the approach should ma inly be bottom-up or
+mixed.  The top-down approach have resulted in the evolution of a very
+popular design methodology called structured design which will be
+discussed later in this section. </p>
+<h4>
+Stepwise Refinement</h4>
+<p>	The iterative process where each system is decomposed and refined
+step by step is called stepwise refinement.  It is a level-oriented design
+approach.  Stepwise refinement was first proposed by Wirth(1974). It
+defines a sequence of refinement steps.  In each step, the system or
+module is decomposed into subsystems or submodules.  Each refinement of
+the module should be accompanied by a refinement of the structure and
+relationship between the modules.  In addition, each successive step in
+the refinement p rocess should be a faithful extension of the previous
+step.  The degree of modularity derived from the refinement will determine
+the extensibility of the module.  As the system or module is refined step
+by step, a notation should be used to capture the pr ocess.  The nature of
+this notation should be such that it can capture the structure of the
+system and its data.  I t should also have a close resemblance to the
+programming language to be used for coding.  Each refinement is based on a
+number of design d ecisions based on a certain set of design criteria. 
+With each refinement step, design decisions are decomposed to a
+lower-level until it reaches an elementary level. </p>
+<p>	Stepwise refinement begins with specifications obtained from
+requirement analysis.  The solution to the problem is first broken down
+into a few major modules or processes that will demonstrably solve the
+problem.  Then through successive refinement, each module is decomposed
+until there is sufficient details so that implementation a programming
+language is straight forward.  In this way, a problem is segmented into
+smaller, manageable units and the amount of details that have to be
+focused on any point in time is minimized.  This allows the designer to
+channel his resources at a specific issue at the proper time.  As stepwise
+refinement begins at the top-level, success is highly dependent on the
+designer's conceptual understanding of the complete proble m and the
+desired solution. </p>
+<p>	Parnas (1972) have proposed some guidelines on the decomposition
+of systems into modules, also called modularity.  To achieve good
+modularity, each module should perform only a specific, distinct task. Its
+inputs and outputs are well-defined.  Thus, er rors and deficiencies can
+be easily traced to specific or particular modules thereby minimizing
+debugging.  Also, in this way, maintenance is modular in nature. 
+Modularity allows one module to be coded without any knowledge of the code
+in the other modul es.  It also allows modules to be re-assembled and
+replaced without re-assembly of the whole system.  Software have been
+defined as a family of programs according to Parnas (1979).  There are
+parent programs and there are children programs, there are also different
+generations of programs.  Some of the ways members of a program family can
+differ are : the hardware configuration on which they run might be
+different; the input and the output data are different even though the
+function performed is the same; 
+  the algorithm and the data structures are different due to the
+difference in available resources and in the size of input sets or the
+relative frequency of certain events; some users may need only a subset of
+the features that other users use.  There ar e basically four classes of
+obstacles that interferes in the extension or contraction of a program :
+excessive information distribution where many programs are written
+allowing for the absence or presence of features; chain of data
+transforming components
+ where data are transformed sequentially from component to component;
+components that perform more than one function; loops in the calling of
+other components where the software works only when all other components
+are working.  There are two basic measur es for assessing the modularity
+of a system - cohesion and coupling.  Cohesion is concerned with the
+interrelationships among the elements within a module whereas coupling is
+concerned with the interdependencies between different modules.  More
+detailed d iscussion can be found in the section on Structured Design.
+</p>
+<p>	The domain of application of stepwise refinement is rather wide;
+it includes any non-trivial problem system that can be logically and/or
+functionally decomposed. And because it is not bounded by any specific
+representation or design techniques, it is oft en used in conjunction with
+other design methodologies. </p>
+<h4>
+Structured Design</h4>
+<p>	Structured Design (SD) was first developed by Stevens, Myers and
+Constantine (1974).  It is a data flow-oriented design approach.  It has
+become probably the most popular methodology of software design.  It is
+easy to use and there is an evaluation crite ria that can serve as guide
+in the software design.  The main notational scheme that SD uses is the
+data flow diagram (DFD).  SD is conceptually dependent on three rationales
+(Peters, 1981): composition and refinement of the design; separation of
+issues i nto abstraction and implementation; evaluation of the results. 
+From the compositional rationale, SD views systems from two perspectives :
+as the flow of data and the transformations that data flow undergo through
+a system.  Since data flows and transform ations are the only
+characteristics depicted in the DFDs, the element of time is not present. 
+Thus, the designer can just focus on the transformations of the data flows
+through a system.  Through the perception of the system as data flows and
+transforms,
+ there is minimal variation in the construction of the system model, as a
+result the shape or structure of the system is maintained.  This is in
+contrast to the top-down design where decisions made at the top-level will
+affect decomposition at lower-level s.  In addition, the interdependence
+of these data flows and transformations will result in the identification
+and organization of modules required in the building of the system
+model.</p> 
+<p>	From the abstract or implementation rationale, the SD process
+suggests a differentiation between the logical design (abstract) and the
+physical design (implementation).  A common problem that designers
+encounter is the chicken-and egg dilemma of trying t o understand the
+problem and to define the solution at the same time.  Through the analysis
+of the data flows and the transformations, the designer can derive a
+logical solution devoid of implementation considerations.  This early
+logical solution will no t have details; will not be precise; and cannot
+be implemented immediately.  Once this logical solution is able to satisfy
+the requirements or meet the objectives, the designer will then make the
+necessary changes so that the solution can be implemented. 
+ In other words, the logical design (abstract) needs to be converted to
+the physical design (implementation). </p>
+<p>	From the design evaluation rationale, SD offers a set of
+prescriptive criteria for evaluating software design.  These criteria are
+independent of the methodology and can be applied to other design
+methodologies.  Two categories of criteria are involved : 
+ the connections to other modules (coupling) and the intramodule unity
+(cohesion).  The system level criterion, coupling provides a way of
+evaluating the inter-dependencies between modules.  As modules are the
+building blocks of a software system, their r elationships will determine
+how well the system can be maintained or changed.  If the modules are
+highly interdependent on one another, it will be more difficult to make
+changes to one module without affecting the others.  Conversely, if the
+modules are h ighly independent from one another, it will be easy to
+maintain and changes can be made on one module without affecting the
+others.  The single module criterion cohesion provides a way of evaluating
+the functional connections between its processing elemen ts.  The most
+desirable cohesion is one where a module perform a single task with
+individual data elements.  The least desirable cohesion, on the other
+hand, is one where a module perform a few different tasks with unrelated
+data structures.</p> 
+<p>	A good system design will have strong cohesion and weak coupling. 
+Two classification spectrum can be derived based on the coupling and
+cohesion characteristics.  From Myers (1975) and, Yourdon and Constantine
+(1978), a summary of SD categories from good to bad, is given below :</p>
+<p>	Coupling Categories</p>
+<ol>
+<li> Data :  all communications between modules is through data
+element arguments. 
+<li> Stamp: communication includes a data structure arguments (some
+fields are not needed). 
+<li> Control: an argument from a module can control the flow of the
+other, for example, a flag. 
+<li> External: they reference an externally declared data element.
+<li> Common: they reference an externally declared data structure.
+<li> Content: one references the contents of the other.
+</ol>
+<p>	Cohesion Categories</p>
+<ol>
+<li> Functional:  they perform a single specific function.
+<li> Clustered:  it is a group of functions sharing a data
+structure usually to hide its representation from the rest of the system;
+only one function is executed at each call, for example, the symbol table
+with insert and look-up functions. 
+<li> Sequential:  it consists of several functions that pass data
+along, for example, update and write a record. 
+<li> Communicational:  it consists of several logical functions
+operating on the same data, for example, print a file. 
+<li> Procedural:  its elements are grouped in an algorithm, for
+example, body of a loop. 
+<li> Temporal: its functions related in time, for example,
+initialization. 
+<li> Logical: it can perform a general function where a parameter
+value determines the specific function, for example, general-error-routine
+called with an error code.
+<li> Coincidental: no relationship between module elements that are
+grouped for packaging purposes. 
+</ol>
+<p>	The intention of SD is to measure the program modules in terms of
+its cohesion and coupling. Its objective is for each module to perform a
+single specific function and that all its argument are individual data
+elements.  Using SD criteria, some design "q uality" might be sacrificed
+as the result of the design trade-off analyses. </p>
+<p>	The basic approach of SD is to start off with a system
+specification that identifies the inputs, the desired outputs and a
+description of the functional aspects of the systems that transforms the
+data.  This specification is used for the graphic represen tation of the
+system, the data flow diagram.  Next the overall interrelationships of the
+transformations and data flows are identified.  This leads to the
+definition and portrayal of modules and their relationship to one another
+and other system elements in form of structure chart. </p>
+<p>	Often Structured Analysis (DeMarco, 1978) is combined together
+with Structured Design (Yourdon & Constantine, 1978) to form an integrated
+system structured design technique.  The technique begins with structured
+analysis where a model of the system is bu ilt using data flow diagrams
+(DFD).  The DFDs are derived from the existing actual processes in the
+system which are iteratively refined and decomposed to a final logical
+solution.  The DFDs should be checked for consistency and data
+conservation through each iteration.  A data dictionary should then be
+built in a logical form specifying the content of the data, the data flows
+and all the data forms in the DFDs.  The data dictionary must be well
+correlated to the DFDs including the handling of aliases, de finition of
+data structures and the implementation of the data dictionary.  Next, the
+processes or operations in the DFDs have to be defined by analyzing the
+process logic and then depicting them in pseudocode.  Finally, a logical,
+hierarchical design nee ds to be derived from the flat DFDs.  This stage
+begins with evaluating the control mechanism, the changeability of the
+modules, modular cohesion and coupling, transform analysis, design
+refinement, error and exception handling, and transaction analysis.
+ Design begins with an evaluation of the higher level DFDs, the type of
+information flow is identified and the flow boundaries that separate the
+transform or transaction centers are defined.  The transforms are then
+mapped to the program structure as modu les.  Pressman (1992, p. 371) has
+proposed a data flow-oriented design process model. </p>
+<p>	External information flow into a system must be transformed into
+internal information for processing.  Information enters a software system
+along paths called incoming flows which transforms the external data into
+internal data.  Incoming flow passes thr ough the core of the software
+system called transform center and along paths that flow out of the
+software system called outgoing flow.  When the overall flow of data is
+sequential and follow a single or a few "straight-line" path, it is called
+transform flow.  Transform analysis is a set of design steps that map DFDs
+with transform characteristics into a design structure chart.  Transform
+analysis is a strategy.  Page-Jones (1980) has defined the procedure for
+transform analysis as : draw a DFD for the p roblem, determine the central
+transform of the DFD, derive a first-cut structure chart from the DFD,
+refine the structure chart using Structured Design criteria and verify
+that the final structure meets the requirements of the original DFD
+design. </p>
+<p>	Even though the basic system model is mainly transform flow,
+information flow is often characterized by a single data item called a
+transaction, which triggers other data flow along one of many paths.  When
+a DFD exhibits such a characteristic, it is te rmed a transaction flow. 
+Transaction flow is derived from an external data flow along an incoming
+path called a reception path, that changes the data into a transaction. 
+The transaction is evaluated and initiated on one of the action paths
+based its val ue.  The center of the information flow where many action
+paths branches out is called the transaction center.  It is possible for
+large complex systems to have both transform and transaction flows.  The
+procedure for transaction analysis is basically the
+ same as for transform analysis except for the mapping of the DFD to the
+program structure.  More details of the mechanics of transformation and
+transaction analysis with examples can be found in articles by Page-Jones
+(1980) and Pressman (1992) amongst others. </p>
+<p>	SD is popular because it uses notation (data flow and
+transformation) that a designer can identify with and is easy to use. 
+Also, SD provides the designer with a means of evaluating the software
+design.  However, the conversion of the design and module
+ specifications into programming language is not addressed.  In addition,
+even though guidelines for decomposition is provided, the operations
+within the modules are not explicitly dealt with.  Also, the derivation of
+the data flows and transformations w ill vary between designers, as a
+result, for a single system, different designers will have different data
+flows and transformations.  Precise guidelines on the derivation of data
+flows and transformations from the system specification is not available. 
+Although SD has its limitations, when it is used with other tools such as
+the data dictionary, structure charts, decision tree and structured
+English, it provides the primary building block on which system design can
+be based.  This technique is ideally suited for software that requires
+execution in a sequential manner.  It is widely used in data processing
+systems largely due the fact that emphasis is on information flow.  DFDs
+are easy to use and easy for end-users to understand, who can then provide
+i nput in the design process.  This technique is well-established and
+documented.  In addition, it is supported by graphical CASE tools. </p>
+<h4>
+Structured Analysis and Design Technique</h4>
+<p>	Structured Analysis and Design Technique (SADT) is a data
+flow-oriented design approach.  It originated and is promoted by SofTech
+Corporation (1976).  SADT was derived originally form studies in
+computer-aided manufacturing by S.Hori (1972).  Its final form was
+developed by D.T.Ross and colleagues (Ross & Schoman, 1977) at SofTech
+Corporation. </p>
+<p>	SADT utilizes a technical graphics "language" and a set of
+procedures and management guidelines to implement the language.  This
+language is called the language of Structured Analysis (Ross, 1977) (or SA
+language).  The procedures for the SA language is similar to the
+guidelines used for engineering blueprint systems.  Each SA diagram is
+drawn on a single page and contains three to six nodes with
+interconnecting arcs.  There are two types of SA diagrams - the activity
+diagram (called actigram) and the da ta diagram (called datagram). Details
+of this representation scheme can be found in my other notes.</p> 
+<p> 	SADT was developed based on the concepts : that precise models
+describing a complex problem will provide the best means to an effective
+solution; that analysis should be top-down, hierarchical and structured as
+modules; that the models must be able to sh ow the objects (for example,
+data, and modules) and the processes of the system as well as their
+relationships; that the model can be graphically represent the interfaces
+between modules and its hierarchical structure; that the functions of the
+system (th e "what") clearly distinguishable from the means (the "how") of
+the system; that this method must provide a coherent discipline between
+designers; and that review and documentation of all decisions and feedback
+in the design process is important (Dickove r, McGowan & Ross, 1978). 
+Detailed mechanics of SADT can be found in the cited references from this
+section.</p> 
+<p>	The SADT methodology provides a precise and concise representation
+scheme and a set of techniques to graphically define complex system
+requirements.  There is top-down decomposition with clear decomposition
+for input, output, control and mechanism for ea ch node.  It is beneficial
+to segregate the data and the activities into two diagrams so that they
+are not cluttered.  The notation also distinguishes between control data
+and mere input data.  Also its management technique of developing,
+reviewing and co ordinating an SADT model is rather efficient.  However,
+in systems where many diagrams are involved (and arranged in a
+hierarchical order), the additional control information on the diagrams
+can make it difficult to understand and follow.  Also, as each d esigner
+independently develops his own diagrams, it would be difficult at the
+review to integrate the designer's portion and the rest of the system. 
+Thus, due to its complexity in the notational scheme, it is not often used
+but its utility in real-time s ystem is apparent.</p>
+<h4>
+Jackson Systems Development </h4>
+<p>	The Jackson System Development (JSD) (Cameron, 1989) method is a
+data structure-oriented design approach.  It is an extension of the
+Jackson Structured Programming (JSP) method.  JSP, developed by Michael
+Jackson (1975), is a systematic process of mappin g the structure of a
+problem to a program structure.  The process begins by modeling the
+specifications of the input and output data structures using tree
+structured diagrams.  Graphical notations are used to specify data
+sequences, repetition, hierarchy and alternatives.  Then a structural
+model is derived from the correspondence of nodes in the input and output
+trees.  Finally, this structural model for the program is refined to a
+detailed model that includes all the operations or processes needed to me
+et the requirements.  All this is done by listing all the operations
+needed to process the data.  The operations are then mapped into the
+program structure.  The control flow for selection and iteration are then
+derived from the entire program structure w ith the operations, and
+represented in schematic pseudocode.</p>
+<p>	Difficulties associated with JSP are structure clashes and the
+need for look-ahead.  Structure clashes arises when the correspondence of
+nodes in the input and output data structures cannot be determined. 
+Structure clashes can be resolved by program inv ersion where a producer
+and a consumer routine is created.  The consumer routine will call on the
+producer routine will call on the producer routine to deliver the next
+data item, which will appears as if the data are being processed from a
+sequential fi le of values.  The need for look-ahead arises when
+processing on a data item depends on a yet-to-be processed data.  The
+look-ahead problems can be resolved by backtracking.  Backtracking
+involves saving the state of the program before each processing seq uence
+and if it is found that a processing sequence is incorrect, the program
+state is reset back to the state prior to this processing sequence.  JSP
+is highly efficient in software design applications such as inventory,
+finance, banking or insurance whi ch basically utilizes sequential
+programs.  And with its emphasis on data structures, JSP can also be used
+for various data processing systems. </p>
+<p>	The JSD methodology models the world in terms of
+entity-action-attribute, which undergoes a step by step process to connect
+it to the "real" world.  The basis of JSD (Sutcliffe, 1988) is to derive a
+model based on a set of entities and their actions, and
+ of the attributes associated with these actions.  Subsequently, the
+interactions between entities as well a entities and the external world
+with the real-time issues related to them are added to the model.  The JSD
+includes the following steps :</p>
+<ul>
+<li> Entity action step:  where entities (an object that produces or
+uses information) and actions (happenings in the real world that affect
+entities) are identified.
+<li> Entity structure step: where actions are ordered by time and
+represented by Jackson diagrams. 
+<li> Initial model step:  where a model is derived from the entities
+and actions, and connections between the model and the real world is
+defined. 
+<li> Function step:  where functions of the defined actions are
+specified. 
+<li> System timing step:  where process scheduling characteristics
+are evaluated and specified. 
+<li> Implementation step:  where the hardware and software are
+specified as design. 
+</ul>
+<p>	Details of the mechanics of JSD and some examples can be found in
+the article by Cameron (1986) and the other references cited in this
+section.</p> 
+<p>	The JSD methodology is based on the rules for building models.  It
+uses an approach quite similar to the object-oriented approach including
+the use of abstraction.  It has a well-defined framework for building the
+model.  However, the methodology breaks down for data structures and the
+relationships that do not possess chronological actions.  It is not
+suitable for small problems due to its intense analysis and the long
+learning curve.  The JSD method is best-suited for large (can be
+concurrent) systems
+ where events need to be scheduled according to time.  Data processing and
+process control systems are the main domain of applications. </p>
+<h4>
+Structured Systems Development</h4>
+<p>	Structured Systems Development (SSD), also called Data Structured
+Systems Development (DSSD), is based on the design strategy originally
+developed by Warnier (1976).  SSD is based on the data structure-oriented
+design approach.  The central theme of SSD
+ is that the structure of the data will determine the program structure. 
+Thus, precise and accurate identification of the data structures will lead
+to a well-structured program.  The design notations used in SSD are the
+Warnier-Orr diagrams. (See Appendi x 1).  This method starts with
+analyzing the problem and expressing it in terms of the Warnier-Orr
+diagram.  Orr (1977) has defined SSD as follows : </p>
+<p>"Structured systems design is a method of logical analysis, design,
+and development; it can be used on any kind of system with any kind of
+language, computerized or not ........ something is structured if and only
+if (1) it is hierarchically organized and
+ (2) the pieces of each function are related to one another either by
+sequence, alternation, or repetition - the basic forms of logic."</p> 
+<p>	From the system analysis, the focus is on the output and the
+processes that transforms the input data structures to the output data
+structures.  Pressman (1992) calls them the logical output structure (LOS)
+and the logical process structures (LPS).  The analysis should also
+provide requirements information such as the application context, which is
+how data flow between producers to consumers; the application functions
+which are the processes the data undergo; and the application results
+which is the desi red output after passing through the system.  To derive
+the LOC, the designer must : analyze the requirements information and
+identify all data items that are in its basic state; determine how
+frequent each atom (that is, basic data item) occurred; identi fy data
+items that are not in its basic state or are composite data items (called
+universals); and use Warnier-Orr diagrams to represent the system.  To
+transform LOC to a procedural program, the LPS has to be defined.  To
+define LPS form the LOC notation
+ : all atoms are eliminated from the Warnier-Orr diagram; BEGIN and END
+are added to the universals to denote the starting and ending points of
+the repetition; define the initialization instructions for BEGIN and the
+termination instructions for END; defi ne all data operations performed;
+specify output instructions; and specify input instructions. </p>
+<p>	Detailed mechanics of SSD with examples can be found in the
+references cited in this section.  The SSD methodology is well suited for
+data processing systems. </p>
+<h4>
+Object Oriented Design</h4> 
+<p>	Object Oriented Design (OOD) provides a mechanism that encompasses
+three important concepts in software design : modularity, abstraction, and
+encapsulation (also called information-hiding).  OOD concepts were first
+introduced by Abbot (1983) and was subs
+equently enhanced by Booch (1986, 1990).  OOD is basically an approach
+that models the problem in terms of its objects and the operations
+performed on them.  OOD decomposes the system into modules where each "...
+module in the system denotes an object or
+class of objects from the problem space" (Booch, 1986, p213). Objects
+represent concrete entities which are instances of one or more classes. 
+Objects encapsulate data attributes, which can be data structures or just
+attributes, and operations, which are
+procedures.  Operations contain methods, which are program code, that
+operates the attributes.  A class is a set of objects that share a set of
+common structure and behavior.  A class represents a type and an object is
+an instance of a class.  A class con
+tains three items : class name, list of attributes, and list of
+operations.  Thus, a class represents a set of objects with similar
+attributes, common behavior and common relationships to other objects. 
+The derivation of subclasses from a class is called
+ inheritance.  A subclass may have a few superclasses, thus multiple
+inheritance.  The ability of any objects to respond to the same message
+and of each object to implement it appropriately is called polymorphism. 
+Relationships describe the dependencies between classes and objects.</p> 
+<p>	Object Oriented Analysis (OOA) (Coad & Yourdon, 1991), a
+requirement analysis technique, starts at the top-level by identifying the
+objects and classes, their relationships to other classes, their major
+attributes and, their inheritance relationships then derive a class hierarchy from them.  On the other hand, OOD extracts the
+objects, that are available from each class and their relationship to each
+other, to derive a detailed design representation.  The basic building
+blocks to accomplish OOD are to establish a mechanism for : depicting the data structure; specifying the
+operation; and invoking the operation.  Data abstraction are created : by
+identifying classes and objects; modules are defined and structure for
+software established by compiling operations to the data; and interfaces are described by developing a mechanism
+for using the objects. </p>
+<p>	Thus, the identification of objects is a primary objective of OOA
+and acts as a springboard for OOD.  Once the objects have been identified,
+the set of operations that act on the objects are examined.  There are
+basically three types of operations :  those that manipulate data, those that perform computation and those that
+monitor an object.  Defining the object and its operations alone is not
+enough to derive the program structure.  The interfaces that exists
+between the overall structure and objects have to be identified and defined.  All of these should then be integrated
+into a program-like construct that closely resembles the programming
+language.  Details of the mechanics of OOA and OOD with some examples can
+be found in the references cited in this section.</p> 
+<p>	OOD creates a model of the real world and maps it to the software
+structure.  Even though OOD provides the mechanism to partition the data
+and its operations, its representations are prone to have programming
+language dependency.  There is an absence of guidelines to model the
+initial objects or classes, thus it will depend
+upon analysis techniques from other methodologies.  The OOD methodology is
+a recent development, as such it is still dynamic and evolving.  A few
+months or years from today, the methodology might have evolved into a different methodology than what we have
+today.  Also as OOD is new, its domain of application is rather general. 
+A survey of recent research in OOD can be found in the article by
+Wirfs-Brock and Johnson (1990). </p>
+ 
+</body>
+
+

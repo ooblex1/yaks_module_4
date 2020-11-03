@@ -1,0 +1,264 @@
+https://thayer.github.io/engs50/Labs/Lab4/DESIGN.html
+3
+11180
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>TSE Crawler Design Spec</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/Lab4/DESIGN.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">TSE Crawler Design Spec</h1>
+  </header>
+
+  <div class="post-content">
+    <p>Recall the <a href="REQUIREMENTS.html">Crawler Requirements Spec</a>; the <strong>crawler</strong> crawls a website and retrieves webpages starting with a specified URL.
+It parses the initial webpage, extracts any embedded URLs and retrieves those pages, and crawls the pages found at those URLs, but limits itself to <code class="highlighter-rouge">maxDepth</code> hops from the seed URL and to URLs that are ‘internal’ to the designated CS50 server.
+When the crawler process is complete, the indexing of the collected documents can begin.</p>
+
+<p>A Design Spec should contain several sections:</p>
+
+<ul>
+  <li>User interface</li>
+  <li>Inputs and Outputs</li>
+  <li>Functional decomposition into modules</li>
+  <li>Pseudo code for logic/algorithmic flow</li>
+  <li>Dataflow through modules</li>
+  <li>Major data structures</li>
+  <li>Testing plan</li>
+</ul>
+
+<p>Let’s look through each.</p>
+
+<h3 id="user-interface">User interface</h3>
+
+<p>The crawler’s only interface with the user is on the command-line; it must always have three arguments.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>crawler seedURL pageDirectory maxDepth
+</code></pre></div></div>
+
+<p>For example:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>crawler http://old-www.cs.dartmouth.edu/index.html ./data/ 2
+</code></pre></div></div>
+
+<h3 id="inputs-and-outputs">Inputs and outputs</h3>
+
+<p>Input: the only inputs are command-line parameters; see the User Interface above.</p>
+
+<p>Output: We save each explored webpage to a file, one file per page.
+We use a unique document ID as the file name, for document IDs 1, 2, 3, 4, and so forth.
+Within a file, we write</p>
+
+<ul>
+  <li>the page URL on the first line,</li>
+  <li>the depth of the page (where the seed is depth 0) on the second line,</li>
+  <li>the page contents, beginning on the third line.</li>
+</ul>
+
+<h3 id="functional-decomposition-into-modules">Functional decomposition into modules</h3>
+
+<p>We anticipate the following modules or functions:</p>
+
+<ol>
+  <li><em>main</em>, which parses arguments and initializes other modules</li>
+  <li><em>crawler</em>, which loops over pages to explore, until the list is exhausted</li>
+  <li><em>pagefetcher</em>, which fetches a page from a URL</li>
+  <li><em>pagescanner</em>, which extracts URLs from a page and processes each one</li>
+  <li><em>pagesaver</em>, which outputs a page to the the appropriate file</li>
+</ol>
+
+<p>And some helper modules that provide data structures:</p>
+
+<ol>
+  <li><em>bag</em> of pages we have yet to explore</li>
+  <li><em>hashtable</em> of URLs we’ve seen so far</li>
+</ol>
+
+<h3 id="pseudo-code-for-logicalgorithmic-flow">Pseudo code for logic/algorithmic flow</h3>
+
+<p>The crawler will run as follows:</p>
+
+<ol>
+  <li>execute from a command line as shown in the User Interface</li>
+  <li>parse the command line, validate parameters, initialize other modules</li>
+  <li>make a <em>webpage</em> for the <code class="highlighter-rouge">seedURL</code>, marked with depth=0</li>
+  <li>add that page to the <em>bag</em> of webpages to crawl</li>
+  <li>add that URL to the <em>hashtable</em> of URLs seen</li>
+  <li>while there are more webpages to crawl,
+    <ol>
+      <li>extract a webpage (URL,depth) item from the <em>bag</em> of webpages to be crawled,</li>
+      <li>pause for at least one second,</li>
+      <li>use <em>pagefetcher</em> to retrieve a webpage for that URL,</li>
+      <li>use <em>pagesaver</em> to write the webpage to the <code class="highlighter-rouge">pageDirectory</code> with a unique document ID, as described in the Requirements.</li>
+      <li>if the webpage depth is &lt; <code class="highlighter-rouge">maxDepth</code>, explore the webpage to find links:
+        <ol>
+          <li>use <em>pagescanner</em> to parse the webpage to extract all its embedded URLs;</li>
+          <li>for each extracted URL,
+            <ol>
+              <li>‘normalize’ the URL (see below)</li>
+              <li>if that URL is not ‘internal’ (see below), ignore it;</li>
+              <li>try to insert that URL into the <em>hashtable</em> of URLs seen
+                <ol>
+                  <li>if it was already in the table, do nothing;</li>
+                  <li>if it was added to the table,
+                    <ol>
+                      <li>make a new <em>webpage</em> for that URL, at depth+1</li>
+                      <li>add the new webpage to the <em>bag</em> of webpages to be crawled</li>
+                    </ol>
+                  </li>
+                </ol>
+              </li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<p><strong>normalize the URL</strong> means to convert it into a clean, canonical form.</p>
+
+<p><strong>internal</strong> means the URL stays within the CS50 playground http://old-www.cs.dartmouth.edu/.</p>
+
+<p>A good implementation will not necessarily encode all the above code in a single, deeply-nested function; part of the Implementation Spec is to break the pseudocode down into a cleanly arranged set of functions.</p>
+
+<p>Notice that our pseudocode says nothing about the order in which it crawls webpages; since it presumably pulls them out of a <em>bag</em>, and a <em>bag</em> abstract data structure explicitly denies any promise about the order of items removed from a bag, we can’t expect any particular crawl order.
+That’s ok.
+The result may or may not be a Breadth-First Search, but for the crawler we don’t care about the order as long as we explore everything within the <code class="highlighter-rouge">maxDepth</code> neighborhood.</p>
+
+<p>The crawler completes and exits when it has nothing left in its bag - no more pages to be crawled.
+The maxDepth parameter indirectly determines the number of pages that the crawler will retrieve.</p>
+
+<h3 id="dataflow-through-modules">Dataflow through modules</h3>
+
+<ol>
+  <li><em>main</em> parses parameters and passes them to the crawler.</li>
+  <li><em>crawler</em> uses a bag to track pages to explore, and hashtable to track pages seen; when it explores a page it gives the page URL to the pagefetcher, then the result to pagesaver, then to the pagescanner.</li>
+  <li><em>pagefetcher</em> fetches the contents (HTML) for a page from a URL and returns.</li>
+  <li><em>pagesaver</em> outputs a page to the appropriate file.</li>
+  <li><em>pagescanner</em> extracts URLs from a page and returns one at a time.</li>
+</ol>
+
+<h3 id="major-data-structures">Major data structures</h3>
+
+<p>Three helper modules provide data structures:</p>
+
+<ol>
+  <li><em>bag</em> of page (URL, depth) structures</li>
+  <li><em>set</em> of URLs (indirectly used by hashtable)</li>
+  <li><em>hashtable</em> of URLs</li>
+</ol>
+
+<h3 id="testing-plan">Testing plan</h3>
+
+<p><em>Unit testing</em>.  A small test program to test each module to make sure it does what it’s supposed to do.</p>
+
+<p><em>Integration testing</em>.  Assemble the crawler and test it as a whole.
+In each case, examine the output files carefully to be sure they have the contents of the correct page, with the correct URL, and the correct depth.
+Ensure that no pages are missing or duplicated.
+Print “progress” indicators from the crawler as it proceeds (e.g., print each URL explored, and each URL found in the pages it explores) so you can watch its progress as it runs.</p>
+
+<ol>
+  <li>
+    <p>Test the program with various forms of incorrect command-line arguments to ensure that its command-line parsing, and validation of those parameters, works correctly.</p>
+  </li>
+  <li>
+    <p>Test the crawler with a <code class="highlighter-rouge">seedURL</code> that points to a non-existent server.</p>
+  </li>
+  <li>
+    <p>Test the crawler with a <code class="highlighter-rouge">seedURL</code> that points to a non-internal server.</p>
+  </li>
+  <li>
+    <p>Test the crawler with a <code class="highlighter-rouge">seedURL</code> that points to a valid server but non-existent page.</p>
+  </li>
+  <li>
+    <p>Crawl a simple, closed set of cross-linked web pages to crawl.
+Ensure that some page(s) are mentioned multiple times within a page, and multiple times across the set of pages.
+Ensure there is a loop (a cycle in the graph of pages).
+In such a little site, you know exactly what set of pages should be crawled, at what depths, and you know where your program might trip up.</p>
+  </li>
+  <li>
+    <p>Point the crawler at a page in that site, and explore at depths 0, 1, 2, 3, 4, 5.
+Verify that the files created match expectations.</p>
+  </li>
+  <li>
+    <p>Repeat with a different seed page in that same site.
+If the site is indeed a graph, with cycles, there should be several interesting starting points.</p>
+  </li>
+  <li>
+    <p>Point the crawler at our Wikipedia playground.
+Explore at depths 0, 1, 2.
+(It takes a long time to run at depth 2 or higher!) Verify that the files created match expectations.</p>
+  </li>
+  <li>
+    <p>When you are confident that your crawler runs well, test it on a part of our playground or with a greater depth - but be ready to kill it if it seems to be running amok.</p>
+  </li>
+</ol>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

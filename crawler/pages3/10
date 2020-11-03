@@ -1,0 +1,515 @@
+https://thayer.github.io/engs50/Labs/Lab3/
+2
+40604
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Lab 3 - Data structures in C</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/Lab3/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Lab 3 - Data structures in C</h1>
+  </header>
+
+  <div class="post-content">
+    <p><strong>Due Friday, April 20, at 10pm</strong></p>
+
+<p>In this lab you’ll code a set of data structures that will support the needs of the Tiny Search Engine (TSE).</p>
+
+<ul id="markdown-toc">
+  <li><a href="#assignment" id="markdown-toc-assignment">Assignment</a>    <ul>
+      <li><a href="#about-the-data-structures" id="markdown-toc-about-the-data-structures">About the data structures</a></li>
+      <li><a href="#bag" id="markdown-toc-bag">bag</a></li>
+      <li><a href="#set" id="markdown-toc-set">set</a></li>
+      <li><a href="#counters" id="markdown-toc-counters">counters</a></li>
+      <li><a href="#hashtable" id="markdown-toc-hashtable">hashtable</a></li>
+      <li><a href="#general-notes" id="markdown-toc-general-notes">General notes</a></li>
+    </ul>
+  </li>
+  <li><a href="#hints" id="markdown-toc-hints">Hints</a></li>
+  <li><a href="#what-to-hand-in-and-how" id="markdown-toc-what-to-hand-in-and-how">What to hand in, and how</a>    <ul>
+      <li><a href="#submitting-your-lab" id="markdown-toc-submitting-your-lab">Submitting your lab</a></li>
+    </ul>
+  </li>
+</ul>
+
+<p>In this lab you will develop some general-purpose data structures that, with modular design, can be re-used for other labs - most notably, the Tiny Search Engine.</p>
+
+<p>Grading will focus on <a href="/engs50/Resources/CodingStyle.html">CS50 coding style</a> - including consistent formatting, selection of identifier names, and use of meaningful comments - in addition to correctness and testing.</p>
+
+<p><strong><em>Your C code must compile without producing any compiler warnings.</em></strong>  You will lose points if the compiler produces warnings when using our CS50-standard compiler flags.</p>
+
+<p><strong><em>If your submitted code fails to compile, or triggers a segmentation fault,</em></strong> we’ll notify you and give you an opportunity to repair and resubmit.
+(See <em><a href="/index.html#crashes">programs that crash</a>.</em>) Write defensive code: each function should check its pointer parameters for NULL, and take some appropriate (safe) action.</p>
+
+<h2 id="assignment">Assignment</h2>
+
+<p>Obtain our <a href="starter">starter kit</a>, which implements the <code class="highlighter-rouge">bag</code> module and includes the <em>readlinep</em> and <em>memory</em> module. Your assignment is to add three new modules, each of which defines a different data structure.</p>
+
+<ul>
+  <li>(30 points) <em><code class="highlighter-rouge">set</code></em></li>
+  <li>(30 points) <em><code class="highlighter-rouge">counters</code></em></li>
+  <li>(40 points) <em><code class="highlighter-rouge">hashtable</code></em></li>
+</ul>
+
+<p>You can copy the starter kit to your own work directory on the CS department systems:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># assuming you've logged into a CS system</span>
+mkdir <span class="nt">-p</span> ~/cs50/labs/lab3
+cp <span class="nt">-r</span> ~cs50/public_html/Labs/Lab3/starter/<span class="k">*</span> ~/cs50/labs/lab3/
+</code></pre></div></div>
+
+<p>or to your Mac using <code class="highlighter-rouge">scp</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>scp <span class="nt">-r</span> username@flume:~cs50/public_html/Labs/Lab3/starter lab3
+</code></pre></div></div>
+
+<h3 id="about-the-data-structures">About the data structures</h3>
+
+<p>The specific data structures are defined in the sections below.</p>
+
+<p>In the table below, we compare these data structures with the two we explored in class.
+Most of these data structures allow you to store a collection of “items”.
+Both the <code class="highlighter-rouge">set</code> and <code class="highlighter-rouge">hashtable</code> are examples of an abstract data structure called a <em>dictionary</em>, which provide methods like <code class="highlighter-rouge">insert(key, item)</code> and <code class="highlighter-rouge">item = retrieve(key)</code>, where the <code class="highlighter-rouge">key</code> allows the structure to distinguish among the items it stores.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Behavior</th>
+      <th style="text-align: left"><code class="highlighter-rouge">list</code></th>
+      <th style="text-align: left"><code class="highlighter-rouge">bag</code></th>
+      <th style="text-align: left"> </th>
+      <th style="text-align: left"><code class="highlighter-rouge">set</code></th>
+      <th style="text-align: left"><code class="highlighter-rouge">counters</code></th>
+      <th><code class="highlighter-rouge">hashtable</code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">stores an <em>item</em></td>
+      <td style="text-align: left">yes</td>
+      <td style="text-align: left">yes</td>
+      <td style="text-align: left"> </td>
+      <td style="text-align: left">yes</td>
+      <td style="text-align: left">no</td>
+      <td>yes</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">uses a <em>key</em></td>
+      <td style="text-align: left">no</td>
+      <td style="text-align: left">no</td>
+      <td style="text-align: left"> </td>
+      <td style="text-align: left">yes</td>
+      <td style="text-align: left">yes</td>
+      <td>yes</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">keeps items in order</td>
+      <td style="text-align: left">yes</td>
+      <td style="text-align: left">no</td>
+      <td style="text-align: left"> </td>
+      <td style="text-align: left">no</td>
+      <td style="text-align: left">no</td>
+      <td>no</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">retrieval</td>
+      <td style="text-align: left">first item</td>
+      <td style="text-align: left">any item</td>
+      <td style="text-align: left"> </td>
+      <td style="text-align: left">by key</td>
+      <td style="text-align: left">by key</td>
+      <td>by key</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">insertion of duplicates</td>
+      <td style="text-align: left">allowed</td>
+      <td style="text-align: left">allowed</td>
+      <td style="text-align: left"> </td>
+      <td style="text-align: left">error</td>
+      <td style="text-align: left">increment count</td>
+      <td>error</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Notice that</p>
+
+<ul>
+  <li>a <code class="highlighter-rouge">list</code> keeps <em>items</em> in order, but a <code class="highlighter-rouge">bag</code> or a <code class="highlighter-rouge">set</code> does not.</li>
+  <li>a <code class="highlighter-rouge">set</code> and <code class="highlighter-rouge">hashtable</code> allow you to retrieve a specific <em>item</em> (indicated by its <em>key</em>) whereas a <code class="highlighter-rouge">bag</code> might return any <em>item</em>.</li>
+  <li>because the <code class="highlighter-rouge">bag</code> and <code class="highlighter-rouge">list</code> don’t distinguish among <em>items</em> they store, they can hold duplicates; the others cannot.</li>
+  <li>the <code class="highlighter-rouge">counters</code> data structure maintains a set of counters, each identified by a <em>key</em>, but it stores no <em>items</em>.
+Instead, it keeps a counter for each key. Attempting to insert a duplicate <em>key</em> results in an increment of the counter.</li>
+</ul>
+
+<h3 id="bag">bag</h3>
+
+<p>A <code class="highlighter-rouge">bag</code> is an unordered collection of <em>items</em>.
+The <code class="highlighter-rouge">bag</code> starts empty, grows as the caller adds one <em>item</em> at a time, and shrinks as the caller extracts one <em>item</em> at a time.
+It could be empty, or could contain hundreds of <em>items</em>.
+<em>Items</em> are indistinguishable, so the <em>extract</em> function is free to return any <em>item</em> from the <code class="highlighter-rouge">bag</code>.</p>
+
+<p>The starter kit includes our <code class="highlighter-rouge">bag</code> module, which contains:</p>
+<ul>
+  <li><code class="highlighter-rouge">bag.c</code> implements a bag of <code class="highlighter-rouge">void*</code>, and exports <strong>exactly</strong> the following functions through <code class="highlighter-rouge">bag.h</code>:</li>
+</ul>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* Create a new (empty) bag; return NULL if error. */</span>
+<span class="n">bag_t</span> <span class="o">*</span><span class="n">bag_new</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+
+<span class="cm">/* Add new item to the bag; a NULL bag is ignored; a NULL item is ignored. */</span>
+<span class="kt">void</span> <span class="n">bag_insert</span><span class="p">(</span><span class="n">bag_t</span> <span class="o">*</span><span class="n">bag</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">);</span>
+
+<span class="cm">/* Return any data item from the bag; return NULL if bag is NULL or empty. */</span>
+<span class="kt">void</span> <span class="o">*</span><span class="n">bag_extract</span><span class="p">(</span><span class="n">bag_t</span> <span class="o">*</span><span class="n">bag</span><span class="p">);</span>
+
+<span class="cm">/* Print the whole bag; provide the output file and func to print each item.
+ * If fp==NULL; do nothing. If bag==NULL, print (null).
+ * If itemprint==NULL, print nothing for each item.
+ */</span>
+<span class="kt">void</span> <span class="n">bag_print</span><span class="p">(</span><span class="n">bag_t</span> <span class="o">*</span><span class="n">bag</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span>
+               <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemprint</span><span class="p">)(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">));</span>
+
+<span class="cm">/* Iterate over the whole bag; call the given function on each item,
+ * passing both the item and an argument. Ignore if NULL bag or NULL itemfunc.
+ */</span>
+<span class="kt">void</span> <span class="n">bag_iterate</span><span class="p">(</span><span class="n">bag_t</span> <span class="o">*</span><span class="n">bag</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span>
+                 <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemfunc</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="p">);</span>
+
+<span class="cm">/* Delete the whole bag; ignore NULL bag.
+ * Provide a function that will delete each item (may be NULL).
+ */</span>
+<span class="kt">void</span> <span class="n">bag_delete</span><span class="p">(</span><span class="n">bag_t</span> <span class="o">*</span><span class="n">bag</span><span class="p">,</span> <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemdelete</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="set">set</h3>
+
+<p>A <code class="highlighter-rouge">set</code> maintains an unordered collection of <em>(key,item)</em> pairs; any given <em>key</em> can only occur in the <code class="highlighter-rouge">set</code> once.
+It starts out empty and grows as the caller inserts new <em>(key,item)</em> pairs.
+The caller can retrieve <em>items</em> by asking for their <em>key</em>, but cannot remove or update pairs.
+Items are distinguished by their <em>key</em>.</p>
+
+<p>Your <code class="highlighter-rouge">set.c</code> should implement a <code class="highlighter-rouge">set</code> of <code class="highlighter-rouge">void*</code> with <code class="highlighter-rouge">char*</code> <em>keys</em>, and export <strong>exactly</strong> the following functions through <code class="highlighter-rouge">set.h</code>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* Create a new (empty) set; return NULL if error. */</span>
+<span class="n">set_t</span> <span class="o">*</span><span class="n">set_new</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+
+<span class="cm">/* Insert item, identified by a key (string), into the given set.
+ * The key string is copied for use by the set.
+ * Return false if key exists, any parameter is NULL, or error;
+ * return true iff new item was inserted.
+ */</span>
+<span class="n">bool</span> <span class="n">set_insert</span><span class="p">(</span><span class="n">set_t</span> <span class="o">*</span><span class="n">set</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">);</span>
+
+<span class="cm">/* Return the item associated with the given key;
+ * return NULL if set is NULL, key is NULL, or key is not found.
+ */</span>
+<span class="kt">void</span> <span class="o">*</span><span class="n">set_find</span><span class="p">(</span><span class="n">set_t</span> <span class="o">*</span><span class="n">set</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">);</span>
+
+<span class="cm">/* Print the whole set; provide the output file and func to print each item.
+ * Ignore if NULL fp. Print (null) if NULL set.
+ * Print a set with no items if NULL itemprint.
+*/</span>
+<span class="kt">void</span> <span class="n">set_print</span><span class="p">(</span><span class="n">set_t</span> <span class="o">*</span><span class="n">set</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span>
+               <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemprint</span><span class="p">)(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="p">);</span>
+
+<span class="cm">/* Iterate over all items in the set, in undefined order.
+ * Call the given function on each item, with (arg, key, item).
+ * If set==NULL or itemfunc==NULL, do nothing.
+ */</span>
+<span class="kt">void</span> <span class="n">set_iterate</span><span class="p">(</span><span class="n">set_t</span> <span class="o">*</span><span class="n">set</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span>
+                 <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemfunc</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="p">);</span>
+
+<span class="cm">/* Delete the whole set; ignore NULL set.
+ * Provide a function that will delete each item (may be NULL).
+ */</span>
+<span class="kt">void</span> <span class="n">set_delete</span><span class="p">(</span><span class="n">set_t</span> <span class="o">*</span><span class="n">set</span><span class="p">,</span> <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemdelete</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="counters">counters</h3>
+
+<p>A <em>counter set</em> is a <code class="highlighter-rouge">set</code> of counters, each distinguished by an integer <em>key</em>.
+It’s a <code class="highlighter-rouge">set</code> - each <em>key</em> can only occur once in the <code class="highlighter-rouge">set</code> - but instead of storing <em>(key,item)</em> pairs, it tracks a <code class="highlighter-rouge">counter</code> for each <em>key</em>.
+It starts empty.
+Each time <code class="highlighter-rouge">counters_add</code> is called on a given <em>key</em>, that <em>key</em>’s <code class="highlighter-rouge">counter</code> is incremented.
+The current <code class="highlighter-rouge">counter</code> value can be retrieved by asking for the relevant <em>key</em>.</p>
+
+<p>Your <code class="highlighter-rouge">counters.c</code> should implement a set of integer counters with <code class="highlighter-rouge">int</code> <em>keys</em> (where <em>keys</em> must be non-negative) and export <strong>exactly</strong> the following functions through <code class="highlighter-rouge">counters.h</code>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* Create a new (empty) counter structure; return NULL if error. */</span>
+<span class="n">counters_t</span> <span class="o">*</span><span class="n">counters_new</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+
+<span class="cm">/* Increment the counter indicated by key; key must be &gt;= 0.
+ * If the key does not yet exist, create a counter for it and initialize to 1.
+ * Ignore if ctrs is NULL or key is negative.
+ */</span>
+<span class="kt">void</span> <span class="n">counters_add</span><span class="p">(</span><span class="n">counters_t</span> <span class="o">*</span><span class="n">ctrs</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">key</span><span class="p">);</span>
+
+<span class="cm">/* Return current value of counter associated with the given key;
+ * return 0 if ctrs is NULL or if key is not found.
+ */</span>
+<span class="kt">int</span> <span class="n">counters_get</span><span class="p">(</span><span class="n">counters_t</span> <span class="o">*</span><span class="n">ctrs</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">key</span><span class="p">);</span>
+
+<span class="cm">/* Set the current value of counter associated with the given key;
+ * If the key does not yet exist, create a counter for it and initialize to
+ * the given value. Ignore if ctrs is NULL, if key &lt; 0, or count &lt; 0.
+ */</span>
+<span class="kt">void</span> <span class="n">counters_set</span><span class="p">(</span><span class="n">counters_t</span> <span class="o">*</span><span class="n">ctrs</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">key</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">);</span>
+
+<span class="cm">/* Print all counters; provide the output file.
+ * Ignore if NULL fp. Print (null) if NULL ctrs.
+ */</span>
+<span class="kt">void</span> <span class="n">counters_print</span><span class="p">(</span><span class="n">counters_t</span> <span class="o">*</span><span class="n">ctrs</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">);</span>
+
+<span class="cm">/* Iterate over all counters in the set (in undefined order):
+ * call itemfunc for each item, with (arg, key, count).
+ * If ctrs==NULL or itemfunc==NULL, do nothing.
+ */</span>
+<span class="kt">void</span> <span class="n">counters_iterate</span><span class="p">(</span><span class="n">counters_t</span> <span class="o">*</span><span class="n">ctrs</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span>
+                      <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemfunc</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">key</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">));</span>
+
+<span class="cm">/* Delete the whole counters. ignore NULL ctrs. */</span>
+<span class="kt">void</span> <span class="n">counters_delete</span><span class="p">(</span><span class="n">counters_t</span> <span class="o">*</span><span class="n">ctrs</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="hashtable">hashtable</h3>
+
+<p>A <code class="highlighter-rouge">hashtable</code> is a <code class="highlighter-rouge">set</code> of <em>(key,item)</em> pairs.
+It acts just like a <code class="highlighter-rouge">set</code>, but is far more efficient for large collections.</p>
+
+<p>Your <code class="highlighter-rouge">hashtable.c</code> should implement a <code class="highlighter-rouge">set</code> of <code class="highlighter-rouge">void*</code> with <code class="highlighter-rouge">char*</code> <em>keys</em>, and export <em>exactly</em> the following functions through <code class="highlighter-rouge">hashtable.h</code>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* Create a new (empty) hashtable; return NULL if error. */</span>
+<span class="n">hashtable_t</span> <span class="o">*</span><span class="n">hashtable_new</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">num_slots</span><span class="p">);</span>
+
+<span class="cm">/* Insert item, identified by key (string), into the given hashtable.
+ * The key string is copied for use by the hashtable.
+ * Return false if key exists in ht, any parameter is NULL, or error;
+ * return true iff new item was inserted.
+ */</span>
+<span class="n">bool</span> <span class="n">hashtable_insert</span><span class="p">(</span><span class="n">hashtable_t</span> <span class="o">*</span><span class="n">ht</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">);</span>
+
+<span class="cm">/* Return the item associated with the given key;
+ * return NULL if hashtable is NULL, key is NULL, key is not found.
+ */</span>
+<span class="kt">void</span> <span class="o">*</span><span class="n">hashtable_find</span><span class="p">(</span><span class="n">hashtable_t</span> <span class="o">*</span><span class="n">ht</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">);</span>
+
+<span class="cm">/* Print the whole table; provide the output file and func to print each item.
+ * Ignore if NULL fp. Print (null) if NULL ht.
+ * Print a table with no items if NULL itemprint.
+ */</span>
+<span class="kt">void</span> <span class="n">hashtable_print</span><span class="p">(</span><span class="n">hashtable_t</span> <span class="o">*</span><span class="n">ht</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span>
+                     <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemprint</span><span class="p">)(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">));</span>
+
+<span class="cm">/* Iterate over all items in the table; in undefined order.
+ * Call the given function on each item, with (arg, key, item).
+ * If ht==NULL or itemfunc==NULL, do nothing.
+ */</span>
+<span class="kt">void</span> <span class="n">hashtable_iterate</span><span class="p">(</span><span class="n">hashtable_t</span> <span class="o">*</span><span class="n">ht</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span>
+               <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemfunc</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="p">);</span>
+
+<span class="cm">/* Delete the whole hashtable; ignore NULL ht.
+ * Provide a function that will delete each item (may be NULL).
+ */</span>
+<span class="kt">void</span> <span class="n">hashtable_delete</span><span class="p">(</span><span class="n">hashtable_t</span> <span class="o">*</span><span class="n">ht</span><span class="p">,</span> <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">itemdelete</span><span class="p">)(</span><span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span> <span class="p">);</span>
+</code></pre></div></div>
+
+<p>The starter kit provides code for the hash function.</p>
+
+<h3 id="general-notes">General notes</h3>
+
+<ul>
+  <li>Your modules must implement <em>exactly</em> the above interface.
+Do not modify those function prototypes.</li>
+  <li>If you need helper functions or data types (likely <code class="highlighter-rouge">struct</code> types), those should be defined within your <code class="highlighter-rouge">module.c</code> and marked <code class="highlighter-rouge">static</code> so they are not visible to users of the module.</li>
+  <li>Your modules must print <em>nothing</em> (except, of course, in the <code class="highlighter-rouge">xxx_print()</code> function).
+If you want to add debugging <code class="highlighter-rouge">printf</code>s, they must be protected by something like <code class="highlighter-rouge">#ifdef DEBUG</code> or <code class="highlighter-rouge">#ifdef TEST</code>.
+(You can see some examples in <code class="highlighter-rouge">bag.c</code> where we’ve protected some debugging code with <code class="highlighter-rouge">#ifdef MEMTEST</code>, and a spot in the <code class="highlighter-rouge">bag/Makefile</code> that controls that flag from the compiler command line.)</li>
+  <li>Your modules must have no global variables.</li>
+  <li>Your modules must have no <code class="highlighter-rouge">main()</code> function; as modules, they are meant to be used by other programs.
+Recall how the module defined by <code class="highlighter-rouge">bag.c</code> and <code class="highlighter-rouge">bag.h</code> is used by a test program <code class="highlighter-rouge">bagtest.c</code>.</li>
+  <li>Your modules store <code class="highlighter-rouge">void*</code> items; this type is C’s way of describing a “pointer to anything”.
+The caller (user of your module) must pass a pointer (address of some item) to your code; your data structure holds that pointer, and later returns it to the caller in response to an ‘extract’ or ‘find’ operation.
+Your module doesn’t know, or doesn’t care, what kind of things the items are.
+Your module doesn’t allocate memory for items, free memory for items, or copy items - it just tracks the <em>pointer</em> to the item.</li>
+  <li>For all modules, the <em>caller</em> is responsible for the <em>item</em> pointer, which must be allocated (somehow) by the caller.
+The modules’ <code class="highlighter-rouge">_delete</code> function (like a destructor) allows the caller to provide a custom <code class="highlighter-rouge">itemdelete</code> function that knows how to free any memory consumed by an item.</li>
+  <li>For this reason, the caller must avoid inserting the same item (same address) multiple times; later, the <code class="highlighter-rouge">itemdelete</code> method would be called multiple times on that item… which could lead to trouble.</li>
+  <li>Both <code class="highlighter-rouge">set</code> and <code class="highlighter-rouge">hashtable</code> work with string-type keys.
+When adding a new item with <code class="highlighter-rouge">set_insert()</code> or <code class="highlighter-rouge">hashtable_insert()</code>, both modules make their own copy of the string - presumably in memory allocated by <code class="highlighter-rouge">malloc()</code>.
+(The module is then responsible for this memory - and later freeing it - just like any other memory it allocates.)  This ‘copy’ semantic is convenient for the caller, who need not worry about how to allocate and manage the key string after inserting it into the set or hashtable.</li>
+  <li>You may assume that a non-NULL <code class="highlighter-rouge">key</code> is a proper C string; that is, it is null-terminated.</li>
+  <li>You may use the <em>memory</em> module - or use the native <code class="highlighter-rouge">malloc</code> and <code class="highlighter-rouge">free</code>, and you
+may use <code class="highlighter-rouge">valgrind</code> - or not.
+However, we will be checking your code for memory leaks.</li>
+  <li>Your modules must each have a <code class="highlighter-rouge">Makefile</code> to compile and test the module code.</li>
+  <li>Your directory for module <code class="highlighter-rouge">x</code> must, therefore, have an <code class="highlighter-rouge">xtest.c</code> program.</li>
+</ul>
+
+<h2 id="hints">Hints</h2>
+
+<p>You are encouraged to follow the style and layout of the <code class="highlighter-rouge">bag</code> module when developing new modules.</p>
+
+<p>You can also learn a lot from our <a href="/engs50/Examples/trees">binary trees</a> example.
+You are welcome to copy snippets of code from this (or any other) CS50 example code as long as you add a comment indicating you’ve done so.</p>
+
+<p>We suggest implementing the <code class="highlighter-rouge">set</code> and <code class="highlighter-rouge">counters</code> as simplified linked lists, much like we did for <code class="highlighter-rouge">bag</code>.
+Each should be a separate implementation because they differ in detail and semantics.</p>
+
+<p>Your <code class="highlighter-rouge">hashtable</code> module, on the other hand, should make use of the <code class="highlighter-rouge">set</code> data structure.
+Indeed, your hashtable will be an array of pointers to sets.
+Allocating an array of pointers can be tricky; consider these <a href="array-allocate.html">tips</a>.</p>
+
+<p><strong><em>Linked lists</em></strong> were demonstrated in <a href="/engs50/Examples/names6.c">names6.c</a>, although for a specialized case; you will need to generalize.
+They were also covered in CS10; see the <a href="http://www.cs.dartmouth.edu/~tjp/cs10/notes6.php">notes</a>.</p>
+
+<p><strong><em>Hashtables were also covered in CS10:</em></strong>
+<a href="http://www.cs.dartmouth.edu/~tjp/cs10/notes11.php">notes</a>,
+<a href="/engs50/Labs/Lab3/cs10-hashtables.pdf">slides</a>.</p>
+
+<h2 id="what-to-hand-in-and-how">What to hand in, and how</h2>
+
+<p>Make sure to compile and test your solutions on one of the <a href="http://www.cs.dartmouth.edu/~wbc/suditour/011/index.html">CS Linux systems</a> before submission.
+If you choose to develop your solutions on some other system, you are responsible to ensure that the work you submit runs correctly on a CS system — which is where where we will test it!</p>
+
+<p>Indeed, you must place your solutions in your <code class="highlighter-rouge">cs50/labs/lab3</code> directory on the department Linux servers.
+(If you worked on your laptop, use <code class="highlighter-rouge">scp</code> to copy files from your laptop to the server.)</p>
+
+<p>In addition to your code, each of the four subdirectories of <code class="highlighter-rouge">lab3</code> must include two simple text files:</p>
+
+<ol>
+  <li>
+    <p><code class="highlighter-rouge">README</code>,
+      which describes how your program should be compiled and executed, along with an explanation of any assumptions you made about the assignment.
+See the <a href="starter/bag/README.md">README.md</a> for the <code class="highlighter-rouge">bag</code> module.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">TESTING</code>,
+     which describes how you tested the program, including any test inputs, test programs, and test scripts; these test files should be included in your submission.
+See the <a href="starter/bag/TESTING.md">TESTING.md</a> for the <code class="highlighter-rouge">bag</code> module in the starter kit.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p>These examples are written in <a href="/engs50/Resources/index.html#markdown">Markdown</a> format; hence the filename extension <code class="highlighter-rouge">.md</code>.
+You’ll need to use Markdown in later labs, so now’s a great time to learn.
+In this lab, the use of Markdown is optional.</p>
+</blockquote>
+
+<p>Think of your audience for each file:</p>
+
+<ul>
+  <li>the <code class="highlighter-rouge">README</code> file is written for the user of your module.
+For example, <a href="starter/bag/README.md">bag/README.md</a> refers to the interface (<code class="highlighter-rouge">bag.h</code>) and describe any assumptions, implementation details, or compilation instructions (basically, <code class="highlighter-rouge">make bag.o</code>).</li>
+  <li>the <code class="highlighter-rouge">TESTING</code> file is written for your grader.
+For example, <a href="starter/bag/TESTING.md">bag/TESTING.md</a> describes how we tested <code class="highlighter-rouge">bag.c</code>, by referring to <code class="highlighter-rouge">bagtest.c</code> and including the results of a test run in <code class="highlighter-rouge">bagtest.out</code>.
+If your test requires some input files, include those data files in your submission and refer to them in your <code class="highlighter-rouge">TESTING</code> file.
+(In the solution, the Makefile generates the necessary input files by downloading them from the web.)</li>
+</ul>
+
+<p>Your <code class="highlighter-rouge">lab3</code> directory must contain the following:</p>
+
+<ul>
+  <li>Five subdirectories:
+    <ul>
+      <li><code class="highlighter-rouge">bag</code> with <code class="highlighter-rouge">Makefile</code>, <code class="highlighter-rouge">bagtest.c</code>, <code class="highlighter-rouge">bag.c</code>, <code class="highlighter-rouge">bag.h</code>.</li>
+      <li><code class="highlighter-rouge">set</code> with <code class="highlighter-rouge">Makefile</code>, <code class="highlighter-rouge">settest.c</code>, <code class="highlighter-rouge">set.c</code>, <code class="highlighter-rouge">set.h</code>, <code class="highlighter-rouge">README</code>, <code class="highlighter-rouge">TESTING</code></li>
+      <li><code class="highlighter-rouge">counters</code> with <code class="highlighter-rouge">Makefile</code>, <code class="highlighter-rouge">counterstest.c</code>, <code class="highlighter-rouge">counters.c</code>, <code class="highlighter-rouge">counters.h</code>, <code class="highlighter-rouge">README</code>, <code class="highlighter-rouge">TESTING</code></li>
+      <li><code class="highlighter-rouge">hashtable</code> with <code class="highlighter-rouge">Makefile</code>, <code class="highlighter-rouge">hashtabletest.c</code>, <code class="highlighter-rouge">hashtable.c</code>, <code class="highlighter-rouge">hashtable.h</code>, <code class="highlighter-rouge">README</code>, <code class="highlighter-rouge">TESTING</code></li>
+      <li><code class="highlighter-rouge">common</code> directory with contents inherited from our starter kit</li>
+    </ul>
+  </li>
+  <li>Each <code class="highlighter-rouge">README</code> (or <code class="highlighter-rouge">README.md</code>) explains any assumptions and acknowledges any limitations.</li>
+  <li>Each <code class="highlighter-rouge">TESTING</code> (or <code class="highlighter-rouge">TESTING.md</code>) shows how you tested the module.</li>
+  <li>Include any special input files you used for testing.</li>
+</ul>
+
+<h4 id="submitting-your-lab">Submitting your lab</h4>
+<p>Before the deadline, run</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~cs50/labs/submit 3
+</code></pre></div></div>
+<p>Make sure it confirms success.
+If you need to update your submission, run the same command again; it will overwrite the prior submission with the current contents of your <code class="highlighter-rouge">lab3</code> directory.</p>
+
+<p><strong><em>If you wish to use one of your 24-hour extensions,</em></strong> run this command <em>before the deadline</em>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~cs50/labs/submit 3 extension
+</code></pre></div></div>
+<p>This command deletes any submission you may have made previously, and leaves a single file “extension” there as an indication you are requesting an extension.
+When you are later ready to submit your work, do so as above:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~cs50/labs/submit 3
+</code></pre></div></div>
+
+<p>This overwrites any prior submission - even the extension request.
+(Thus, if you submit before the deadline, you effectively ‘cancel’ your request for an extension.) We will grade the first submission present at 0h, 24h, 48h, or 72h after the original deadline.
+To avoid confusion, <strong><em>please blitz <code class="highlighter-rouge">cs50 AT cs.dartmouth.edu</code> if you want a late submission to be graded instead of your on-time submission.</em></strong></p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

@@ -1,0 +1,112 @@
+https://thayer.github.io/engs50/Notes/bash2/activity.html
+3
+3206
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Activity - shell pipelines</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/bash2/activity.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Activity - shell pipelines</h1>
+  </header>
+
+  <div class="post-content">
+    <h2 id="billboard-hot-100-2016">Billboard Hot 100 (2016)</h2>
+
+<p>Let’s play with the <a href="http://www.billboard.com/charts/year-end/2016/hot-100-songs">Billboard Hot 100 from 2016</a>, which I extracted into a text file.</p>
+
+<p>Write pipelines to find out</p>
+
+<ol>
+  <li>sort the list to start at 100 and countdown to 1</li>
+  <li>how many song titles mention ``love’’?</li>
+  <li>how many artists are in the top 100?</li>
+  <li>which artist had the most hits in top 100?</li>
+</ol>
+
+<p>Some useful commands:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ BB</span><span class="o">=</span>~cs50/public_html/Lectures/bash2/Billboard2016-hot100.txt
+<span class="nv">$ </span>less <span class="nv">$BB</span>
+<span class="nv">$ </span>cut <span class="nt">-d</span> : <span class="nt">-f</span> 3 <span class="nv">$BB</span> | less
+<span class="nv">$ </span>wc <span class="nt">-l</span> <span class="nv">$BB</span>
+</code></pre></div></div>
+
+<!--
+### solutions
+
+```bash
+1. sort -nr $BB
+2. cut -d : -f 2 $BB | grep -i love | wc -l
+3. cut -d : -f 3 $BB | sort -u | wc -l
+4. cut -d : -f 3 $BB | sort | uniq -c | sort -nr | head
+```
+-->
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

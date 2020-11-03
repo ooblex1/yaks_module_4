@@ -1,0 +1,31 @@
+https://thayer.github.io/engs50/Examples/names-Makefile
+2
+481
+# Makefile for the "names" program that uses the "bag" module.
+#
+# David Kotz - April 2017
+
+CC=gcc
+CFLAGS=-Wall -pedantic -std=c11 -ggdb
+PROG = names
+OBJS = names.o bag.o readlinep.o
+LIBS = -lm
+
+.PHONY: all clean
+
+all: names
+
+# executable depends on object files
+$(PROG): $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(PROG)
+
+# object files depend on include files
+names.o: bag.h readlinep.h
+bag.o: bag.h
+readlinep.o: readlinep.h
+
+clean:
+	rm -f $(PROG)
+	rm -f *~ *.o
+	rm -rf *.dSYM
+

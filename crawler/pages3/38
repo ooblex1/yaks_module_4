@@ -1,0 +1,199 @@
+https://thayer.github.io/engs50/Resources/XQuartz/
+2
+13233
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Install X11 on MacOS X; and, using gtk+</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Resources/XQuartz/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Install X11 on MacOS X; and, using gtk+</h1>
+  </header>
+
+  <div class="post-content">
+    <p>On MacOS X, <strong>XQuartz</strong> enables you to use the X11 window system.</p>
+
+<h4 id="1-install-xquartz-application">1. Install XQuartz application</h4>
+<p>Here we provide two ways to install XQuartz application.
+You could either install from official website or install with Homebrew.
+In general, we recommend you to use Homebrew to install and manage packages on MacOS X.</p>
+
+<ol>
+  <li>Download and install directly from <a href="https://www.xquartz.org/">XQuartz</a>.</li>
+  <li>Install with <strong><a href="http://www.cs.dartmouth.edu/~cs50/Resources/Homebrew.html">Homebrew</a></strong>.  There are two steps:
+    1. <strong><a href="https://caskroom.github.io/">Homebrew Cask</a></strong> is an extension of Homebrew. It installs GUI applications under the framework of Homebrew. Install <strong>Homebrew Cask</strong> with command <code class="highlighter-rouge">brew tap caskroom/cask</code>.
+    2. Install XQuartz with command <code class="highlighter-rouge">brew cask install xquartz</code>.</li>
+</ol>
+
+<h4 id="2-validate-x11-installation-on-your-mac">2. Validate X11 installation on your Mac</h4>
+<p>Open XQuartz application from the launchpad on your Mac to see if it is installed correctly.
+It will open an <code class="highlighter-rouge">xterm</code> window.
+If that does not work immediately, try restarting your computer.
+<img src="/engs50/Resources/XQuartz/xquartz.png" alt="xquartz" /></p>
+
+<h4 id="3-validate-x11-connection-to-remote-server">3. Validate X11 connection to remote server</h4>
+<p>Next, try running an X11 application on one of the CS50 Unix servers.
+Log into a CS50 Unix server and launch an X11 application, such as <code class="highlighter-rouge">xclock</code> or <code class="highlighter-rouge">xemacs</code>.
+For a little fun, try <code class="highlighter-rouge">xeyes</code>.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh -X username@flume.cs.dartmouth.edu
+xpdf
+</code></pre></div></div>
+<p>The <code class="highlighter-rouge">-X</code> option to <code class="highlighter-rouge">ssh</code> sets up X11 forwarding for <code class="highlighter-rouge">ssh</code> connections.
+That is, it sets up a secure tunnel between the program (like <code class="highlighter-rouge">xclock</code>) running on the server and the XQuartz application on your Mac; the program can create windows, buttons, menus, etc.; all the information flows through the ssh tunnel to XQuartz, which renders the windows on your Mac.
+It works with all CS50 Unix servers.
+<code class="highlighter-rouge">xpdf</code> will open a pdf viewer in X windows system on your local computer.
+Here’s an xpdf window.
+<img src="/engs50/Resources/XQuartz/xpdf.png" alt="xpdf" /></p>
+
+<p><strong>Note</strong></p>
+
+<p>A warning may show up saying <code class="highlighter-rouge">$Home/.Xauthority does not exist</code> if it is your first time to use X11.
+The <code class="highlighter-rouge">Xauthority</code> file will be configured automatically at the first run.
+From then on, the warning should not appear.</p>
+
+<p><strong>Reference</strong></p>
+
+<p><a href="https://uit.stanford.edu/service/sharedcomputing/moreX">Using X-windows</a></p>
+
+<h2 id="your-first-gtk-application">Your first GTK+ application</h2>
+
+<p>If you need a GUI (graphical user interface), we recommend the <code class="highlighter-rouge">gtk+</code> library, which is a popular UI toolkit for the X11 window system.
+There are two versions of <code class="highlighter-rouge">gtk+</code> libraries: <code class="highlighter-rouge">gtk+-2</code>(version 2) and <code class="highlighter-rouge">gtk+-3</code>(version 3).
+<code class="highlighter-rouge">gtk+-2</code> is still alive but we recommend the latest version, <code class="highlighter-rouge">gtk+-3</code>.
+Both versions are ready to use on our CS50 Unix servers, so you need to specify the version to work with at compile time.</p>
+
+<p>The <a href="/engs50/Resources/XQuartz/gtk-example.c">gtk-example.c</a> example program, below, uses <code class="highlighter-rouge">gtk+-3</code>.
+It opens a window with a simple button, as shown below the code.
+Feel free to use!</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+ * filename: gtk-example.c
+ * source: https://developer.gnome.org/gtk3/stable/gtk-getting-started.html
+ */</span>
+<span class="cp">#include &lt;gtk/gtk.h&gt;
+</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">print_hello</span> <span class="p">(</span><span class="n">GtkWidget</span> <span class="o">*</span><span class="n">widget</span><span class="p">,</span>  <span class="n">gpointer</span>   <span class="n">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">g_print</span> <span class="p">(</span><span class="s">"Hello World</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">activate</span> <span class="p">(</span><span class="n">GtkApplication</span> <span class="o">*</span><span class="n">app</span><span class="p">,</span> <span class="n">gpointer</span> <span class="n">user_data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">GtkWidget</span> <span class="o">*</span><span class="n">window</span><span class="p">;</span>
+    <span class="n">GtkWidget</span> <span class="o">*</span><span class="n">button</span><span class="p">;</span>
+    <span class="n">GtkWidget</span> <span class="o">*</span><span class="n">button_box</span><span class="p">;</span>
+
+    <span class="n">window</span> <span class="o">=</span> <span class="n">gtk_application_window_new</span> <span class="p">(</span><span class="n">app</span><span class="p">);</span>
+    <span class="n">gtk_window_set_title</span> <span class="p">(</span><span class="n">GTK_WINDOW</span> <span class="p">(</span><span class="n">window</span><span class="p">),</span> <span class="s">"Window"</span><span class="p">);</span>
+    <span class="n">gtk_window_set_default_size</span> <span class="p">(</span><span class="n">GTK_WINDOW</span> <span class="p">(</span><span class="n">window</span><span class="p">),</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">);</span>
+
+    <span class="n">button_box</span> <span class="o">=</span> <span class="n">gtk_button_box_new</span> <span class="p">(</span><span class="n">GTK_ORIENTATION_HORIZONTAL</span><span class="p">);</span>
+    <span class="n">gtk_container_add</span> <span class="p">(</span><span class="n">GTK_CONTAINER</span> <span class="p">(</span><span class="n">window</span><span class="p">),</span> <span class="n">button_box</span><span class="p">);</span>
+
+    <span class="n">button</span> <span class="o">=</span> <span class="n">gtk_button_new_with_label</span> <span class="p">(</span><span class="s">"Hello World"</span><span class="p">);</span>
+    <span class="n">g_signal_connect</span> <span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="s">"clicked"</span><span class="p">,</span> <span class="n">G_CALLBACK</span> <span class="p">(</span><span class="n">print_hello</span><span class="p">),</span> <span class="nb">NULL</span><span class="p">);</span>
+    <span class="n">g_signal_connect_swapped</span> <span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="s">"clicked"</span><span class="p">,</span> <span class="n">G_CALLBACK</span> <span class="p">(</span><span class="n">gtk_widget_destroy</span><span class="p">),</span> <span class="n">window</span><span class="p">);</span>
+    <span class="n">gtk_container_add</span> <span class="p">(</span><span class="n">GTK_CONTAINER</span> <span class="p">(</span><span class="n">button_box</span><span class="p">),</span> <span class="n">button</span><span class="p">);</span>
+
+    <span class="n">gtk_widget_show_all</span> <span class="p">(</span><span class="n">window</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">GtkApplication</span> <span class="o">*</span><span class="n">app</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">status</span><span class="p">;</span>
+
+    <span class="n">app</span> <span class="o">=</span> <span class="n">gtk_application_new</span> <span class="p">(</span><span class="s">"org.gtk.example"</span><span class="p">,</span> <span class="n">G_APPLICATION_FLAGS_NONE</span><span class="p">);</span>
+    <span class="n">g_signal_connect</span> <span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s">"activate"</span><span class="p">,</span> <span class="n">G_CALLBACK</span> <span class="p">(</span><span class="n">activate</span><span class="p">),</span> <span class="nb">NULL</span><span class="p">);</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">g_application_run</span> <span class="p">(</span><span class="n">G_APPLICATION</span> <span class="p">(</span><span class="n">app</span><span class="p">),</span> <span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
+    <span class="n">g_object_unref</span> <span class="p">(</span><span class="n">app</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">status</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><img src="/engs50/Resources/XQuartz/gtk-example.png" alt="gtk-example" /></p>
+
+<p><strong>Compiling with gtk+</strong></p>
+
+<p>Use the following command to compile <a href="/engs50/Resources/XQuartz/gtk-example.c">gtk-example.c</a>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gcc <span class="sb">`</span>pkg-config <span class="nt">--cflags</span> gtk+-3.0<span class="sb">`</span> <span class="nt">-o</span> gtk-example gtk-example.c <span class="sb">`</span>pkg-config <span class="nt">--libs</span> gtk+-3.0<span class="sb">`</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">pkg-config --cflags gtk+-3.0</code> will produce a list of header paths you might use in your application and <code class="highlighter-rouge">pkg-config --libs gtk+-3.0</code> will produce a list of library paths.
+(Notice the use of back-ticks for bash command substitution.) A more detailed explanation can be found in references below, which include a well-written tutorial.</p>
+
+<p><strong>Reference</strong></p>
+
+<p><a href="http://www.gtk.org/documentation.php">gtk documentation</a></p>
+
+<p><a href="https://developer.gnome.org/gtk3/stable/gtk-getting-started.html">Getting Started with GTK+</a></p>
+
+<p><a href="https://developer.gnome.org/gtk3/stable/gtk-compiling.html">Compiling GTK+ Applications</a></p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

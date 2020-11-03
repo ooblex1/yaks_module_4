@@ -1,0 +1,148 @@
+https://thayer.github.io/engs50/Notes/git/activity.html
+3
+7362
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Activity - Git and Gitlab</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/git/activity.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Activity - Git and Gitlab</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<ul>
+  <li>to gain experience with git and Gitlab</li>
+  <li>to create and share a repo within your team</li>
+</ul>
+
+<h3 id="activity">Activity</h3>
+
+<p>The lecture notes has a section about the <a href="index.html#cs-gitlab">CS Gitlab Server</a> that shows a similar (though not identical) activity.</p>
+
+<ol>
+  <li>Use a browser to go to <a href="https://gitlab.cs.dartmouth.edu/"><code class="highlighter-rouge">https://gitlab.cs.dartmouth.edu/</code></a></li>
+  <li>Each member of your group that doesn’t already have one should <strong><em>create a Gitlab userid that is identical to your CS login name</em></strong>.</li>
+  <li>When the GitLab userid is created, go back and login.</li>
+  <li><strong><em>One</em></strong> member of your group should follow steps 1 through 9 in the <a href="/git/index.html#cs-gitlab">CS Gitlab Server</a> section of today’s lecture notes.</li>
+  <li>After the project has been created, the <strong><em>same</em></strong> person should click on <em>Settings</em> and then <em>Members</em>; this page allows you to share the repo with other Gitlab users.
+  Type the usernames of each of your group members and pick <em>Master</em> from the role menu, then click <em>Add to project</em>.
+  Below, I’m adding Travis as a Master on my Binary-tree repo: <img src="gitlab7.png" alt="" />.</li>
+  <li><strong><em>Other</em></strong> members of your group should then receive an email message confirming their addition to this repo.
+  They should click the link in that message to visit the repo in the browser.</li>
+  <li><strong><em>All</em></strong> members of your group should then click on the repo name (right near the top of the page; in my example, it’s <em>binary-tree</em>) to pop back to the home page for this repo.</li>
+  <li><strong><em>Important:</em></strong> Click on the <code class="highlighter-rouge">SSH</code> pop-up to change it to <code class="highlighter-rouge">HTTPS</code>.</li>
+  <li>Scroll down to see the command-line instructions for using this project: <img src="gitlab4.png" alt="" /></li>
+  <li>Before you proceed, copy the two <em>Git global setup</em> commands and paste them into a Terminal window.
+  While you’re at it, run two more commands:
+    <ul>
+      <li><code class="highlighter-rouge">git config --global push.default simple</code></li>
+      <li><code class="highlighter-rouge">git config --global core.editor emacs</code></li>
+      <li>(or vim, if you prefer it to emacs)</li>
+    </ul>
+  </li>
+  <li>Back to the new project.
+   Since this is a brand-new project, you have no repository on your local computer (whether that be your laptop or flume).
+   Look at the instructions under <em>Create a new Git repository.</em>
+   Copy the <code class="highlighter-rouge">git clone</code> command you see there.</li>
+  <li>Go to your Terminal window, and <code class="highlighter-rouge">cd ~/cs50</code>, your usual workspace for this class.
+   Paste the <code class="highlighter-rouge">git clone</code> command.
+   This command “clones” the remote repository (the one on Gitlab) into a new subdirectory.</li>
+  <li>Enter your Gitlab username and password.
+   It should proceed to create the local repository.</li>
+  <li><strong><em>One</em></strong> member of your group should create and push a <code class="highlighter-rouge">README.md</code> file.
+   (If you prefer plaintext, just call it <code class="highlighter-rouge">README</code>.) The Gitlab page lists the commands to add an empty <code class="highlighter-rouge">README.md</code> file but you might want to write <em>something</em> in that README!</li>
+  <li>Meanwhile, <strong><em>Other</em></strong> members of the group should each create a file <code class="highlighter-rouge">ABOUT-me.md</code> where they replace <code class="highlighter-rouge">me</code> with their name.
+   (For example, I would create <code class="highlighter-rouge">ABOUT-David.md</code>.
+   In the file they should write a sentence describing themself.
+   Then,
+    <ul>
+      <li><code class="highlighter-rouge">git add ABOUT-me.md</code> (with the appropriate filename)</li>
+      <li><code class="highlighter-rouge">git commit ABOUT-me.md</code> (an editor will open so you can type a commit message)</li>
+      <li><code class="highlighter-rouge">git push</code> (you may need to enter your Gitlab password)</li>
+    </ul>
+  </li>
+  <li>Back in the browser, refresh the repo’s home page - you should all see the new README.
+   If you click on <em>Files</em> you should see all the other files people added to the repo.</li>
+  <li><strong><em>All</em></strong> members of the group should <code class="highlighter-rouge">git pull</code> in their Terminal window - which should download all the files created by others to their local copy of the repo.</li>
+</ol>
+
+<p>You now have a shared repo for use by your group!</p>
+
+<h3 id="tips">Tips</h3>
+
+<ul>
+  <li>After class, you may want to run those four global configuration commands on both your laptop and on flume, and install the <code class="highlighter-rouge">~/.gitignore</code> file on both your laptop and flume, as described above.</li>
+  <li>Check out <a href="/engs50/Resources/#markdown">Markdown</a> - it’s easy to learn.</li>
+  <li><a href="index.html#why-is-git-always-asking-for-my-password">Why is Git always asking for my password?</a></li>
+</ul>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

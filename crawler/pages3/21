@@ -1,0 +1,230 @@
+https://thayer.github.io/engs50/Notes/memory/
+2
+13519
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Memory, pointers, and malloc</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/memory/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Memory, pointers, and malloc</h1>
+  </header>
+
+  <div class="post-content">
+    <p>To truly understand C, and in particular, the use of pointers, you need to understand how C programs use memory.
+These same concepts underly nearly all procedural languages, though some languages cover up the details.</p>
+
+<!--
+***We started today with a demo of my solutions for [Lab 2](/engs50/Labs/Lab2)***.
+-->
+<!-- Terminal [script](/engs50/Notes/memory/script.txt) from today's class. -->
+
+<h3 id="goals">Goals</h3>
+
+<ul>
+  <li>to recognize that all data is stored in memory, that memory is a linear sequence of bytes, and that every byte has a numeric <em>address</em>.</li>
+  <li>to understand that C stores the running program and its data in one of <em>four areas of memory</em>, each managed differently.</li>
+  <li>to learn about C syntax for pointers, addresses, and dereferencing.</li>
+  <li>to begin to explore dynamic memory allocation.</li>
+</ul>
+
+<h3 id="slides-and-examples">Slides and examples</h3>
+
+<p>Today I used a brief set of slides (in <a href="/engs50/Notes/memory/memory-pointers-C.key">Keynote</a> or <a href="/engs50/Notes/memory/memory-pointers-C.pdf">PDF</a>) to explain memory, addresses, and pointers, complementing the notes below.
+The slides reference several examples:</p>
+
+<ul>
+  <li><a href="/engs50/Examples/pointer0.c">pointer0.c</a></li>
+  <li><a href="/engs50/Examples/pointer1.c">pointer1.c</a></li>
+  <li><a href="/engs50/Examples/pointer2.c">pointer2.c</a></li>
+  <li><a href="/engs50/Examples/pointer3.c">pointer3.c</a></li>
+</ul>
+
+<h1 id="memory-and-addresses">Memory, and addresses</h1>
+
+<p>Every bit of information the computer needs must be stored somewhere in memory - whether instructions or data.
+The computer’s memory is a sequence of bytes, each byte with its own numeric <em>address</em>.
+If the computer has one megabyte of memory, these 2^20 bytes will be numbered from 0 to 2^20-1, that is, from 0 to 1,048,575.
+Or, since we’re computer scientists, we work in hexadecimal rather than decimal; the bytes are numbered from 00000 to FFFFF.
+In practice, we tend to write hexadecimal numbers in C notation: 0x00000 to 0xFFFFF.</p>
+
+<p>Given a variable, we can use a C operator <code class="highlighter-rouge">&amp;</code> to get its address.
+You might read this operator as “address of…”.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">42</span><span class="p">;</span>
+<span class="kt">int</span><span class="o">*</span> <span class="n">xp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">x</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>The first variable <code class="highlighter-rouge">x</code> is an integer.
+The second variable <code class="highlighter-rouge">xp</code> is a pointer to an integer, and it is initialized to the address in memory where <code class="highlighter-rouge">x</code> is stored.</p>
+
+<blockquote>
+  <p>By the way, the <code class="highlighter-rouge">NULL</code> pointer is simply address zero (0x00000).
+The OS arranges for that memory segment to be illegal for reading or for writing, so if you try to dereference a null pointer for reading or writing (think <code class="highlighter-rouge">char *p=NULL; char c = *p;</code>) the OS will catch it and trigger a ‘segmentation fault’.</p>
+</blockquote>
+
+<p>When you run your program, it becomes a <em>process</em> within Unix.
+(To see a list of all your processes, type <code class="highlighter-rouge">ps</code> at the bash commandline.
+To see <em>all</em> the processes running on the system, try <code class="highlighter-rouge">ps ax</code>.)  Your program’s executable code is copied into memory so the processor can read the instructions and execute them.
+This region is often called the <em>code segment</em> or <em>text segment</em>).</p>
+
+<p>Let’s focus on data, which live in the other three segments.</p>
+
+<h2 id="three-regions-of-data-memory">Three regions of data memory</h2>
+
+<p>C stores all of the data your program manipulates in three distinct regions of memory (aka <em>segments</em>).
+There’s nothing special about each region - they’re all somewhere in that linear sequence of bytes - but C manages each differently.
+Let’s look at each in turn.</p>
+
+<h3 id="global-memory-aka-static">Global memory (aka static)</h3>
+
+<p>The simplest region is called ‘global’ (or ‘static’) storage, and it’s where global variables live.
+If you define a constant or variable outside of any function, it has</p>
+
+<ul>
+  <li><em>global scope</em> - meaning that it is visible to all code in any function within the current file, and</li>
+  <li><em>static storage</em> - meaning that C allocates space for it (and initializes the contents) before the program begins executing; its address will never change throughout the execution of the program (hence the name ‘static’).</li>
+</ul>
+
+<p>For example,</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">const</span> <span class="kt">float</span> <span class="n">pi</span><span class="o">=</span><span class="mi">3</span><span class="p">.</span><span class="mi">1415926535</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="n">usage</span><span class="p">[]</span> <span class="o">=</span> <span class="s">"Usage: dog [-n] [-m mapfile] [-] [filename]...</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">error_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The above declares three global variables, two of which are constants and one of which is variable.
+All are visible to functions defined below their declaration.
+Global variables are always declared at the top of a C file, after <code class="highlighter-rouge">#include</code> directives and before any function definitions.</p>
+
+<p>Global variables can be handy, and sometimes necessary, but it is good style to avoid use of global variables.
+(Global constants are generally ok.)  Well-modularized programs keep their data close - passing the data (or pointers to data) among functions.</p>
+
+<p>There are two kinds of ‘global’ in C: global within a C file, and global across all C files in the program.
+The former are reasonable, if used carefully, but the latter are more dangerous.
+We’ll discuss the differences later, if we have time.</p>
+
+<h3 id="the-stack-for-local-variables">The Stack (for local variables)</h3>
+
+<p>All of the example code we’ve seen so far makes extensive use of local variables; these variables are defined within a function and have</p>
+
+<ul>
+  <li><em>local scope</em> - meaning that the variable is visible within the function only, and</li>
+  <li><em>stack storage</em> - meaning that C allocates space for the variable within the stack frame for this particular instance of this function call.</li>
+</ul>
+
+<p><strong>Note:</strong> Local variables include the function’s parameters.</p>
+
+<p>Think about how a stack works.
+When the program starts, C allocates a chunk of bytes on the stack to hold all the variables defined in <code class="highlighter-rouge">main</code>.
+This chunk is called a ‘stack frame’.
+<em>It does not initialize these bytes</em> - the program must initialize variables, either in the variable definition or in the code to follow.
+Later, when <code class="highlighter-rouge">main</code> calls another function, say, <code class="highlighter-rouge">readline</code>, it allocates another chunk of bytes on the stack (you could say, it <em>pushes another frame on the stack</em>) to hold the variables defined by <code class="highlighter-rouge">readline </code>.
+When <code class="highlighter-rouge">readline</code> calls <code class="highlighter-rouge">fgetc</code>, it pushes another stack frame on the stack, a chunk of bytes to hold the variables defined within <code class="highlighter-rouge">fgetc</code>.
+When <code class="highlighter-rouge">fgetc</code> returns, it <em>pops the frame off the stack</em>.
+When <code class="highlighter-rouge">readline</code> returns, it pops that frame off the stack.
+The local variables defined in <code class="highlighter-rouge">readline </code> are not just syntactically inaccessible to <code class="highlighter-rouge">main</code> (out of scope), their memory is no longer allocated.
+Indeed, when <code class="highlighter-rouge">main</code> calls another function, say, <code class="highlighter-rouge">printf</code>, a stack frame is pushed on to the stack for <code class="highlighter-rouge">printf</code>, re-using the same memory that had been allocated to <code class="highlighter-rouge">readline </code> and <code class="highlighter-rouge">fgetc</code>).</p>
+
+<h3 id="the-heap-dynamically-allocated-memory">The Heap (dynamically allocated memory)</h3>
+
+<p>The third kind of data memory is called the “heap”.
+It is a large region of memory managed by <code class="highlighter-rouge">malloc()</code>.
+Each call to <code class="highlighter-rouge">malloc()</code> selects a chunk of bytes from the heap region, and returns a pointer to that chunk.
+It keeps careful records of which chunks have been allocated, and which are free.
+It is the programmer’s responsibility to, eventually, return unused chunks by calling <code class="highlighter-rouge">free(p)</code> where <code class="highlighter-rouge">p</code> is a pointer earlier returned by <code class="highlighter-rouge">malloc</code>.
+If the programmer forgets to call <code class="highlighter-rouge">free</code>, that chunk can never be reused, and eventually <code class="highlighter-rouge">malloc</code> will run out of free chunks to be allocated.
+(This situation is called a ‘memory leak.’)   It is also the programmer’s responsibility not to call <code class="highlighter-rouge">free</code> multiple times for the same pointer; doing so may corrupt the records kept by the memory-allocation library, and will likely lead to program crashes.</p>
+
+<p>There are four related functions you should understand:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">p = malloc(n)</code> - allocates <code class="highlighter-rouge">n</code> bytes of heap memory</li>
+  <li><code class="highlighter-rouge">p = calloc(count, size)</code> allocates <code class="highlighter-rouge">count*size</code> bytes of heap memory</li>
+  <li><code class="highlighter-rouge">p = realloc(p, n)</code> - where <code class="highlighter-rouge">p</code> is a pointer to heap memory - expands (or shrinks) its allocation to <code class="highlighter-rouge">n</code> bytes.</li>
+  <li><code class="highlighter-rouge">free(p)</code> - where <code class="highlighter-rouge">p</code> is a pointer to heap memory - releases that portion of heap memory for future use.</li>
+</ul>
+
+<p>Check out this <a href="https://www.youtube.com/watch?v=5VnDaHBi8dM">animated explanation of pointers</a>.
+Fun!</p>
+
+<h3 id="on-exit">On exit</h3>
+
+<p>When the process exits, all its memory is released - the four segments (code, global, stack, and heap) disappear.</p>
+
+<h3 id="activity">Activity</h3>
+
+<p>Today’s <a href="activity.html">activity</a> looks at a program that copies a string - and tries to find a bug.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

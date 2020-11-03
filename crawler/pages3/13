@@ -1,0 +1,351 @@
+https://thayer.github.io/engs50/Labs/Lab6/
+2
+25108
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Lab 6 - Querier</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/Lab6/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Lab 6 - Querier</h1>
+  </header>
+
+  <div class="post-content">
+    <p><strong>Due Friday, May 12, at 10pm</strong></p>
+
+<p>In this lab you’ll continue the Tiny Search Engine (TSE) by coding the Querier according to the <a href="REQUIREMENTS.html">Querier Requirements Spec</a>.</p>
+
+<ul id="markdown-toc">
+  <li><a href="#preparation" id="markdown-toc-preparation">Preparation</a></li>
+  <li><a href="#assignment" id="markdown-toc-assignment">Assignment</a>    <ul>
+      <li><a href="#whatsubmit" id="markdown-toc-whatsubmit">Submission - what</a></li>
+      <li><a href="#howsubmit" id="markdown-toc-howsubmit">Submission - how</a></li>
+      <li><a href="#extensions" id="markdown-toc-extensions">Extensions</a></li>
+    </ul>
+  </li>
+  <li><a href="#grading" id="markdown-toc-grading">Grading</a></li>
+  <li><a href="#hints" id="markdown-toc-hints">Hints and tips</a>    <ul>
+      <li><a href="#review-the-lecture-notes" id="markdown-toc-review-the-lecture-notes">Review the lecture notes</a></li>
+      <li><a href="#hashtable" id="markdown-toc-hashtable">Hashtable</a></li>
+      <li><a href="#parsing-queries" id="markdown-toc-parsing-queries">Parsing queries</a></li>
+      <li><a href="#combining-results" id="markdown-toc-combining-results">Combining results</a></li>
+      <li><a href="#ranking-results" id="markdown-toc-ranking-results">Ranking results</a></li>
+      <li><a href="#testing" id="markdown-toc-testing">Testing your querier</a></li>
+      <li><a href="#chopping" id="markdown-toc-chopping">Chopping a string into array of strings</a></li>
+      <li><a href="#ctype" id="markdown-toc-ctype">ctype</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="preparation">Preparation</h2>
+
+<ol>
+  <li>
+    <p>Start with the same Gitlab project you used for Labs 4-5.
+<em>Before you begin</em>, make sure you submitted Lab 5 correctly: you tagged the submitted version with <code class="highlighter-rouge">lab5submit</code>, <a href="/engs50/Labs/Lab5/#howsubmit">as instructed</a>, and pushed that tag to your Gitlab remote.</p>
+  </li>
+  <li>
+    <p>Check to ensure your local repo is clean with <code class="highlighter-rouge">make clean</code> and everything has been committed and pushed according to <code class="highlighter-rouge">git status</code>.
+If you have files that need to be committed, or commits that should be pushed, do that now.
+(oops - were those supposed to be part of your Lab 5 submission? See the first step above.)</p>
+  </li>
+  <li>
+    <p><strong>Do not proceed</strong> if you have uncommitted changes or unpushed commits.
+Seek help if you need to sort out your repo and Gitlab.</p>
+  </li>
+  <li>Pull the updated and additional files from the upstream master (the TSE starter kit) into your local repository:
+<code class="highlighter-rouge">git pull upstream master</code>
+(this works if you earlier followed the <a href="/05/">instructions from Section meeting</a>).
+    <blockquote>
+      <p><a href="https://gitlab.cs.dartmouth.edu/CS50/tse/compare/341328cc0ba0501a0f53eabace60a5cdbbd5b762...HEAD">Here</a> you can see the changes that will happen when you run this command - all the changes made to the starter kit since it was released.</p>
+    </blockquote>
+  </li>
+  <li>
+    <p>Commit and push your changes; perhaps tag this commit for easy reference later: <code class="highlighter-rouge">git commit -a; git tag lab6start; git push --tags</code>.</p>
+  </li>
+  <li>Check again to be sure your Gitlab repo is <strong><em>private</em></strong> (not <em>internal</em> or <em>public</em>).
+Visit your repo on Gitlab, click on <em>Settings</em>, and scroll down to <em>Project Visibility</em>.</li>
+</ol>
+
+<h2 id="assignment">Assignment</h2>
+
+<p>Write the <em>querier</em>, third sub-system of the Tiny Search Engine.
+Please follow the <a href="/engs50/Resources/CodingStyle.html">CS50 coding style guidelines</a> and the <a href="REQUIREMENTS.html">Querier Requirements Spec</a>, and make good use of our abstract data structures.</p>
+
+<ol>
+  <li>In the <code class="highlighter-rouge">querier</code> subdirectory, write
+    <ul>
+      <li>a program <code class="highlighter-rouge">querier</code>;</li>
+      <li>a <code class="highlighter-rouge">Makefile</code> to build <code class="highlighter-rouge">querier</code>;</li>
+      <li>a short file <code class="highlighter-rouge">README.md</code> to provide any special information about compiling or using your querier;</li>
+      <li>a file <code class="highlighter-rouge">DESIGN.md</code> to provide the Design Spec for querier, drawing inspiration from the <a href="/indexer/">lecture notes</a>;</li>
+      <li>a file <code class="highlighter-rouge">IMPLEMENTATION.md</code> to provide the implementation spec and testing plan for querier;</li>
+      <li>a file <code class="highlighter-rouge">TESTING.md</code>, telling the grader how you tested your querier (see <a href="#testing">about testing</a> below);</li>
+      <li>a <code class="highlighter-rouge">.gitignore</code> file telling Git to ignore the binary files (libraries, executables) in this directory.</li>
+    </ul>
+  </li>
+  <li>Your program shall leverage common code from <code class="highlighter-rouge">common.a</code> in the <code class="highlighter-rouge">../common</code> directory:
+    <ul>
+      <li>a module <code class="highlighter-rouge">index.c</code> that contains all the logic for saving and loading index files (this module is common between the Indexer, Querier, and indextest);</li>
+      <li>a module <code class="highlighter-rouge">pagedir.c</code> that contains all the logic for saving pages to a crawler output directory, for loading pages from a crawler output directory (this module is common between the Crawler and Indexer);</li>
+      <li>(optionally) a module <code class="highlighter-rouge">word.c</code> that implements <code class="highlighter-rouge">NormalizeWord</code> (this module is common between the Indexer and Querier);</li>
+      <li>a <code class="highlighter-rouge">Makefile</code> that builds <code class="highlighter-rouge">common.a</code> for use by the programs;</li>
+      <li>a short <code class="highlighter-rouge">README.md</code> file explaining how to build <code class="highlighter-rouge">common.a</code>;</li>
+      <li>a <code class="highlighter-rouge">.gitignore</code> file telling Git to ignore the binary files (libraries, executables) in this directory.</li>
+    </ul>
+  </li>
+  <li>Review your top-level <code class="highlighter-rouge">README.md</code> and <code class="highlighter-rouge">Makefile</code> to update as needed.</li>
+</ol>
+
+<h3 id="whatsubmit">Submission - what</h3>
+
+<p>In this lab you shall edit or add files as described above.
+<strong><em>You must arrange your directory like ours, so we can better navigate and test your code.</em></strong>  Of course, you may have additional files - test scripts, test output, code you’ve chosen to break into multiple files.
+Here is the solution’s <a href="/engs50/Labs/Lab5/tse-tree.txt">directory structure</a>; it includes some of the optional files and some of the testing files, which may not be present in your solution.
+The point is that your code must be organized in the same <em>directory</em> structure.</p>
+
+<p><em>You shall NOT modify any of the code we provide in <code class="highlighter-rouge">libcs50</code></em>.</p>
+
+<p><em>You shall NOT include any data files produced by the crawler or indexer, or any binary/object files produced by the compiler, backup files, core dumps, etc.</em></p>
+
+<h3 id="howsubmit">Submission - how</h3>
+
+<p>When you are ready for final submission,</p>
+
+<ul>
+  <li><strong>Add</strong> all required files using an appropriate <code class="highlighter-rouge">git add</code> commandline.</li>
+  <li><strong>Commit</strong> all changes using an appropriate <code class="highlighter-rouge">git commit</code> commandline.</li>
+  <li><strong>Tag</strong>: <code class="highlighter-rouge">git tag lab6submit</code></li>
+  <li><strong>Push</strong>: <code class="highlighter-rouge">git push --tags</code> to ensure the tags are pushed to the remote.
+See <a href="/git/tags.html">more about tags</a>.</li>
+</ul>
+
+<p>Use your web browser to view your remote on Gitlab and make sure there is a tag <code class="highlighter-rouge">lab6submit</code> and the files associated with that tagged commit include everything we’ll need to grade your lab.</p>
+
+<p>We will clone your repo at 0h, 24h, 48h, and 72h after the original deadline.
+We will start grading when we first see one with tag <code class="highlighter-rouge">lab6submit</code>, and judge it late if that tag was added after the deadline.
+To avoid confusion, <em>please blitz the team <code class="highlighter-rouge">cs50 AT cs.dartmouth.edu</code> if you want a late submission to be graded instead of your on-time submission.</em></p>
+
+<p><strong><em>Your entire codebase must compile with <code class="highlighter-rouge">make</code> from the top-level directory and produce no compiler warnings.</em></strong>  If we find that your code will not compile, or has <strong>segmentation faults</strong>, we will send it back to you as soon as we can for repair; recall the <a href="/#crashes">grading policy</a>.</p>
+
+<p>We will run your querier on our own set of test data.</p>
+
+<p>We will run <code class="highlighter-rouge">valgrind</code> on your program to look for memory leaks; you will lose points for memory leaks or memory errors.</p>
+
+<h3 id="extensions">Extensions</h3>
+
+<p>If you want to claim your 24h extension, create a file <code class="highlighter-rouge">EXTENSION</code> at the top-level directory of your repository.
+Don’t forget to <code class="highlighter-rouge">git push</code> <em>(before the deadline!)</em> so we will see the file.
+For example,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>touch EXTENSION
+<span class="nv">$ </span>git add EXTENSION
+<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"extension request"</span>
+<span class="nv">$ </span>git tag lab6submit     <span class="c"># add tag, as above</span>
+<span class="nv">$ </span>git push <span class="nt">--tags</span>        <span class="c"># push to gitlab, including tags</span>
+</code></pre></div></div>
+
+<p>Use your web browser to view your remote on Gitlab and make sure there is a tag <code class="highlighter-rouge">lab6submit</code> and that its files include <code class="highlighter-rouge">EXTENSION</code>.</p>
+
+<p>When you are ready to submit your code, remove <code class="highlighter-rouge">EXTENSION</code> as follows, <em>update your submission tag</em>, and push to Gitlab:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git rm EXTENSION
+<span class="nv">$ </span>git commit <span class="nt">-m</span> <span class="s2">"ready for grading"</span>
+<span class="nv">$ </span>git push <span class="nt">--delete</span> origin lab6submit <span class="c"># remove the tag from remote</span>
+<span class="nv">$ </span>git tag <span class="nt">-f</span> lab6submit  <span class="c"># move the local tag forward to this commit</span>
+<span class="nv">$ </span>git push <span class="nt">--tags</span>        <span class="c"># push to gitlab remote, including tags</span>
+</code></pre></div></div>
+
+<p>Use your web browser to view your remote on Gitlab and make sure there is a tag <code class="highlighter-rouge">lab6submit</code>, that its files do <em>not</em> include <code class="highlighter-rouge">EXTENSION</code>, and its files include everything we’ll need to grade your lab.</p>
+
+<h2 id="grading">Grading</h2>
+
+<p>Lab 6 is scored on the basis of 100 points, with Delivery, Documentation, Style, Testing comprising most of the points.</p>
+
+<p>“Functionality” represents 40/100 points.
+In recognition that you might find it best to start simple and slowly enhance your solution as you get the simpler version working, you can earn points as follows:</p>
+
+<ul>
+  <li>10 points if your querier prints the set of documents that contain all the words in the query; you may treat operators (‘and’, ‘or’) as regular words.</li>
+  <li>20 points if your querier also supports ‘and’ and ‘or’ operators, but without precedence (in mathematical terms, it treats them as <em>left associative, equal precedence</em> operators).</li>
+  <li>30 points if your querier also supports ‘and’ precedence over ‘or’.</li>
+  <li>40 points if your querier also prints the document set in decreasing order by score, thus meeting the full specs.</li>
+</ul>
+
+<p>Partial credit is available, of course, per the judgement of the grader, but above is the coarse-grain rubric.</p>
+
+<h2 id="hints">Hints and tips</h2>
+
+<p>Processing a query and ranking the results are tricky.
+We encourage you to start with a simplified case, test it thoroughly, then enhance.
+Easier to code, to test, and to debug, and when facing a deadline it’s nice to have a less-functional program that works than a full-functional program that doesn’t work.
+See the above section on <a href="#grading">Grading</a> regarding the points allocated as you achieve higher levels of functionality.</p>
+
+<h3 id="review-the-lecture-notes">Review the lecture notes</h3>
+
+<p>There are some examples and design tips in the <a href="/querier/">lecture notes</a>.</p>
+
+<h3 id="hashtable">Hashtable</h3>
+
+<p>How big should your hashtable be?
+Well, you can know how many words it will store - because the index file has one word per line, and you can count the number of lines in the index file before creating an index data structure and before loading the file into the structure.
+Just think about how the hash-table size (in slots) might relate to the number of words it will need to store.</p>
+
+<h3 id="parsing-queries">Parsing queries</h3>
+
+<p>We strongly recommend that your code read the entire query (a line of input) into a single string, then <em>tokenize</em> the query string.
+That is, you should write a function that takes a string and builds an array of words; it should use white space (space or tab) as the delimiter; each word can be normalized (lower-cased) and checked for illegal characters before being added to the array.
+See <a href="#chopping">one approach</a> at bottom.</p>
+
+<p>Now that all the character-by-character parsing is behind you, and you have an array of words, you can step through the array to print a <em>clean query</em>, that is, with no extraneous spaces and all letters in lower case.</p>
+
+<p>You can then step through the array according to the structure defined in the BNF.
+Two tips:</p>
+
+<ul>
+  <li>Validate the basic structure: neither the first or last word may be an operator, and two operators may not be adjacent.
+If valid, proceed to next step; otherwise print a suitable error message.</li>
+  <li>Structure your code to follow the structure of the grammar, which has two non-terminals (<code class="highlighter-rouge">query</code> and <code class="highlighter-rouge">andsequence</code>), to write a function that handles each.
+    <ul>
+      <li>One function to return set of documents that satisfy an <code class="highlighter-rouge">andsequence</code>, looping over words; accumulate an answer (like a running product) as you go.</li>
+      <li>Another function to return set of documents that satisfy a <code class="highlighter-rouge">query</code>, looping over calls to the above function for each <code class="highlighter-rouge">andsequence</code>; accumulate an answer (like a running total) as you go.</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>See <a href="/querier/index.html#expressions">Lecture notes</a> for more hints about how this might work.</p>
+</blockquote>
+
+<h3 id="combining-results">Combining results</h3>
+
+<p>Suppose you have one <code class="highlighter-rouge">counters</code> object representing the set of documents in which a given word appears, and another <code class="highlighter-rouge">counters</code> object representing the set of documents in which another word appears; each counter set is really a set of (docID, count) pairs.
+How do you combine them?
+Recall <a href="/iterators/">Lecture</a>.</p>
+
+<p>If you are processing <code class="highlighter-rouge">wordA AND wordB</code>, the set of documents that match <em>both</em> words is the <em>intersection</em> of the two sets, and the score for each document (per the specs) is the <em>minimum</em> of the count for each document.
+So you need a way to intersect two <code class="highlighter-rouge">counters</code>; we recommend iterating over one set and, for each item, checking whether that document exists in the other set; update the first set according to what you find.
+You can use <code class="highlighter-rouge">counters_iterate</code>, <code class="highlighter-rouge">counters_get</code>, and <code class="highlighter-rouge">counters_set</code> to do this, without modifying your <code class="highlighter-rouge">counters</code> module.</p>
+
+<p>If you are processing <code class="highlighter-rouge">wordA OR wordB</code>, the set of documents that match <em>either</em> word is the <em>union</em> of the two sets, and the score for each document (per the definition above) is the <em>sum</em> of the count for each document.
+So you need a way to union two <code class="highlighter-rouge">counters</code>; we recommend iterating over the second set and, for each item, checking whether that document exists in the first set; update the first set according to what you find.
+Again, you can use <code class="highlighter-rouge">counters_iterate</code>, <code class="highlighter-rouge">counters_get</code>, and <code class="highlighter-rouge">counters_set</code> to do this, without modifying your <code class="highlighter-rouge">counters</code> module.</p>
+
+<p>While processing an <code class="highlighter-rouge">andsequence</code> you can compute a ‘running product’, that is, a <code class="highlighter-rouge">counters</code> object that represents the intersection of everything seen so far in the sequence.</p>
+
+<p>When processing a query, that is, a disjunction of <code class="highlighter-rouge">andsequence</code> results, you can similarly compute a ‘running sum’, that is, a <code class="highlighter-rouge">counters</code> object that represents the union of everything seen so far in the sequence.</p>
+
+<h3 id="ranking-results">Ranking results</h3>
+
+<p>After parsing and interpreting a query, you will likely have a <code class="highlighter-rouge">counters</code> object representing the score for each satisfying document.
+The <code class="highlighter-rouge">counters</code> module does not have a ‘sort’ method or a way to iterate over the items in sorted order.
+We suggest you use  <code class="highlighter-rouge">counters_iterate()</code> in which the <code class="highlighter-rouge">itemfunc</code> inserts the items into a new array of structs, each struct representing one satisfying document (docID, score).
+Use <code class="highlighter-rouge">counters_iterate</code> twice - once to count the number of items in the set so you can allocate an appropriate-sized array, and again to stuff each item into the new array.
+If your <code class="highlighter-rouge">itemfunc</code> uses an insertion-sort approach to drop the new item into the array so the array is sorted in decreasing-score order, you end the iteration with a nicely sorted array of structs.
+Then you can simply loop over the array to print out the list of documents.</p>
+
+<h3 id="testing">Testing your querier</h3>
+
+<p>Your querier reads queries from stdin, one per line.
+You can test it interactively, but to do thorough and repeated testing you can write a collection of little files, each of which contains one or more queries to your querier, and run commands like <code class="highlighter-rouge">./querier &lt; testquery</code>.
+You might write a short bash script to run the querier through several such test files.
+That script might even compare the output to known-good output, for regression testing.</p>
+
+<p>You are welcome (but not required) to use the <code class="highlighter-rouge">fuzzquery.c</code>, provided in the updated starter kit, for testing your querier.
+Again, you might write a short bash script and/or Makefile rules to help you run tests using this program.
+<em>If you choose to use this program, you will need to change the <code class="highlighter-rouge">-std</code> switch in the <code class="highlighter-rouge">CFLAGS</code> definition in your <code class="highlighter-rouge">Makefile</code> as follows</em></p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">CFLAGS</span> <span class="o">=</span> <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>gnu11 <span class="nt">-ggdb</span> <span class="nv">$(FLAGS)</span> <span class="nt">-I</span><span class="nv">$C</span> <span class="nt">-I</span><span class="nv">$L</span>
+</code></pre></div></div>
+
+<p>If your indexer never quite worked, never fear.
+You do not need a working indexer to write or test your querier.
+Try your querier on the indexer’s output, in <code class="highlighter-rouge">~cs50/data/tse-output/</code>.</p>
+
+<h3 id="chopping">Chopping a string into array of strings</h3>
+
+<p>Here’s a nice trick for breaking a single string <code class="highlighter-rouge">char* line</code> into an array of strings <code class="highlighter-rouge">char* words[]</code>.
+In the example below, the query has two words, and there are leading spaces, separating spaces, and trailing space, terminated by a null.
+Because in C a “string” is just a pointer to an array of characters terminated by a null <code class="highlighter-rouge">\0</code> character, we can chop this single string into multiple strings by replacing two of the spaces with nulls, and recording a pointer to the beginning of each word.
+We don’t need to allocate any memory for these new strings, or copy these strings - they stay right where they are.</p>
+
+<p><img src="/engs50/Labs/Lab6/query-chopping.png" alt="diagram of Chopping a string into array of strings" /></p>
+
+<p>To make this happen, think about sliding two pointers along the array, starting at <code class="highlighter-rouge">line</code>.
+One pointer might be <code class="highlighter-rouge">char* word</code> and you slide it over to the first non-space; the other pointer might be <code class="highlighter-rouge">char* rest</code> and you slide it from <code class="highlighter-rouge">word</code> to the first non-letter.
+Squash that character <code class="highlighter-rouge">*rest</code> with a null, and you’ve created a null-terminated string starting at <code class="highlighter-rouge">word</code>.</p>
+
+<p><em>Think carefully</em> about the edge cases, as you construct the loops and slide the pointers.</p>
+
+<h3 id="ctype">ctype</h3>
+
+<p>You may find the functions <code class="highlighter-rouge">isalpha()</code> and <code class="highlighter-rouge">isspace()</code> useful; read the man page.
+They are from the <code class="highlighter-rouge">ctype.h</code> package.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

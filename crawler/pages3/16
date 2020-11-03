@@ -1,0 +1,695 @@
+https://thayer.github.io/engs50/Notes/bash1/
+2
+41512
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Introduction to Bash</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/bash1/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Introduction to Bash</h1>
+  </header>
+
+  <div class="post-content">
+    <p>Don’t forget this week’s <a href="/engs50/Reading/#week-1">reading</a>.</p>
+
+<p>In this note, we discuss the Unix shell and its commands.  The
+‘shell’ is a <em>command-line interpreter</em> and invokes kernel-level
+commands.  It also can be used as a <em>programming language</em> to design
+your own commands.  We’ll come to shell programming in a future
+note.</p>
+
+<p>We do not recommend that you buy a book about Unix or the shell; there
+are some very good references and free-access online books – see the
+<a href="/engs50/Resources">resources page</a> – and we have selected some
+interesting and useful <a href="/engs50/Reading">readings</a>.</p>
+
+<p>If you need help on the meaning or syntax of any Unix shell command
+you can use the manual (man) pages on a Unix system (see below) or the
+<a href="http://www.computerhope.com/unix.htm#04">web unix commands</a>.  Just
+keep in mind that some commands’ syntax varies a bit across Unix
+flavors, so when in doubt, check the man page on the system you’re
+using.</p>
+
+<h2 id="unix-philosophy">Unix Philosophy</h2>
+
+<p>In their book <em>Program Design in the Unix Environment</em> (1984), Rob
+Pike and Brian Kernighan put it this way:</p>
+
+<blockquote>
+  <p>``Much of the power of the Unix operating system comes from a style
+of program design that makes programs easy to use and, more
+important, easy to combine with other programs. This style has been
+called the use of software tools, and depends more on how the
+programs fit into the programming environment and how they can be
+used with other programs than on how they are designed
+internally. This style was based on the use of tools: using
+programs separately or in combination to get a job done, rather than
+doing it by hand, by monolithic self-sufficient subsystems, or by
+special-purpose, one-time programs.’’</p>
+</blockquote>
+
+<h3 id="historical-note---unix">Historical note - Unix</h3>
+
+<p><a href="https://en.wikipedia.org/wiki/Unix">Unix</a> was developed at Bell 
+Labs in the 1970s by a group led by 
+<a href="https://en.wikipedia.org/wiki/Douglas_McIlroy">Doug McIlroy</a>.</p>
+
+<blockquote>
+  <p>``This is the Unix philosophy: Write programs that do one thing and do it well.
+Write programs to work together.
+Write programs to handle text streams, because that is a universal interface.’’
+— Doug McIlroy</p>
+</blockquote>
+
+<h2 id="goals">Goals</h2>
+
+<p>We plan to cover the following topics in this note.</p>
+
+<ul>
+  <li>The shell</li>
+  <li>The file system</li>
+</ul>
+
+<h2 id="the-shell">The shell</h2>
+
+<h3 id="commands-switches-arguments">Commands, switches, arguments</h3>
+
+<p>The shell is the Unix command-line interpreter.  It provides an
+interface between the user and the kernel and executes programs called
+‘commands’.  For example, if a user enters <code class="highlighter-rouge">ls </code>then the shell
+executes the <code class="highlighter-rouge">ls</code> command, which actually executes a program stored in
+the file <code class="highlighter-rouge">/bin/ls</code>.  The shell can also execute other programs
+including scripts (text files interpreted by a program like python or
+bash) and compiled programs (e.g., written in C).  Even your own
+programs – once marked ‘executable’ – become commands you can run
+from the shell!</p>
+
+<p>You will get by in the course by becoming familiar with a subset of
+the Unix commands; don’t let yourself be overwhelmed by the presence
+of hundreds of commands.  You will probably be regularly using 2-3
+dozen of them by the end of the term.</p>
+
+<p>Unix has often been criticized for being very terse (it’s rumored that
+its designers were bad typists).  Many commands have short, cryptic
+names and vowels are a rarity:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>awk, cat, cp, cd, chmod, echo, find, grep, ls, mv, rm, tr, sed, comm
+</code></pre></div></div>
+
+<p>We will learn to use all of these commands and more.</p>
+
+<p>Unix command output is also very terse - the default action on success
+is silence.  Only errors are reported, and error messages are often
+terse.  Unix commands are often termed ‘tools’ or ‘utilities’, because
+they are meant to be simple tools that you can combine in novel ways.</p>
+
+<p>Instructions entered in response to the shell prompt are interpreted
+first by the shell - expanding any variable references, filename
+wildcards, or special syntax.  Thus, the shell can rewrite the command
+line; then, it expects the command line to have the following syntax:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nb">command</span> <span class="o">[</span>arg1]...
+</code></pre></div></div>
+
+<p>The brackets <code class="highlighter-rouge">[ ]</code> indicate that the arguments are optional, and the
+notation above means that there are zero or more arguments.  Arguments
+are separated by white space.  Many commands can be executed with or
+without arguments.  Others require arguments, or a certain number of
+arguments, (e.g., <code class="highlighter-rouge">cp sort.c anothersort.c</code>) to work correctly.  If
+none are supplied, they will provide some error message in return.
+Another part of the Unix philosophy is to avoid an explosion in the
+number of commands by having most commands support various <em>options</em>
+(sometimes called <em>flags</em> or <em>switches</em>), which modify the actions of
+the commands.</p>
+
+<p>For example, let’s use the <code class="highlighter-rouge">ls</code> command and the <code class="highlighter-rouge">-l</code> option switch to
+list in long format the file <code class="highlighter-rouge">filename.c</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nb">ls</span> <span class="nt">-l</span> filename.c
+</code></pre></div></div>
+
+<p>Switches are often single characters preceded by a hyphen (e.g.,
+<code class="highlighter-rouge">-l</code>).  Most commands accept switches in any order, though they
+generally must appear before all the real arguments (usually
+filenames).  In the case of the <code class="highlighter-rouge">ls</code> example below, the command
+arguments represent file or directory names.  The options modify the
+operation of the command and are usually operated on by the program
+invoked by the shell rather than the shell itself.</p>
+
+<p>Unix programs always receive a list of arguments, containing at least
+one argument, which is always the command name itself.  So, for <code class="highlighter-rouge">ls</code>
+that first argument would be “<code class="highlighter-rouge">ls</code>”.  The first argument is referred
+to as argument 0, “the zero-th argument”.  In our <code class="highlighter-rouge">ls</code> example,
+argument 1 is <code class="highlighter-rouge">-l</code> and argument 2 is <code class="highlighter-rouge">filename.c</code>.  Some commands also
+accept their switches grouped together.  For example, the following
+switches to <code class="highlighter-rouge">ls</code> are identical:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nb">ls</span> <span class="nt">-tla</span> foople<span class="k">*</span>
+    ...
+    <span class="nb">ls</span> <span class="nt">-t</span> <span class="nt">-l</span> <span class="nt">-a</span> foople<span class="k">*</span>
+</code></pre></div></div>
+
+<p>The shell parses the words or tokens (command name and arguments) you
+type on the command line, and asks the kernel to execute the program
+corresponding to that command; the interpretation of the arguments (as
+switches, filenames, or something else) is determined by that program.</p>
+
+<p>Typically, the shell processes the complete line after a carriage
+return is entered and then goes off to find the program that the
+command line specified.  If the command is a pathname, whether
+relative (e.g., <code class="highlighter-rouge">./mycommand</code>) or absolute (e.g., <code class="highlighter-rouge">/bin/ls</code> or
+<code class="highlighter-rouge">~engs50/mycommand</code>), the shell simply executes the program in that
+file.  If the command is not a pathname, the shell searches through a
+list of directories in your “path”, which is defined by the shell
+variable called <code class="highlighter-rouge">PATH</code>.</p>
+
+<h2 id="shells-path">Shell’s ‘Path’</h2>
+
+<p>Take a look at your <code class="highlighter-rouge">PATH</code> by asking the shell to substitute its value
+(<code class="highlighter-rouge">$PATH</code>) and pass it as an argument to the <code class="highlighter-rouge">echo</code> command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$PATH</span>
+/usr/lib64/qt-3.3/bin:/usr/lib64/ccache:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/net/class/engs50/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/java/j2sdk/bin:/usr/local/bin:/usr/local/bin/X11:.
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>Note that in general the output from the commands shown in this note
+demonstrate notional output. You will not see exactly the same
+information portrayed if you execute the same commands. Shell prompts
+show you the current user, machine, and location e.g.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="err">$</span>
+</code></pre></div></div>
+
+<p>is a shell prompt ($) for user “engs50” on machine “mc” with the shell
+currently in the users home directory (~).</p>
+
+<p>So where does the <code class="highlighter-rouge">ls</code> command executed above reside in the Unix directory hierarchy?
+Let’s use another command to find out.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>which <span class="nb">ls
+ls </span>is aliased to <span class="sb">`</span><span class="nb">ls</span> <span class="nt">-F</span><span class="s1">'
+ls is /usr/bin/ls
+ls is /bin/ls
+ls is /usr/bin/ls
+[engs50@mc ~]$ 
+</span></code></pre></div></div>
+
+<p>The first line of response says that <code class="highlighter-rouge">ls</code> is “aliased”.  This is a
+shell feature; the shell allows us to define “aliases”, which act just
+like commands but are actually just a textual substitution of a
+command name (the alias) to some other string (in this case, <code class="highlighter-rouge">ls -F</code>).
+Thus, any time I type <code class="highlighter-rouge">ls blah blah</code>, it treats it as if I had typed
+<code class="highlighter-rouge">ls -F blah blah</code>.  The <code class="highlighter-rouge">-F</code> option tells <code class="highlighter-rouge">ls</code> to add a trailing
+symbol to some names in its output; it adds a <code class="highlighter-rouge">/</code> to the names of
+directories, a <code class="highlighter-rouge">@</code> to the names of symbolic links (um, that’s another
+conversation), and some other even specialized cases.</p>
+
+<p>Of course, the shell then still needs to resolve <code class="highlighter-rouge">ls</code>.  It then
+searches the <code class="highlighter-rouge">PATH</code> to find an executable file with that name; in this
+case, it appears that <code class="highlighter-rouge">ls</code> exists in both <code class="highlighter-rouge">/usr/bin</code> and in <code class="highlighter-rouge">/bin</code>.
+The shell will execute the first one, because it is found first in the
+PATH.  Below you can see the effect of running <code class="highlighter-rouge">ls</code> (the alias) and
+<code class="highlighter-rouge">/bin/ls</code> (the raw command, without the <code class="highlighter-rouge">-F</code>).</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">ls
+</span>Archive/  private/  proc-log  public_html/  resources/	web@
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>/bin/ls
+Archive  private  proc-log  public_html  resources  web
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<h2 id="viewing-files">Viewing files</h2>
+
+<p>You can see the contents of any file with the <code class="highlighter-rouge">cat</code> command, so named because it concatenates all the files listed as arguments, printing one after the other.
+For very long files, though, the output will quickly scroll off your terminal.</p>
+
+<p>Less Is More: The  <code class="highlighter-rouge">less</code> and <code class="highlighter-rouge">more</code> commands are handy for quickly looking at files.
+The syntax is <code class="highlighter-rouge">less filename</code> and <code class="highlighter-rouge">more filename</code>.
+Take a look at the <code class="highlighter-rouge">man</code> pages to get the details of each.
+Similarly, <code class="highlighter-rouge">head</code> and <code class="highlighter-rouge">tail</code> display a number of lines (selectable via switches, of course) at the beginning and end of a file, respectively.</p>
+
+<p>See what these do: <code class="highlighter-rouge">cat /etc/passwd</code>, <code class="highlighter-rouge">head /etc/passwd</code>, <code class="highlighter-rouge">tail /etc/passwd</code>, <code class="highlighter-rouge">more /etc/passwd</code>, and <code class="highlighter-rouge">less /etc/passwd</code>.
+The file <code class="highlighter-rouge">/etc/passwd</code> lists all the accounts on the system, and information about each account.</p>
+
+<h2 id="editing-files">Editing files</h2>
+
+<p>Long before there were windows and graphical displays, or even
+screens, there were text editors.  Two are in common use on Unix
+system today: <code class="highlighter-rouge">emacs</code> and <code class="highlighter-rouge">vi</code>.  Actually, there is an
+expanded/improved version of <code class="highlighter-rouge">vi</code> called <code class="highlighter-rouge">vim</code>, which is quite
+popular.</p>
+
+<p>I strongly recommend emacs if you are planning to take Engs62 – our
+embedded systems course, since the Xilinx vivado tool chain provides
+an Emacs mode for editing. Also, you will find that many emacs
+commands are available in bash for working at the command line.</p>
+
+<p>You should try both and become comfortable with at least one.  Yes,
+it’s tempting to use an external graphical editor (like Sublime), but
+it is frequently the case when working with embedded systems and/or
+servers that there simply is not a graphical user interface; in these
+cases you <em>must</em> use a text-only editor so you should get used
+to it now.</p>
+
+<p>See /engs50/Resources/#editors for some resources that can help you
+learn <code class="highlighter-rouge">emacs</code> or <code class="highlighter-rouge">vim</code>. I’ve provided a 15 min – “Learn Emacs Fast”
+video to help.</p>
+
+<h2 id="unix-file-system">Unix file system</h2>
+
+<p>The Unix file system is a <em>hierarchical file system</em>.  The file system
+consists of a very small number of different file <em>types</em>.  The two
+most common types are <em>files</em> and <em>directories</em>.</p>
+
+<p>A directory (akin to a folder on a MacOS or Windows computer) contains
+the names and locations of all files and directories below it.  A
+directory always contains two special files <code class="highlighter-rouge">.</code> (dot) and <code class="highlighter-rouge">..</code> (dot
+dot); <code class="highlighter-rouge">.</code> represents the directory itself, and <code class="highlighter-rouge">..</code> represents the
+directory’s parent.  In the following, I make a new directory, change
+my current working directory to be that new directory, create a new
+file in that directory, and use <code class="highlighter-rouge">ls</code> to explore the contents of the
+new directory and its parent.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>mkdir <span class="nb">test</span>
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">cd test</span>
+<span class="o">[</span>engs50@mc ~/test]<span class="nv">$ </span><span class="nb">echo </span>hello <span class="o">&gt;</span> somefile
+<span class="o">[</span>engs50@mc ~/test]<span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-a</span>
+./  ../  somefile
+<span class="o">[</span>engs50@mc ~/test]<span class="nv">$ </span><span class="nb">ls 
+</span>somefile
+<span class="o">[</span>engs50@mc ~/test]<span class="nv">$ </span><span class="nb">ls</span> <span class="nb">.</span>
+somefile
+<span class="o">[</span>engs50@mc ~/test]<span class="nv">$ </span><span class="nb">ls</span> ..
+Archive/  private/  proc-log  public_html/  resources/	<span class="nb">test</span>/  web@
+<span class="o">[</span>engs50@mc ~/test]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>Directory names are separated by a <em>forward</em> slash <code class="highlighter-rouge">/</code>, forming
+pathnames.  A <em>pathname</em> is a filename that includes some or all of
+the directories leading to the file; an <em>absolute pathname</em> is
+relative to the root (<code class="highlighter-rouge">/</code>) directory and begins with a <code class="highlighter-rouge">/</code>, in the
+first example below, whereas a <em>relative pathname</em> is relative to the
+current working directory, as in the second example below.  Notice
+that a relative pathname can also use <code class="highlighter-rouge">.</code> or <code class="highlighter-rouge">..</code>, as in the third
+example below.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">ls</span> /net/class/engs50/public_html/Labs/<span class="k">*</span>
+/net/class/engs50/public_html/Labs/index.html
+/net/class/engs50/public_html/Labs/Lab0-Preliminaries.html
+/net/class/engs50/public_html/Labs/usernames.txt
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">ls </span>public_html/Resources/<span class="k">*</span>
+public_html/Resources/DougMcIlroy.pdf
+public_html/Resources/Homebrew0.png
+public_html/Resources/Homebrew1.png
+public_html/Resources/Homebrew.html
+public_html/Resources/index.html
+public_html/Resources/RC13972-C-Programming.docx
+public_html/Resources/RC13972-C-Programming.pdf
+public_html/Resources/StartingSublime.pdf
+public_html/Resources/toomey-unix.pdf
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">ls</span> ../cs10/public_html/
+azul.css    help.html	   lab/       oldindex.html  software.html
+exams/	    indexBAK.html  lectures/  sa/	     syllabus.html
+exams.html  index.html	   old/       schedule.html
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>As implied by the shell prompt, the current working directory is
+<code class="highlighter-rouge">~engs50</code>, which is shorthand for “the home directory of user
+<code class="highlighter-rouge">engs50</code>”, which happens to be the directory at path
+<code class="highlighter-rouge">/net/class/engs50</code>.</p>
+
+<h3 id="moving-around-the-file-system">Moving around the file system</h3>
+
+<p>The “change directory” command (<code class="highlighter-rouge">cd</code>) allows us to move around the
+Unix directory hierarchy, that is, to change our “current working
+directory” from which all relative filenames and pathnames will be
+resolved.  Let’s combine <code class="highlighter-rouge">pwd</code>, <code class="highlighter-rouge">ls</code>, and <code class="highlighter-rouge">cd</code> to move around the
+local directories that are rooted at <code class="highlighter-rouge">/net/class/engs50</code>.  Remember that
+<code class="highlighter-rouge">~</code> refers to the home directory and <code class="highlighter-rouge">..</code> refers to the parent
+directory.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>mkdir <span class="nb">test</span>
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">cd test</span>
+<span class="o">[</span>engs50@mc ~/test]<span class="nv">$ </span><span class="nb">ls</span>
+<span class="o">[</span>engs50@mc ~/test]<span class="nv">$ </span><span class="nb">cd</span> ..
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">cd </span>public_html/
+<span class="o">[</span>engs50@mc ~/public_html]<span class="nv">$ </span><span class="nb">ls
+</span>css/	    Labs/      Logistics/  Reading/    Schedule.pdf
+index.html  Notes/  Project/    Resources/  Schedule.xlsx
+<span class="o">[</span>engs50@mc ~/public_html]<span class="nv">$ </span><span class="nb">cd </span>Resources/
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">ls
+</span>DougMcIlroy.pdf  Homebrew.html		     RC13972-C-Programming.pdf
+Homebrew0.png	 index.html		     StartingSublime.pdf
+Homebrew1.png	 RC13972-C-Programming.docx  toomey-unix.pdf
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">cd</span> ../..
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">ls
+</span>Archive/  private/  proc-log  public_html/  resources/	<span class="nb">test</span>/  web@
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>The shell prompt is helpfully tracking the current working directory as we move.</p>
+
+<h3 id="listing-and-globbing-files">Listing and globbing files</h3>
+
+<p>Here are a popular set of switches you can use with <code class="highlighter-rouge">ls</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-l list in long format (as we have been doing)
+-a list all entries (including `dot` files, which are normally hidden)
+-t sort by modification time (latest first)
+-r list in reverse order (alphabetical or time)
+-R list the directory and its subdirectories recursively
+</code></pre></div></div>
+
+<p>The shell also interprets certain special characters like <code class="highlighter-rouge">*</code>, <code class="highlighter-rouge">?</code>,
+and <code class="highlighter-rouge">[]</code>; <code class="highlighter-rouge">*</code> matches zero or more characters, <code class="highlighter-rouge">?</code> matches one
+character, and <code class="highlighter-rouge">[]</code> matches one character from the set (or range) of
+characters listed within the brackets:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">cd </span>public_html/Resources/
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">ls
+</span>DougMcIlroy.pdf  Homebrew.html		     RC13972-C-Programming.pdf
+Homebrew0.png	 index.html		     StartingSublime.pdf
+Homebrew1.png	 RC13972-C-Programming.docx  toomey-unix.pdf
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">ls</span> <span class="k">*</span>.pdf
+DougMcIlroy.pdf		   StartingSublime.pdf
+RC13972-C-Programming.pdf  toomey-unix.pdf
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">ls </span>H<span class="k">*</span>
+Homebrew0.png  Homebrew1.png  Homebrew.html
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">ls</span> <span class="k">*</span>-<span class="k">*</span>
+RC13972-C-Programming.docx  RC13972-C-Programming.pdf  toomey-unix.pdf
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">ls </span>Homebrew<span class="k">*</span>.<span class="k">*</span>
+Homebrew0.png  Homebrew1.png  Homebrew.html
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">ls </span>Homebrew?.<span class="k">*</span>
+Homebrew0.png  Homebrew1.png
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span><span class="nb">ls </span>Homebrew[0-9].png
+Homebrew0.png  Homebrew1.png
+<span class="o">[</span>engs50@mc ~/public_html/Resources]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<h3 id="hidden-files">Hidden files</h3>
+<p>The <code class="highlighter-rouge">ls</code> program normally does not list any files whose filename begins with <code class="highlighter-rouge">.</code>  There is nothing special about these files, except <code class="highlighter-rouge">.</code> and <code class="highlighter-rouge">..</code>, as far as Unix is concerned.
+It’s simply a convention - files whose names begin with <code class="highlighter-rouge">.</code> are to be considered ‘hidden’, and thus not listed by <code class="highlighter-rouge">ls</code> or matched with by the shell’s <code class="highlighter-rouge">*</code> globbing character.
+Home directories, in particular, include many ‘hidden’ (but important!) files.
+The <code class="highlighter-rouge">-a</code> switch tells <code class="highlighter-rouge">ls</code> to list “all” files, including those that begin with a dot (aka, the hidden files).</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">ls
+</span>Archive/  private/  public_html/  resources/  web@
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-a</span>
+./   Archive/	    .bash_logout   .bashrc    .environset  private/	public_html/  .ssh/  .viminfo  web@
+../  .bash_history  .bash_profile  .emacs.d/  .forward	   .procmailrc	resources/    .vim/  .vimrc
+</code></pre></div></div>
+
+<p>to see just the dot files, let’s get clever with the shell’s glob characters:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span><span class="nb">ls</span> <span class="nt">-ad</span> .??<span class="k">*</span>
+.bash_history  .bash_profile  .emacs.d/    .forward	.ssh/  .viminfo
+.bash_logout   .bashrc	      .environset  .procmailrc	.vim/  .vimrc
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>All of these “dot files” (or “dot directories”) are important to one program or another:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">.bash_history</code> - used by bash to record a history of the commands you’ve typed</li>
+  <li><code class="highlighter-rouge">.bash_logout</code> - executed by bash when you log out</li>
+  <li><code class="highlighter-rouge">.bash_profile</code> - executed by bash when you log in</li>
+  <li><code class="highlighter-rouge">.bashrc</code> - executed by bash whenever you start a new shell</li>
+  <li><code class="highlighter-rouge">.emacs.d/</code> - a directory used by emacs text editor</li>
+  <li><code class="highlighter-rouge">.environset</code> - a Dartmouth-specific thing; read by .bashrc</li>
+  <li><code class="highlighter-rouge">.forward</code> - tells Mail where to forwad your email</li>
+  <li><code class="highlighter-rouge">.procmailrc</code> - for handling email with <code class="highlighter-rouge">procmail</code></li>
+  <li><code class="highlighter-rouge">.ssh/</code> - directory used by inbound ssh connections</li>
+  <li><code class="highlighter-rouge">.vim/</code> - a directory used by vim text editor</li>
+  <li><code class="highlighter-rouge">.viminfo</code> - used by vim text editor</li>
+  <li><code class="highlighter-rouge">.vimrc</code> - used by vim text editor</li>
+</ul>
+
+<h3 id="bash-shell-startup-files">Bash shell startup files</h3>
+
+<p>The <code class="highlighter-rouge">bash</code> shell looks for several files in your home directory:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">.bash_profile</code> - executed by bash when you log in</li>
+  <li><code class="highlighter-rouge">.bashrc</code> - executed by bash whenever you start a new shell</li>
+  <li><code class="highlighter-rouge">.bash_logout</code> - executed by bash when you log out</li>
+  <li><code class="highlighter-rouge">.bash_history</code> - used by bash to record a history of the commands you’ve typed</li>
+</ul>
+
+<p>The <code class="highlighter-rouge">.bashrc</code> file is especially important, because <code class="highlighter-rouge">bash</code> reads it
+every time you start a new <code class="highlighter-rouge">bash</code> shell, that is, when you log in,
+when you start a new interactive shell, or when you run a new bash
+script.  (In contrast, <code class="highlighter-rouge">.bash_profile</code> is only read when you login.)
+In each case,<code class="highlighter-rouge">bash</code> reads the files and executes the commands therein.
+Thus, you can configure your <code class="highlighter-rouge">bash</code> experience by having it declare
+some variables, define some aliases, and set up some personal
+favorites.</p>
+
+<h2 id="locating-files">Locating files</h2>
+
+<p>Many times you want to find a file but do not know where it is in the
+directory tree (Unix directory structure is a tree - rooted at the <code class="highlighter-rouge">/</code>
+directory) .  The <code class="highlighter-rouge">find</code> command can walk a file hierarchy:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>find <span class="nb">.</span> <span class="nt">-name</span> DougMcIlroy.pdf <span class="nt">-print</span>
+./public_html/Resources/DougMcIlroy.pdf
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>find public_html <span class="nt">-iname</span> reading <span class="nt">-print</span>
+public_html/Reading
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>find public_html <span class="nt">-type</span> d <span class="nt">-print</span>
+public_html
+public_html/Logistics
+public_html/Resources
+public_html/Labs
+public_html/Project
+public_html/Notes
+public_html/css
+public_html/Reading
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>find public_html <span class="nt">-name</span> <span class="se">\*</span>.html <span class="nt">-print</span>
+public_html/Logistics/index.html
+public_html/Resources/index.html
+public_html/Resources/Homebrew.html
+public_html/Labs/index.html
+public_html/Labs/Lab0-Preliminaries.html
+public_html/Project/index.html
+public_html/Notes/01-gettingstarted.html
+public_html/Notes/index.html
+public_html/index.html
+public_html/Reading/index.html
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>find public_html <span class="nt">-name</span> <span class="se">\*</span>.png <span class="nt">-mtime</span> <span class="nt">-1</span> <span class="nt">-print</span>
+public_html/Resources/Homebrew1.png
+public_html/Resources/Homebrew0.png
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>The first example searches directory <code class="highlighter-rouge">.</code> to find a file by a specific
+name and prints its pathname.  The second example used <code class="highlighter-rouge">-iname</code> (case
+insensitive search) instead of <code class="highlighter-rouge">-name</code> (which is case sensitive) to
+search <code class="highlighter-rouge">public_html</code> for the “reading” directory.  The third example
+searches <code class="highlighter-rouge">public_html</code> for any directories (<code class="highlighter-rouge">-type d</code>) and prints
+their pathnames.  The fourth example uses a wildcard <code class="highlighter-rouge">*</code> to print
+pathnames of files whose name matches a pattern; the backslash <code class="highlighter-rouge">\</code> is
+there to prevent the shell from interpreting the <code class="highlighter-rouge">*</code>, allowing it to
+be part of the argument to <code class="highlighter-rouge">find</code>, which interprets that character
+itself.  The fifth example combines two factors, to print pathnames of
+files whose name matches <code class="highlighter-rouge">*.png</code> and whose modication time <code class="highlighter-rouge">mtime</code> is
+less than one day <code class="highlighter-rouge">-1</code> in the past.</p>
+
+<h2 id="our-top-commands">Our top commands</h2>
+
+<p>We’ve explored almost four dozen shell commands, below (those with *asterisk will be introduced later).
+You’ll often need only about half of them.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nb">alias
+
+    cat</span>, <span class="nb">cd</span>, chmod, comm, cp, cut
+
+    date
+
+    <span class="nb">echo</span>, emacs, expr, <span class="nb">exit
+
+    </span>file, find
+
+    gcc, gdb<span class="k">*</span>, git<span class="k">*</span>, <span class="nb">grep
+
+    </span>head
+
+    less, <span class="nb">logout</span>, lpr, <span class="nb">ls
+
+    </span>make<span class="k">*</span>, man, mkdir, more, mv
+
+    open <span class="o">(</span>MacOS<span class="o">)</span>
+
+    pbpaste, pbcopy <span class="o">(</span>MacOS<span class="o">)</span>
+
+    <span class="nb">pwd
+
+    </span>rm, rmdir
+
+    scp, sed, sort, ssh
+
+    tail, <span class="nb">tar</span>, touch, tr
+
+    uniq
+
+    whereis, which
+
+    vi, vim
+</code></pre></div></div>
+
+<h1 id="historical-note">Historical note</h1>
+
+<p>Recall we mentioned “teletypes” in the first lecture.  <strong>It was <em>at
+Dartmouth</em> that a teletype was actually used to interact with a remote
+computer</strong> - the first ever long-distance terminal, decades before the
+Internet.</p>
+
+<p><img src="/engs50/Notes/bash1/history-Stibitz1.jpg" alt="Stibitz plaque" /></p>
+
+<h2 id="navigating-within-man-pages">Navigating within man pages</h2>
+
+<p>You may have found the <code class="highlighter-rouge">man</code> system to be a little challenging to navigate.
+There is a message that is displayed at the very bottom of the screen when you first enter the command that you might have missed (most people do):</p>
+
+<pre><code class="language-man">Manual page xxx(n) line 1 (press h for help or q to quit)
+</code></pre>
+
+<p>If you enter ‘<code class="highlighter-rouge">h</code>’ to see the help you will find many more commands than you’re likely to ever use when reading <code class="highlighter-rouge">man</code> pages.
+This is because the man-page reader is actually the <code class="highlighter-rouge">less</code> command of Unix.
+I tend to use only a few:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">f</code> or <em>space</em> (the spacebar) advances to the next screenful,</li>
+  <li><code class="highlighter-rouge">b</code> goes back to the previous screenful,</li>
+  <li><code class="highlighter-rouge">e</code> or down-arrow advances one more line,</li>
+  <li><code class="highlighter-rouge">y</code> or up-arrow goes back one line,</li>
+  <li><code class="highlighter-rouge">/</code> allows one to type a search phrase and hit return,</li>
+  <li><code class="highlighter-rouge">q</code> quits <code class="highlighter-rouge">man</code>, and returns to the shell prompt.</li>
+</ul>
+
+<h2 id="there-are-shells-shells-and-more-shells">There are shells, shells, and more shells</h2>
+
+<p>There are a number of shells available to a Unix user – so which one do you select?
+The most common shells are:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">sh</code> : the original shell, known as the Bourne Shell,</li>
+  <li><code class="highlighter-rouge">csh</code>, <code class="highlighter-rouge">tcsh</code> : well-known and widely used derivatives of the Bourne shell,</li>
+  <li><code class="highlighter-rouge">ksh</code> : the Korn shell, and</li>
+  <li><code class="highlighter-rouge">bash</code> : the Bourne Again SHell, developed by GNU, is the most popular shell used for Linux.</li>
+</ul>
+
+<p><code class="highlighter-rouge">bash</code> is the default shell for new Unix accounts in our department.</p>
+
+<p>The basic shell operation is as follows.  The shell parses the command
+line; the first word on the line is the command name.  If the command
+is an alias, it substitutes the alias text and again identifies the
+command.  If the command is one built-in to the shell (there are a
+few, like <code class="highlighter-rouge">cd</code>, <code class="highlighter-rouge">echo</code>, <code class="highlighter-rouge">pwd</code>, and <code class="highlighter-rouge">which</code>) it performs that command’s
+action.  Otherwise, the shell looks for the executable file that
+matches that program name by searching directories listed in the
+<code class="highlighter-rouge">PATH</code> variable.  The shell then starts that program as a new process
+and passes any options and arguments to the program.  A <em>process</em> is a
+running program.  You can see a list of your processes with the
+command <code class="highlighter-rouge">ps</code>.</p>
+
+<h2 id="file-type">File type</h2>
+
+<p>Unix itself imposes almost no constraints or interpretation on the
+contents of files - the only common case is that of a compiled,
+executable program: it has to be in a very specific binary format for
+the operating system (Unix) to execute it.  All other files are used
+by some program or another, and it’s up to those programs to interpret
+the contents as they see fit.  The great power of Unix, and the common
+shell commands, is that any file can be read by any program; the most
+common format are plain-text (ASCII) files that are formatted as a
+series of “lines” delimited by “newline” characters (\n, known by its
+ASCII code 012).</p>
+
+<p>If you are unsure about the contents of a file (text, binary,
+compressed, Unix executabe, some format specific a certain
+application, etc.).  The <code class="highlighter-rouge">file</code> command is useful; it makes an attempt
+to judge the format of the file.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>file downloaded
+downloaded: POSIX <span class="nb">tar </span>archive
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>file fig1
+fig1: GIF image data, version 87a, 440 x 306
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>file trash.tar.gz
+trash.tar.gz: gzip compressed data, from Unix
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>file public_html/Schedule.<span class="k">*</span>
+public_html/Schedule.pdf:  PDF document, version 1.3
+public_html/Schedule.xlsx: Microsoft Excel 2007+
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>file /bin/ls
+/bin/ls: ELF 64-bit LSB shared object, x86-64, version 1 <span class="o">(</span>SYSV<span class="o">)</span>, dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, <span class="k">for </span>GNU/Linux 2.6.32, BuildID[sha1]<span class="o">=</span>0ac5c509289d650534ce80cdbf5b72744b5c5f3d, stripped
+<span class="o">[</span>engs50@mc ~]<span class="nv">$ </span>
+</code></pre></div></div>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

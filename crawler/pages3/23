@@ -1,0 +1,227 @@
+https://thayer.github.io/engs50/Notes/modules/
+2
+15384
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Modular data structures in C</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/modules/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Modular data structures in C</h1>
+  </header>
+
+  <div class="post-content">
+    <p>In this class we focus on the design of reusable modules for common data structures.</p>
+
+<h3 id="goals">Goals</h3>
+
+<ul>
+  <li>Understanding the importance of reusable modules.</li>
+  <li>Reiterating the use of header files to enable modules.</li>
+  <li>Reiterating <code class="highlighter-rouge">struct</code> and introducing <code class="highlighter-rouge">typedef</code>.</li>
+  <li>General-purpose data structures with <code class="highlighter-rouge">void*</code>.</li>
+  <li>Function pointers.</li>
+</ul>
+
+<h2 id="modularity-and-reuse">Modularity and reuse</h2>
+
+<p>Some data structures are so common that it is valuable to code them once - lists, queues, stacks, trees, and hash tables - and then re-use that code for multiple programs (or multiple purposes within a program).
+Code re-use saves time because you don’t need to write everything from scratch.
+By using robust, well-tested modules rather than fresh (buggy) code, your program is more reliable.
+Finally, by separating ‘business logic’ from ‘data structures’, you the code is clearer and more flexible (e.g., if you later want to switch to a more-efficient data structure you can do so without rewriting all the business logic).</p>
+
+<p>Object-oriented languages make this easier, because they make it simple to define a ‘class’ of objects and then to create new ‘instances’ as needed.
+Many such languages go further by providing ‘templates’ and ‘subclasses’ as a way to derive new variants of the base class.</p>
+
+<p>C has none of these capabilities.
+But we can approximate some of these concepts through good style and careful design.</p>
+
+<h3 id="pointers-to-anything">Pointers to anything</h3>
+
+<p>In developing a general-purpose data-structure module, we would really like the module to be able to store arbitary “things” – not just predetermined types – but anything.
+For example, instead of a linked-list of strings (as we built in the <code class="highlighter-rouge">names</code> program) we’d like a linked-list that could store pointers to anything.
+Today we want a list of string things; tomorrow we might want a list of <code class="highlighter-rouge">struct student</code> things.</p>
+
+<p>The solution is for the module to store <em>pointers to things</em>, rather than the things themselves.
+The user’s contract with the module is thus “I allocate and initialize a thing, and give you a pointer to remember; later, when I need that thing, I’ll ask and you give me back that pointer.
+When I ask you to print things, or delete things, I’ll give you customized functions that know how to print and delete things of this type.”</p>
+
+<p>Java and other object-oriented languages do this with <em>templates</em>.
+C has no suport for templates, but it does have a type for “pointer to anything”:  <code class="highlighter-rouge">void*</code>.
+Thus,</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="s">"hello"</span><span class="p">;</span>	   <span class="c1">// pointer to a char, in this case, a string
+</span><span class="kt">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span> <span class="o">*</span><span class="n">xp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">x</span><span class="p">;</span>  <span class="c1">// pointer to an int
+</span><span class="k">struct</span> <span class="n">student</span> <span class="o">*</span> <span class="n">sp</span><span class="p">;</span>   <span class="c1">// pointer to a struct
+</span><span class="n">sp</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">student</span><span class="p">));</span> <span class="c1">// initialize the pointer
+</span><span class="n">sp</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="s">"David"</span><span class="p">;</span>  <span class="c1">// initialize the struct at that pointer
+</span><span class="n">sp</span><span class="o">-&gt;</span><span class="n">house</span> <span class="o">=</span> <span class="s">"West"</span><span class="p">;</span>  <span class="c1">// ...initialize
+</span><span class="n">sp</span><span class="o">-&gt;</span><span class="n">class</span> <span class="o">=</span> <span class="mi">1986</span><span class="p">;</span>    <span class="c1">// ...initialize
+</span>
+<span class="kt">void</span> <span class="o">*</span><span class="n">anything</span><span class="p">;</span>       <span class="c1">// a pointer to any type
+</span><span class="n">anything</span> <span class="o">=</span> <span class="n">p</span><span class="p">;</span>         <span class="c1">// here, a pointer to a char on the stack
+</span><span class="n">anything</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">x</span><span class="p">;</span>        <span class="c1">// here, a pointer to an int on the stack
+</span><span class="n">anything</span> <span class="o">=</span> <span class="n">sp</span><span class="p">;</span>        <span class="c1">// here, a pointer to a struct in the heap
+</span></code></pre></div></div>
+
+<p>Thus, our modules will accept and store <code class="highlighter-rouge">void*</code> pointers, and return them to the caller when asked.</p>
+
+<h3 id="pointers-to-functions">Pointers to functions</h3>
+
+<p>As noted above, the module may need help when it needs to print, compare, or delete “things”.
+The module’s user must provide the module with special helper functions.
+(In an object-oriented language, like Java, “things” are objects and objects know how to print themselves, compare themselves, or delete themselves.
+C has no such support.)</p>
+
+<p>Thus, the caller may pass a function to the module, when needed.
+We can’t actually pass the function - we have to pass the module a pointer to the function.</p>
+
+<p>The concept of a <em>pointer to a function</em> can be confusing.
+Like any other pointer, it is an address in memory.
+Recall that the compiled code of the program lives in the code segment, in memory, so every function resides at some address.
+A function pointer is simply that address.</p>
+
+<p>We can refer to the function’s address simply by naming the function, without the syntax of calling a function.
+That is, <code class="highlighter-rouge">foo</code> is a function pointer, whereas <code class="highlighter-rouge">foo(a, b, c)</code> calls that function and passes arguments <code class="highlighter-rouge">a</code>, <code class="highlighter-rouge">b</code>, and <code class="highlighter-rouge">c</code>.
+In our <a href="/engs50/Examplespointer2.c}}">pointer2.c</a> example, we passed the address of functions <code class="highlighter-rouge">main</code> and <code class="highlighter-rouge">change</code> to <code class="highlighter-rouge">printf</code> so it could print those addresses for us to examine.</p>
+
+<p>If I have a function called <code class="highlighter-rouge">myprint</code>, like this:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">myprint</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">int</span> <span class="o">*</span><span class="n">valuep</span> <span class="o">=</span> <span class="n">item</span><span class="p">;</span> <span class="c1">// in this case, the "things" are integers
+</span>	<span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s">"(%s, %d)"</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">valuep</span><span class="p">);</span> <span class="c1">// note *valuep derefs pointer
+</span><span class="p">}</span>
+</code></pre></div></div>
+
+<p>If I have a function pointer <code class="highlighter-rouge">printfunc</code>, I can initialize the function pointer and call through that pointer as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">printfunc</span> <span class="o">=</span> <span class="n">myprint</span><span class="p">;</span>
+<span class="p">(</span><span class="o">*</span><span class="n">printfunc</span><span class="p">)(</span><span class="n">fp</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">thing</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>In other words, I dereference the pointer to get a function, and then call that function.
+Notice the <code class="highlighter-rouge">*</code> and parens, <code class="highlighter-rouge">(*printfunc)</code>.</p>
+
+<p>How would I declare that variable <code class="highlighter-rouge">printfunc</code>?
+pretty gnarly syntax:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">printfunc</span><span class="p">)(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">item</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>declares variable <code class="highlighter-rouge">printfunc</code> to be a pointer to a function whose prototype looks like that of <code class="highlighter-rouge">myprint</code> above, that is, it takes the given three arguments and returns <code class="highlighter-rouge">void</code>.
+Indeed, it looks almost like a common function prototype, except for that <code class="highlighter-rouge">(*variablename)</code> notation.
+For this pointer to be useful, it must be initialized to the address of a function.</p>
+
+<h2 id="example---bags">Example - bags</h2>
+
+<p>Today we live-code a <em>bag</em> data structure and use it to make a bag version of our <code class="highlighter-rouge">names</code> series.
+A <em>bag</em> is an unordered collection of (items).
+The bag starts empty, grows as the caller adds one item at a time, and shrinks as the caller extracts one item at a time.
+It could be empty, or could contain hundreds of items.
+Items are indistinguishable, so the <em>extract</em> function is free to return any item from the bag.</p>
+
+<p>We start from <a href="/engs50/Examples/names5.c">names5.c</a> and modify it with the goal of coding functions that manipulate a generic “bag of things”.</p>
+
+<p>The first example demonstrates</p>
+
+<ul>
+  <li>structure types (like <code class="highlighter-rouge">struct bag_t</code> and <code class="highlighter-rouge">struct bagnode_t</code>).</li>
+  <li>typedefs to create new type names.</li>
+  <li>Heap memory (created via <code class="highlighter-rouge">malloc</code> in <code class="highlighter-rouge">bag_new</code>).</li>
+  <li>The use of pointers to build and manipulate a bag data structure.</li>
+  <li>The use of <code class="highlighter-rouge">void*</code> to represent “a pointer to anything” and its use to build a bag of generic things.</li>
+  <li>A reminder that strings - even constant strings, in double quotes - are stored in memory as arrays of characters and referenced by a <code class="highlighter-rouge">char*</code> pointer to their first character; thus even a constant string has an address and is passed as a pointer.</li>
+</ul>
+
+<p>We extend the example to split the bag functions out as to a separate set of files, demonstrating</p>
+
+<ul>
+  <li>a <em>module</em>, which is as close as we get to a <em>class</em> in C.</li>
+  <li>A set of functions exported via <code class="highlighter-rouge">bag.h</code> to other C files.</li>
+  <li>Public types (like <code class="highlighter-rouge">struct bag_t</code>) - and opaque types.</li>
+  <li>Private types (like <code class="highlighter-rouge">struct bagnode_t</code>).</li>
+  <li>Private functions (like <code class="highlighter-rouge">bagnode_new</code>).</li>
+  <li>No need for global variables.  (We always try to avoid them!)</li>
+</ul>
+
+<p>The result, after some cleanup, is <a href="/engs50/Examples/names9.c">names9.c</a>.</p>
+
+<p>A complete <em>bag</em> module is included in the <a href="/engs50/Labs/Lab3/starter">Lab 3 starter kit</a>.</p>
+
+<h2 id="another-example---binary-trees">Another example - binary trees</h2>
+
+<p>For a more complex example, demonstrating the use of binary trees as a “dictionary” data structure – that is, one that stores (key,item) pairs – study the <a href="/engs50/Examples/trees">binary-tree module</a>.</p>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s class <a href="activity.html">activity</a>, we add a counter to track the number of items in the bag.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

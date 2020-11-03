@@ -1,0 +1,459 @@
+https://thayer.github.io/engs50/Notes/querier/
+2
+32157
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>TSE Querier</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/querier/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">TSE Querier</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<p>There are three mini lectures today.</p>
+
+<ul id="markdown-toc">
+  <li><a href="#goals" id="markdown-toc-goals">Goals</a></li>
+  <li><a href="#the-querier" id="markdown-toc-the-querier">the Querier</a></li>
+  <li><a href="#fuzz-testing" id="markdown-toc-fuzz-testing">Fuzz Testing</a></li>
+  <li><a href="#expressions" id="markdown-toc-expressions">Expressions and accumulators</a>    <ul>
+      <li><a href="#arithmetic-expressions" id="markdown-toc-arithmetic-expressions">Arithmetic expressions</a></li>
+      <li><a href="#precedence" id="markdown-toc-precedence">Precedence</a></li>
+    </ul>
+  </li>
+  <li><a href="#activity" id="markdown-toc-activity">Activity</a></li>
+</ul>
+
+<h2 id="the-querier">the Querier</h2>
+
+<p>The third component of the Tiny Search Engine is the <em>Querier</em>, which reads the index produced by the Indexer and the page files produced by the Crawler, to interactively answer written queries entered by the user.</p>
+
+<p>Our Querier loads the index into memory (a data structure we developed for the Indexer) and then prompts the user for queries.
+Queries are comprised of words, with optional <code class="highlighter-rouge">and</code>/<code class="highlighter-rouge">or</code> operators.
+For example,</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>computer science
+computer and science
+computer or science
+baseball or basketball or ultimate frisbee
+</code></pre></div></div>
+
+<p>The first two examples are treated identically, matching only documents that have <em>both</em> words - not necessarily together (as in the phrase “computer science”).
+The third picks up documents that have <em>either</em> word.
+The fourth matches documents that mention baseball, or basketball, or both “ultimate” and the word “frisbee” (not necessarily together).</p>
+
+<p>Here’s an example run, with the output truncated a bit:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$  querier/querier data/cs50-3 data/cs50-index3
+KEY WORDs:&gt; computer and science
+Query: computer and science 
+Matches 139 documents (ranked):
+score 141 doc  19: http://old-www.cs.dartmouth.edu/~dfk/papers/index.html
+score 135 doc 349: http://old-www.cs.dartmouth.edu/~dfk/papers/index-t.html
+score 135 doc 348: http://old-www.cs.dartmouth.edu/~dfk/papers/index-a.html
+score 135 doc 347: http://old-www.cs.dartmouth.edu/~dfk/papers/index-c.html
+score  10 doc  11: http://old-www.cs.dartmouth.edu/~dfk/armada/
+score   4 doc   9: http://old-www.cs.dartmouth.edu/~dfk/people.html
+score   4 doc   7: http://old-www.cs.dartmouth.edu/~dfk/teaching.html
+score   3 doc 206: http://old-www.cs.dartmouth.edu/~dfk/papers/abstracts/deshpande-thesis.html
+score   3 doc 167: http://old-www.cs.dartmouth.edu/~dfk/papers/abstracts/nanda-thesis.html
+score   3 doc  18: http://old-www.cs.dartmouth.edu/~dfk/index.html
+...
+KEY WORDs:&gt; tiny search engine
+Query: tiny search engine 
+No documents match.
+-----------------------------------------------
+KEY WORDs:&gt; TSE
+Query: tse 
+No documents match.
+-----------------------------------------------
+KEY WORDs:&gt; NOTE we LOWERcase the query first
+Query: note we lowercase the query first 
+No documents match.
+-----------------------------------------------
+KEY WORDs:&gt;  spaces      do    not    mattter
+Query: spaces do not mattter 
+No documents match.
+-----------------------------------------------
+KEY WORDs:&gt; non-letter characters are disallowed
+Error: bad character '-' in query.
+KEY WORDs:&gt; even digits as in cs50
+Error: bad character '5' in query.
+KEY WORDs:&gt; and
+Query: and 
+Error: 'and' cannot be first
+KEY WORDs:&gt; or
+Query: or 
+Error: 'or' cannot be first
+KEY WORDs:&gt; what about and
+Query: what about and 
+Error: 'and' cannot be last
+KEY WORDs:&gt; friend and foe
+Query: friend and foe 
+No documents match.
+-----------------------------------------------
+KEY WORDs:&gt; quit
+Query: quit 
+No documents match.
+-----------------------------------------------
+KEY WORDs:&gt; exit
+Query: exit 
+Matches 1 documents (ranked):
+score   3 doc   3: http://old-www.cs.dartmouth.edu/~dfk/visit-dartmouth.html
+-----------------------------------------------
+KEY WORDs:&gt; ^D
+</code></pre></div></div>
+
+<p>Let’s study the <a href="/engs50/Labs/Lab6/REQUIREMENTS.html">Requirements Spec</a> for the Querier, and run some demos.</p>
+
+<p>Today’s demo scripts are here: <a href="/engs50/Notes/querier/script1.txt">script1</a> and <a href="/engs50/Notes/querier/script2.txt">script2</a>.</p>
+
+<h2 id="fuzz-testing">Fuzz Testing</h2>
+
+<p>In a recent lecture we talked about <em>unit testing</em>, and the difference between <em>glass-box testing</em> and <em>black-box testing</em>.
+Usually, these tests are based on a carefully constructed series of test cases, devised to test all code sequences and push on the “edge cases”.</p>
+
+<p>However, such tests are only as good as the test writer - who must logically study the code (for glass-box testing) or the specs (for black-box testing) to think of the suitable test cases.
+It’s possible they will miss some important cases.</p>
+
+<p>Another solution, therefore, is <strong><em>fuzz testing</em></strong>, a form of black-box testing in which you fire thousands of random inputs at the program to see how it reacts.
+The chances of triggering an unconsidered test case is far greater if you try a lot of cases!</p>
+
+<p>Here is a fuzz-testing program for our <em>querier</em>.
+It generates a series of random queries on stdout, which it then pipes to the querier on stdin.
+Here’s the core of the fuzz tester:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**************** generate_query ****************/</span>
+<span class="cm">/* generate one random query and print to stdout.
+ * pull random words from the wordlist and from the dictionary.
+ */</span>
+<span class="k">static</span> <span class="kt">void</span>
+<span class="nf">generate_query</span><span class="p">(</span><span class="k">const</span> <span class="n">wordlist_t</span> <span class="o">*</span><span class="n">wordlist</span><span class="p">,</span> <span class="k">const</span> <span class="n">wordlist_t</span> <span class="o">*</span><span class="n">dictionary</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="c1">// some parameters that affect query generation
+</span>  <span class="k">const</span> <span class="kt">int</span> <span class="n">max_words</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>        <span class="c1">// generate 1..max_words
+</span>  <span class="k">const</span> <span class="kt">float</span> <span class="n">or_probability</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">3</span><span class="p">;</span>   <span class="c1">// P(OR between two words)
+</span>  <span class="k">const</span> <span class="kt">float</span> <span class="n">and_probability</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">2</span><span class="p">;</span>  <span class="c1">// P(AND between two words)
+</span>  <span class="k">const</span> <span class="kt">float</span> <span class="n">dict_probability</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">2</span><span class="p">;</span> <span class="c1">// P(draw from dict instead of wordlist)
+</span>
+  <span class="kt">int</span> <span class="n">qwords</span> <span class="o">=</span> <span class="n">random</span><span class="p">()</span> <span class="o">%</span> <span class="n">max_words</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// number of words in query
+</span>  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">qw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">qw</span> <span class="o">&lt;</span> <span class="n">qwords</span><span class="p">;</span> <span class="n">qw</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// draw a word either dictionary or wordlist
+</span>    <span class="k">if</span> <span class="p">((</span><span class="n">random</span><span class="p">()</span> <span class="o">%</span> <span class="mi">100</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">dict_probability</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">"%s "</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">-&gt;</span><span class="n">words</span><span class="p">[</span><span class="n">random</span><span class="p">()</span> <span class="o">%</span> <span class="n">dictionary</span><span class="o">-&gt;</span><span class="n">nwords</span><span class="p">]);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">"%s "</span><span class="p">,</span> <span class="n">wordlist</span><span class="o">-&gt;</span><span class="n">words</span><span class="p">[</span><span class="n">random</span><span class="p">()</span> <span class="o">%</span> <span class="n">wordlist</span><span class="o">-&gt;</span><span class="n">nwords</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// last word?
+</span>    <span class="k">if</span> <span class="p">(</span><span class="n">qw</span> <span class="o">&lt;</span> <span class="n">qwords</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// which operator to print?
+</span>      <span class="kt">int</span> <span class="n">op</span> <span class="o">=</span> <span class="n">random</span><span class="p">()</span> <span class="o">%</span> <span class="mi">100</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">and_probability</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"AND "</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">and_probability</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">+</span> <span class="n">or_probability</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">"OR "</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>With the following setup,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">cd </span>tse
+<span class="nv">$ </span>mkdir data/cs50-3
+<span class="nv">$ </span>crawler/crawler http://old-www.cs.dartmouth.edu/~cs50/ data/cs50-3 3
+<span class="nv">$ </span>indexer/indexer data/cs50-3 data/cs50-index3
+</code></pre></div></div>
+
+<p>And here’s the output of 10 random queries:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>querier/fuzzquery 
+usage: querier/fuzzquery indexFile numQueries randomSeed
+<span class="nv">$ </span>querier/fuzzquery data/cs50-index3 10 0
+querier/fuzzquery: generating 10 queries from 5586 words
+captured AND despite
+pcs OR frontiers activityaware OR relay tour 
+unix downloading OR pre 
+triactine pieces colgate OR aspects OR wine-wise OR direx 
+uncompressed OR early taxonomy austrian AND jewelry OR manages 
+once forced odame localization OR marsch 
+comparison 
+suffer desires OR workflow 
+facilitated 
+garth OR yang OR cardiac AND ruslan AND synthetic 
+</code></pre></div></div>
+
+<p>And here’s what happens when we pipe it to our querier (output abbreviated a little):</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ querier/fuzzquery data/cs50-index3 10 0 | querier/querier data/cs50-3 data/cs50-index3
+querier/fuzzquery: generating 10 queries from 5586 words
+KEY WORDs:&gt; Query: captured and despite 
+No documents match.
+-----------------------------------------------
+KEY WORDs:&gt; Query: pcs or frontiers activityaware or relay tour 
+Matches 39 documents (ranked):
+score  37 doc 349: http://old-www.cs.dartmouth.edu/~dfk/papers/index-t.html
+score  37 doc 348: http://old-www.cs.dartmouth.edu/~dfk/papers/index-a.html
+score  37 doc 347: http://old-www.cs.dartmouth.edu/~dfk/papers/index-c.html
+score  37 doc  19: http://old-www.cs.dartmouth.edu/~dfk/papers/index.html
+score   2 doc  53: http://old-www.cs.dartmouth.edu/~dfk/papers/abstracts/oldfield-app-pario.html
+...
+-----------------------------------------------
+KEY WORDs:&gt; Query: unix downloading or pre 
+Matches 1 documents (ranked):
+score   1 doc 104: http://old-www.cs.dartmouth.edu/~dfk/papers/abstracts/khanna-group.html
+-----------------------------------------------
+KEY WORDs:&gt; Error: bad character '-' in query.
+KEY WORDs:&gt; Query: uncompressed or early taxonomy austrian and jewelry or manages 
+Matches 3 documents (ranked):
+score   2 doc  19: http://old-www.cs.dartmouth.edu/~dfk/papers/index.html
+score   1 doc  81: http://old-www.cs.dartmouth.edu/~dfk/STARFISH/
+score   1 doc  67: http://old-www.cs.dartmouth.edu/~dfk/RAPID-Transit.html
+-----------------------------------------------
+KEY WORDs:&gt; Query: once forced odame localization or marsch 
+Matches 5 documents (ranked):
+score   2 doc  19: http://old-www.cs.dartmouth.edu/~dfk/papers/index.html
+score   1 doc 316: http://old-www.cs.dartmouth.edu/~dfk/papers/abstracts/anthony-sith3.html
+score   1 doc 349: http://old-www.cs.dartmouth.edu/~dfk/papers/index-t.html
+score   1 doc 348: http://old-www.cs.dartmouth.edu/~dfk/papers/index-a.html
+score   1 doc 347: http://old-www.cs.dartmouth.edu/~dfk/papers/index-c.html
+-----------------------------------------------
+KEY WORDs:&gt; Query: comparison 
+Matches 11 documents (ranked):
+score   3 doc 349: http://old-www.cs.dartmouth.edu/~dfk/papers/index-t.html
+score   3 doc 348: http://old-www.cs.dartmouth.edu/~dfk/papers/index-a.html
+score   3 doc 347: http://old-www.cs.dartmouth.edu/~dfk/papers/index-c.html
+...
+-----------------------------------------------
+KEY WORDs:&gt; Query: suffer desires or workflow 
+Matches 1 documents (ranked):
+score   1 doc 336: http://old-www.cs.dartmouth.edu/~dfk/papers/abstracts/mare-thesis.html
+-----------------------------------------------
+KEY WORDs:&gt; Query: facilitated 
+Matches 2 documents (ranked):
+score   1 doc 260: http://old-www.cs.dartmouth.edu/~dfk/papers/abstracts/chen-fusenet.html
+score   1 doc 180: http://old-www.cs.dartmouth.edu/~dfk/papers/abstracts/tan-crf-s3.html
+-----------------------------------------------
+KEY WORDs:&gt; Query: garth or yang or cardiac and ruslan and synthetic 
+Matches 3 documents (ranked):
+score   1 doc  19: http://old-www.cs.dartmouth.edu/~dfk/papers/index.html
+score   1 doc  90: http://old-www.cs.dartmouth.edu/~dfk/charisma/
+score   1 doc   9: http://old-www.cs.dartmouth.edu/~dfk/people.html
+-----------------------------------------------
+</code></pre></div></div>
+
+<p>We could generate a different series of random queries by changing the random seed, and we can run a lot more queries, too!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ querier/fuzzquery data/cs50-index3 10 999 | querier/querier data/cs50-3 data/cs50-index3 &gt; /dev/null
+querier/fuzzquery: generating 10 queries from 5586 words
+$ querier/fuzzquery data/cs50-index3 10000 999 | querier/querier data/cs50-3 data/cs50-index3
+querier/fuzzquery: generating 10000 queries from 5586 words
+</code></pre></div></div>
+
+<p>The fuzz tester does not test <em>all</em> aspects of the querier; in particular, it will not generate syntactically incorrect inputs.
+Those should be tested by another program, perhaps another fuzz tester.
+Furthermore, it does not verify whether the querier actually produces the right answers!</p>
+
+<p>For regression testing, we might save the querier output in a file, and then compare the output of a fresh test run against the saved results from earlier runs.
+If we had earlier believed those results to be correct, then seeing unchanged output would presumably indicate the results (and thus the new code) are still correct.</p>
+
+<h2 id="expressions">Expressions and accumulators</h2>
+
+<p>Thinking ahead to the querier, let’s think about how one evaluates an expression involving operators.
+We’ll work with an arithmetic analogy.</p>
+
+<h3 id="arithmetic-expressions">Arithmetic expressions</h3>
+
+<p>Consider the following arithmetic expression:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="n">d</span>
+</code></pre></div></div>
+
+<p>Since addition is a <em>left-associative</em> operator, this means the same thing as</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="p">(((</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span> <span class="o">+</span> <span class="n">d</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>This means we can scan the expression from left to right, accumulating a sum as we go, effectively like this:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">a</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">b</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">c</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">d</span>
+</code></pre></div></div>
+
+<p>Here, the <code class="highlighter-rouge">sum</code> acts as an <em>accumulator</em>.
+(Indeed, many early hardware architectures include an explicit register called an ‘accumulator’.)</p>
+
+<p>We often see this approach generalized in code:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">array</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">42</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">19</span><span class="p">};</span>
+<span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+	<span class="n">sum</span> <span class="o">+=</span> <span class="n">array</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="n">printf</span><span class="p">(</span><span class="s">"sum = %d; average = %f</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">sum</span><span class="p">,</span> <span class="p">(</span><span class="kt">float</span><span class="p">)</span> <span class="n">sum</span> <span class="o">/</span> <span class="n">n</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="precedence">Precedence</h3>
+
+<p>What if you have a mixture of operators, with precedence?</p>
+
+<p>Consider the following arithmetic expression:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span> <span class="o">+</span> <span class="n">d</span>
+</code></pre></div></div>
+
+<p>Both addition and multiplication are <em>left-associative</em> operators, but multiplication has precedence over addition.
+Thus, we implicitly rewrite the above expression as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="p">((</span><span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="n">c</span><span class="p">))</span> <span class="o">+</span> <span class="n">d</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>or, in sequence,</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">a</span> 
+<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">b</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">c</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">d</span>
+</code></pre></div></div>
+
+<p>Notice how we ‘step aside’ from the sum for a moment while we compute the product <code class="highlighter-rouge">b * c</code> … using an exactly analogous process.  <code class="highlighter-rouge">prod</code> is an accumulator for the product; it is initialized to the <em>multiplicative identity</em> (1) instead of the <em>additive identity</em> (0), for reasons I hope are obvious.
+But then we just multiply in each of the successive items, one at a time.</p>
+
+<p>This generalizes to longer expressions like</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span> <span class="o">*</span> <span class="n">d</span> <span class="o">*</span> <span class="n">e</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="n">g</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="n">i</span>
+</code></pre></div></div>
+
+<p>becomes</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">a</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">b</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">c</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">d</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">e</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">f</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">g</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">h</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">i</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+</code></pre></div></div>
+
+<p>Let’s add some indentation to make this a little easier to read:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">a</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">b</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">c</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">d</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">e</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">f</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">g</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">h</span>
+	<span class="n">prod</span> <span class="o">=</span> <span class="n">prod</span> <span class="o">*</span> <span class="n">i</span>
+<span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">prod</span>
+</code></pre></div></div>
+
+<p>Notice what I did with <code class="highlighter-rouge">f</code>, and that I <em>never add anything to <code class="highlighter-rouge">sum</code> other than <code class="highlighter-rouge">prod</code></em>.</p>
+
+<p>This structure should give you a hint about how you might write code to evaluate such expressions…
+if you have a <code class="highlighter-rouge">product</code> function to scan the expression left to right from a given starting point, accumulating a product of individual items until it sees a <code class="highlighter-rouge">+</code> or the end of the expression, you can then write a function <code class="highlighter-rouge">sum</code> that scans the expression left to right from the start, accumulating a sum of products by calling <code class="highlighter-rouge">product</code> at the start and after each <code class="highlighter-rouge">+</code>.</p>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a> your group will discuss how the above ideas relate to <code class="highlighter-rouge">and</code> an <code class="highlighter-rouge">or</code> operators in a query expression.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

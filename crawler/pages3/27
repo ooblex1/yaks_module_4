@@ -1,0 +1,285 @@
+https://thayer.github.io/engs50/Notes/search/
+2
+19985
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Searching The Web</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/search/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Searching The Web</h1>
+  </header>
+
+  <div class="post-content">
+    <p>In the next series of Labs we will design, implement and test a command-line web-search tool called Tiny Search Engine (TSE) because it can be written in under <strong>2000</strong> lines of student-written C code (about 500 lines in each of four Labs 3-6).
+Today we begin to discuss the concepts behind web search and the top-level design of TSE and its decomposition into three major components: crawler, indexer, and query.</p>
+
+<p>In this lecture, we discuss some of the foundational issues associated with searching the web.
+We also dicuss the overall architectural design of a more comprehensive search engine than TSE.</p>
+
+<p>You should skim this classic paper about a web search engine:</p>
+
+<blockquote>
+  <p><em><a href="/engs50/Reading/searchingtheweb.pdf">Searching the Web</a>,</em> Arvind Arasu, Junghoo Cho, Hector Garcia-Molina, Andreas Paepcke, Sriram Raghavan (Stanford University). ACM Transactions on Internet Technology (TOIT), Volume 1, Issue 1 (August 2001).</p>
+</blockquote>
+
+<p>This paper gives insights into search-engine design.
+You can skip the plots and deeper research material, but do your best to understand the text on the main components and design issues of a search engine.</p>
+
+<h3 id="goals">Goals</h3>
+
+<p>We plan to learn the following from today’s lecture:</p>
+
+<ul>
+  <li>How does search engine like Google search the web?</li>
+  <li>A general search-engine architecture.</li>
+  <li>URLs, webpages, HTML, HTTP, and keywords.</li>
+  <li>‘Talking’ to the CS department webserver using HTTP.</li>
+</ul>
+
+<!-- Here's my Terminal [script](/engs50/Notes/search/script.txt) for today. -->
+
+<h3 id="searching-the-web">Searching the Web</h3>
+
+<p>How do you get information from the Web?
+Searching the web is something we do every day with ease, but it’s technically challenging to implement because of the scale of the web and because pages change at dramatically different rates.
+As of April 12, 2014 there were <strong>1.79 billion</strong> publicly available webpages on the “indexed web” according to <a href="http://www.worldwidewebsize.com">one estimate</a>.
+I just looked at that web site on April 17, 2018: the site says the indexed web now contains at least <strong>4.86 billion pages!</strong> Even that number likely to be an underestimate, because many organizations have lots of internal webpages that aren’t indexed by the public search engines.</p>
+
+<p>To get information about hiking in New Hampshire, I can use a search engine (such as Google) as an information retrieval system; it returns a list of links (URLs) to sites that have the keywords I specified embedded in them.
+Conveniently, the search engine orders (ranks) the links so the most-relevant pages are near the top of the list.</p>
+
+<p><img src="/engs50/Notes/search/hikenh.png" alt="Google search for *hiking &quot;new hampshire&quot;*" /></p>
+
+<hr />
+
+<p>Google responded to my query in 0.52 seconds with 8,960,000 matches found!
+How is that possible?
+How does Google search more than 4 billion web pages in half of a second?
+Surely, Google does not actually search those pages for each user’s request.
+Instead, it looks into a vast ‘index’ of the web, built earlier.
+Given a new search term, it checks the index for pages known to have the word “hiking”, and again for those with the phrase “new hampshire”, and then intersects the two results to come up with a list.</p>
+
+<p>How does Google rank the pages in the resulting list?
+The solution is actually Google’s ‘secret sauce’, the “page-rank algorithm” developed by Brin and Page when they were grad students.
+(Although the original algorithm was published, Google continues to refine and tweak it and keeps the details secret.)</p>
+
+<p>When and how does Google build that index?
+And how does it find all the pages on the web?
+Google’s servers are constantly “crawling” the web: given one link (URL), download that page, find all the links in that page, and then go examine those pages - recursively.
+As new (or updated) pages are found, they “index” each page by extracting the list of words used on that page, and then building a data structure that maps from <em>words</em> to <em>URLs</em>.</p>
+
+<p>Later, a search query is broken into words, and each word is sought in the index, returning a set of URLs where that word appears.
+For a multi-word query, they intersect the sets to find a set where all words appear.
+Then they apply the page-rank algorithm to the set to produce a ranked list.</p>
+
+<p>In April 2014, Google’s website said its index filled over 100 million gigabytes!
+<strong>Check out this <a href="https://www.google.com/insidesearch/howsearchworks/crawling-indexing.html">nice video</a> from Google explaining how search engine works.</strong></p>
+
+<h3 id="general-search-engine-architecture-arvind-2001">General search engine architecture [Arvind, 2001]</h3>
+
+<p>Search engines like Google are complex, sophisticated, highly distributed systems.
+Below we reproduce the general search engine architecture discussed in <em><a href="/engs50/Reading/searchingtheweb.pdf">Searching the Web</a>.</em></p>
+
+<p><img src="searchenginearchitecture.png" alt="General search engine architecture [Arvind, 2001]" title="General search engine architecture [Arvind, 2001]" /></p>
+
+<hr />
+
+<p>The main components include parallel crawlers, crawler control (when and where to crawl), page repository, indexer, analysis, collection of data structures (index tables, structure, utility), and a query engine and ranking module.
+Such a general architecture would take a significant amount of time to code.
+In our TSE, we will implement a stripped down version of the main components.</p>
+
+<h3 id="urls-html-and-keywords">URLs, HTML, and keywords</h3>
+
+<p>Some terminology:</p>
+
+<ul>
+  <li><strong>URL</strong>, short for <em>Uniform Resource Locator</em>, is used to specify addresses of webpages and other resources on the web.
+An example is <code class="highlighter-rouge">http://www.dartmouth.edu/index.html</code>, which refers to the <code class="highlighter-rouge">HTTP</code> network protocol, the  <code class="highlighter-rouge">www.dartmouth.edu</code> server, and the <code class="highlighter-rouge">index.html</code> file on that server.</li>
+  <li><strong>HTML</strong>. Most web pages are written in HyperText Markup Language (HTML).
+For a quick tutorial on HTML see this <em><a href="http://www.w3schools.com/html/html_intro.asp">Introduction to HTML</a></em>.
+An HTML file is a text file with an <code class="highlighter-rouge">htm</code> or <code class="highlighter-rouge">html</code> file extension.
+HTML pages can be created by tools or simply in an editor like emacs.
+You will not need to write any HTML for this course.</li>
+  <li><strong>tags</strong>. HTML uses “tags” to mark-up the text; for example <code class="highlighter-rouge">&lt;b&gt;this text would be bold&lt;/b&gt;</code>.
+Most tags are enclosed in angle brackets, like <code class="highlighter-rouge">&lt;b&gt;</code>, and most come in matching pairs marking the beginning and ending of a region of text to which the tag applies; note the <code class="highlighter-rouge">&lt;b&gt;</code> and <code class="highlighter-rouge">&lt;/b&gt;</code> pair.</li>
+</ul>
+
+<p>We are interested collecting URLs from HTML files.
+The HTML tag that forms a link and references a URL is called an ‘anchor’, or ‘a’ for short.
+The tag <code class="highlighter-rouge">&lt;a&gt;</code> takes parameters, most importantly the <code class="highlighter-rouge">href</code> parameter:</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"http://www.dartmouth.edu/index.html"</span><span class="nt">&gt;</span>Dartmouth home page<span class="nt">&lt;/a&gt;</span>
+</code></pre></div></div>
+
+<p>For the purpose of indexing the page, we need to find the ‘words’ in the page.
+In most web pages, most of the content is outside the tags because the tags are there to format the content.
+<strong>For TinySearchEngine, we define keywords as being outside of tags.</strong></p>
+
+<p>So when TinySearchEngine downloads a webpage of HTML source it needs to parse the page to extract URLs (so it can crawl those URLs) and identify the words that users might be interested in running queries for.</p>
+
+<p>Parsing HTML can be challenging, especially because so many pages on the web don’t follow the HTML standard cleanly.
+We will provide you with a C function to parse the HTML.
+(Feel free to write your own if you prefer).</p>
+
+<p>For more information about HTML check out the old <a href="http://www.w3.org/TR/REC-html40/about.html">HTML 4 specification</a> or the brand new <a href="http://www.w3.org/TR/html5/">HTML 5 specification</a>.</p>
+
+<h3 id="talk-to-a-webserver-using-hypertext-transfer-protocol-http">Talk to a webserver using HyperText Transfer Protocol (HTTP)</h3>
+
+<p>The <a href="http://www.w3.org/Protocols/">HyperText Transfer Protocol (HTTP)</a> is used between your client browser and the server to transfer HTML files.
+HTTP itself is a very simple, stateless, request/response protocol that get its reliable underlying transport from TCP (Transmission Control Protocol) on top of IP (Internet Protocol).
+(Go take CS60 to learn more about networking!)</p>
+
+<p>The basic HTTP protocol is that the client sends a request called a <code class="highlighter-rouge">GET</code> and the server responds with a response.
+Web servers ‘listen’ for requests on the well-known TCP port 80.</p>
+
+<p>We have to first connect to the server and open up a reliable stream to host <code class="highlighter-rouge">www.cs.dartmouth.edu</code> at port 80.
+We could write some fancy code to do this, but (in typical Unix style) there is already a tool we can use: <code class="highlighter-rouge">telnet</code>, a program that simply makes a TCP/IP connection to a given host and port, and connects our terminal’s keyboard and screen to that connection so we can interactively write to the remote server listening at that port.</p>
+
+<p>We can thus type an HTTP <code class="highlighter-rouge">GET</code> request by hand:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[cs50@flume ~]$ telnet www.cs.dartmouth.edu 80
+Trying 129.170.213.101...
+Connected to www.cs.dartmouth.edu.
+Escape character is '^]'.
+GET /~cs50/index.html HTTP/1.1           <span class="nt">&lt;</span><span class="err">==</span> <span class="na">I</span> <span class="na">typed</span> <span class="na">this</span>
+<span class="na">HOST:</span> <span class="na">www</span><span class="err">.</span><span class="na">cs</span><span class="err">.</span><span class="na">dartmouth</span><span class="err">.</span><span class="na">edu</span>               <span class="err">&lt;==</span> <span class="na">and</span> <span class="na">this</span>
+                                         <span class="err">&lt;==</span> <span class="na">and</span> <span class="na">a</span> <span class="na">blank</span> <span class="na">line</span>
+<span class="na">HTTP</span><span class="err">/</span><span class="na">1</span><span class="err">.</span><span class="na">1</span> <span class="na">200</span> <span class="na">OK</span>
+<span class="na">Date:</span> <span class="na">Wed</span><span class="err">,</span> <span class="na">19</span> <span class="na">Apr</span> <span class="na">2017</span> <span class="na">16:22:32</span> <span class="na">GMT</span>
+<span class="na">Server:</span> <span class="na">Apache</span><span class="err">/</span><span class="na">2</span><span class="err">.</span><span class="na">4</span><span class="err">.</span><span class="na">23</span> <span class="err">(</span><span class="na">Fedora</span><span class="err">)</span>
+<span class="na">Last-Modified:</span> <span class="na">Wed</span><span class="err">,</span> <span class="na">19</span> <span class="na">Apr</span> <span class="na">2017</span> <span class="na">14:57:28</span> <span class="na">GMT</span>
+<span class="na">ETag:</span> <span class="err">"</span><span class="na">c50-54d863e326600</span><span class="err">"</span>
+<span class="na">Accept-Ranges:</span> <span class="na">bytes</span>
+<span class="na">Content-Length:</span> <span class="na">3152</span>
+<span class="na">Connection:</span> <span class="na">close</span>
+<span class="na">Content-Type:</span> <span class="na">text</span><span class="err">/</span><span class="na">html</span><span class="err">;</span> <span class="na">charset=</span><span class="s">UTF-8</span>
+
+<span class="err">&lt;!</span><span class="na">DOCTYPE</span> <span class="na">html</span><span class="nt">&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+
+  <span class="nt">&lt;head&gt;</span>
+  <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;meta</span> <span class="na">http-equiv=</span><span class="s">"X-UA-Compatible"</span> <span class="na">content=</span><span class="s">"IE=edge"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"viewport"</span> <span class="na">content=</span><span class="s">"width=device-width, initial-scale=1"</span><span class="nt">&gt;</span>
+
+  <span class="nt">&lt;title&gt;</span>CS50 Overview<span class="nt">&lt;/title&gt;</span>
+  <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"description"</span> <span class="na">content=</span><span class="s">"In Computer Science 50 you will learn how to design &amp; build large,  reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+
+. . .
+</span></code></pre></div></div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      [&lt;a href="https://canvas.dartmouth.edu/courses/14815"&gt;Canvas&lt;/a&gt;]
+      [&lt;a href="https://piazza.com/dartmouth/spring2017/cosc050sp17/home"&gt;Piazza&lt;/a&gt;]
+      [&lt;a href="/~cs50/Schedule.pdf"&gt;Schedule&lt;/a&gt;]
+      [&lt;a href="http://www.cs.dartmouth.edu/~cs50/Logistics/"&gt;Logistics&lt;/a&gt;]
+      [&lt;a href="http://www.cs.dartmouth.edu/~cs50/Lectures/"&gt;Lectures&lt;/a&gt;]
+      [&lt;a href="http://www.cs.dartmouth.edu/~cs50/Reading/"&gt;Reading&lt;/a&gt;]
+      [&lt;a href="http://www.cs.dartmouth.edu/~cs50/examples/"&gt;Examples&lt;/a&gt;]
+      [&lt;a href="http://www.cs.dartmouth.edu/~cs50/Sections/"&gt;Sections&lt;/a&gt;]
+      [&lt;a href="http://www.cs.dartmouth.edu/~cs50/Labs/"&gt;Labs&lt;/a&gt;]
+. . .
+</code></pre></div></div>
+
+<p>Try it yourself!
+Make sure you hit carriage return twice after typing in
+<code class="highlighter-rouge">HOST:  www.cs.dartmouth.edu</code>
+since the HTTP protocol wants an empty line to indicate that you’re finished.</p>
+
+<p>The web server responds with a few lines of HTTP syntax; the first line reports status code <code class="highlighter-rouge">200</code> with human-readable equivalent <code class="highlighter-rouge">OK</code>.
+The next few lines provide the date, the server version, the last-modified date for the file returned, and some other stuff describing the content as HTML.
+After a blank line, the contents of the file we requested (the CS50 home page).
+I snipped out most of it, but you can see the anchor tags that appear at the top of every CS50 page.
+Notice the URLs for Canvas, Piazza, and links to other folders and files within the <code class="highlighter-rouge">~cs50</code> folder.</p>
+
+<p>You happen to have access to the files used by this web server!
+This server is configured to rewrite URLs of the form <code class="highlighter-rouge">/~user/...</code> to pathnames of the form <code class="highlighter-rouge">~user/public_html/...</code>.
+So if you ssh to <code class="highlighter-rouge">flume</code> or any of the CS50 Unix machines you can <code class="highlighter-rouge">cd ~cs50/public_html/</code> and poke around at the HTML files there.</p>
+
+<p>Most web pages will include many links, and sometimes will include the same link twice.
+Furthermore, when exploring a set of web pages, those web pages often link to each other (for example, all the CS50 pages link to the CS50 ‘home’, and that page links directly or indirectly to all of those pages).</p>
+
+<p>The web is a “directed graph”, not a tree.
+Any effort to ‘crawl’ the web, therefore, must use something like breadth-first or depth-first search to explore the graph, avoiding the effort (and infinite loops!) that occur when encountering a link already found earlier in the crawl.</p>
+
+<p>In our TinySearchEngine we will rely on <code class="highlighter-rouge">curl</code> (and the <code class="highlighter-rouge">libcurl</code> library) to retrieve webpages.</p>
+
+<p>We can experiment a bit using the command-line version of <code class="highlighter-rouge">curl</code>.
+Let’s use <code class="highlighter-rouge">curl</code> to download the CS50 homepage count the number of URLs.
+A crude approach would be to pipe the output of <code class="highlighter-rouge">curl</code> (i.e., the HTML from the web page) into <code class="highlighter-rouge">grep</code> and then count the lines.
+(This approach will under-count if there are multiple <code class="highlighter-rouge">href</code> links on the same line.)  There are at least 17 links on that page.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>cs50@flume ~]<span class="nv">$ </span>curl <span class="nt">-s</span> http://www.cs.dartmouth.edu/~cs50/ | <span class="nb">grep</span> <span class="nt">-i</span> href | wc <span class="nt">-l</span>
+17
+</code></pre></div></div>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a> your group will start envisioning a design for the TSE Crawler.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

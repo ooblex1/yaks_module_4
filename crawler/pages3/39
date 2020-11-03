@@ -1,0 +1,120 @@
+https://thayer.github.io/engs50/Resources/Homebrew.html
+2
+4917
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Homebrew installation</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Resources/Homebrew.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Homebrew installation</h1>
+  </header>
+
+  <div class="post-content">
+    <p>MacOS users are lucky because they get all the grace of a graphical interface with a large ecosystem of applications to make their computer productive, <em>plus they have access to the full power of Unix under the hood.</em>
+Apple includes a lot of the core Unix commands and utilities, by default, but some of the commands you’ll need (or want) in this course need to be added.
+Some of these can be installed through the Apple developer’s tool (<code class="highlighter-rouge">Xcode</code>), but lots of great open-source software needs to be installed separately.</p>
+
+<p>The easiest way to install open-source software is through a ‘package manager’ (Linux users are likely already familiar with this concept!).
+There are several package managers for MacOS, but I like the one called <em><a href="http://brew.sh">Homebrew</a></em>.
+It’s easy to install and easy to use for installing other tools.</p>
+
+<p>To get started, open a <code class="highlighter-rouge">Terminal</code> window and a browser window.
+In your browser, visit the <em><a href="http://brew.sh">Homebrew</a></em> site; copy the one-line command near the top of the page.</p>
+
+<p><img src="/engs50/Resources/Homebrew0.png" alt="homepage" /></p>
+
+<blockquote>
+  <p>Notice that it simply asks you to copy and paste a complex command into the <code class="highlighter-rouge">Terminal</code>.
+You should never blindly copy-paste shell commands without understanding what the command will do to your computer!
+In this case, the Homebrew page explains what it will do, and you’re hearing it from me - this is a safe tool to install.
+As far as I know. ;-)</p>
+</blockquote>
+
+<p>Switch to <code class="highlighter-rouge">Terminal</code> and paste in that command.
+The installation will download some files and start running.</p>
+
+<p>If you’ve never run any of the ‘developer’-oriented commands (like <code class="highlighter-rouge">gcc</code> or <code class="highlighter-rouge">make</code>) on your Mac before, you may see a popup like the following:</p>
+
+<p><img src="/engs50/Resources/Homebrew1.png" alt="Xcode popup" /></p>
+
+<p>Click ‘Install’ to let Xcode do its thing.
+It may be a large download.
+This installer downloads all the command-line tools from Apple and installs them on your Mac.
+You’ll need these tools, and so does Homebrew.</p>
+
+<p>When that completes, press Return in the Terminal window to allow the Homebrew installation to complete.
+Then you can install new packages with a command line <code class="highlighter-rouge">brew install</code> followed by the package name (Homebrew actually calls them “formulas”).
+You can search for package names with <code class="highlighter-rouge">brew search</code>.</p>
+
+<p>Later, periodically, you should <code class="highlighter-rouge">brew update</code> and then <code class="highlighter-rouge">brew upgrade</code> to keep all your software up to date.
+I do this about once a month.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

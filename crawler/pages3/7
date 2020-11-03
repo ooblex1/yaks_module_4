@@ -1,0 +1,390 @@
+https://thayer.github.io/engs50/Resources/CodingStyle.html
+1
+24359
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Programming Style</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Resources/CodingStyle.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Programming Style</h1>
+  </header>
+
+  <div class="post-content">
+    <h2 id="coding-style">Coding style</h2>
+
+<p>A computer program is meant for two audiences: the computer that
+compiles and runs it, and the people who must read, modify, maintain
+and test it.  Think about writing a program the same way you think
+about writing a paper: structure, organization, word choice and
+formatting are just as important as content.  A program that works but
+has a terrible style is unreadable, and therefore useless.</p>
+
+<p>Real-world software development teams use common programming style
+guides.  For example, if you are working on the Linux kernel, you
+would use <a href="https://www.kernel.org/doc/Documentation/process/coding-style.rst">Linus’ Coding
+Style</a>.
+If you are working on a gnu project, you would closely follow the
+instructions in Chapter 5 “Making the best use of C” of their <a href="http://www.gnu.org/prep/standards/standards.html#Writing-C">GNU
+Coding
+Standards</a>
+document.  Other organizations might adopt other long-respected coding
+standards like the <a href="http://cvsweb.netbsd.org/bsdweb.cgi/src/share/misc/style?rev=HEAD&amp;content-type=text/x-cvsweb-markup">NetBSD source code style
+guide</a>,
+or they might produce their own guidelines based on several others.
+Your company will most likely have one they prefer.</p>
+
+<p>Style guides include things like formatting your source code, comment
+requirements, how certain C constructs should (or shouldn’t) be used,
+variable naming conventions, cross-platform compatibility
+requirements, and more.</p>
+
+<p>We realize that coding style can be a very personal choice, but in the
+professional world you will seldom have the privilege of choosing your
+own style.</p>
+
+<h3 id="cs50-style">CS50 style</h3>
+
+<p><strong>For CS50 assignments involving C programming, you must follow these guidelines</strong> (inspired by the <a href="http://www.amazon.com/Programming-Language-2nd-Brian-Kernighan/dp/0131103628/ref=sr_1_1?ie=UTF8&amp;qid=1321068335&amp;sr=8-1">K&amp;R C book</a> and by <a href="https://www.kernel.org/doc/Documentation/process/coding-style.rst">Linus</a>):</p>
+
+<ul>
+  <li>Avoid placing multiple statements on a single line.</li>
+  <li>Break long statements (more than 80 characters) over multiple lines.</li>
+  <li>Indent appropriately; emacs and other C-savvy text editors can indent automatically. See below.</li>
+  <li>Use braces <code class="highlighter-rouge">{ }</code> for every nested block - it can save you from accidental nesting bugs.</li>
+  <li>Place the opening brace at the end of the line, e.g., in <code class="highlighter-rouge">if</code> and <code class="highlighter-rouge">for</code> statements.</li>
+  <li>Use spaces around binary operators, except struct and pointer references.
+Do not use spaces between a unary operator and its operand.
+See below.</li>
+  <li>Use parentheses liberally when it helps to make an expression clear.
+Adding parentheses rarely hurts, and might actually prevent a mistake.</li>
+  <li>Avoid calling <code class="highlighter-rouge">exit()</code> from anywhere other than <code class="highlighter-rouge">main()</code>.
+Unwind back to <code class="highlighter-rouge">main</code> using error-return values and exit cleanly.</li>
+  <li>Exception: in CS50 we recommend use of a function called <code class="highlighter-rouge">parse_args()</code>, and it’s often cleanest for that function to exit when there are problems with command-line arguments.</li>
+  <li>Always initialize variables, either when they are created, or soon thereafter.
+Initialize pointers to NULL if target not yet known.</li>
+  <li>Use <code class="highlighter-rouge">typedef</code> to designate abstract data types and use a name that ends in <code class="highlighter-rouge">_t</code> e.g. person_t, car_t, queue_t, hashtable_t, bag_t etc.</li>
+  <li>When using pointers, use names that are suggestive of pointers: spacep, linep, endp, etc.</li>
+  <li>Declare function prototypes with type and name of formal parameters.</li>
+  <li>Avoid using global variables.
+If they are absolutely necessary, restrict their use to a single source file using the <code class="highlighter-rouge">static</code> keyword.</li>
+  <li>Do not use using <code class="highlighter-rouge">goto</code> unless absolutely necessary - you must have a <em>really</em> good reason for using a <code class="highlighter-rouge">goto</code>, in very exceptional cases.</li>
+  <li>Avoid preprocessor macros; <code class="highlighter-rouge">#define</code> macros tend to be a source of difficult bugs.
+Instead, use <code class="highlighter-rouge">const</code> for constants and use real functions (or inline functions if you must).</li>
+  <li>Don’t use “magic” numbers in your code.
+Use <code class="highlighter-rouge">const</code> to create a named constant, e.g., <code class="highlighter-rouge">const float pi = 3.1416;</code></li>
+  <li>Use <code class="highlighter-rouge">const</code> wherever you can, to indicate a value that will not change.</li>
+  <li>Use the <code class="highlighter-rouge">bool</code> type whenever a function should return a boolean value, or a variable should hold a boolean flag.
+Avoid old C conventions that use 0 for false and non-zero for true.</li>
+  <li>Wrap calls to <code class="highlighter-rouge">malloc()</code> in type-specific helper functions; see below.</li>
+  <li>Choose either <code class="highlighter-rouge">camelCase</code> or <code class="highlighter-rouge">snake_case</code>, and be consistent.</li>
+  <li>Break up large programs into multiple files.
+Every file (except for that containing <code class="highlighter-rouge">main</code>) should have a corresponding <code class="highlighter-rouge">.h</code> file that declares all functions, constants, and global variables meant to be visible outside the file.</li>
+  <li>Break up large functions, aiming for <em>strong cohesion</em> and <em>weak coupling</em>.</li>
+</ul>
+
+<p><strong><em>Always remember: You are writing for clarity and communication, not to show how clever you are or how short and dense you can make your code.</em></strong></p>
+
+<h3 id="commenting">Commenting:</h3>
+
+<p>Comment your code as you write it: it is much easier to write comments while your intentions are fresh in your mind than to go back later and do it.</p>
+
+<p>Keep comments short, simple and to the point.
+Comment wherever the code is not self-describing (see the reading assignments).
+Use the <code class="highlighter-rouge">//</code> style of commenting for one-line comments, and the <code class="highlighter-rouge">/* ... */</code> style for multi-line block comments.</p>
+
+<p>Use four types of comments:</p>
+
+<ul>
+  <li>Start-of-file comments.</li>
+  <li>Start-of-function comments.</li>
+  <li>Paragraph comments</li>
+  <li>End-of-line comments</li>
+</ul>
+
+<p>Use them in the following fashion:</p>
+
+<p><strong><em>Start-of-file-comments.</em></strong>
+You should place a block comment at the start of each file.
+This comment should include the names of programmers, the date the file was written, and a high-level description of the file’s contents, e.g.,</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+* stack.c     Bill Stubblefield     November 20, 1994
+*
+* This file contains the definitions of a stack class.  It includes functions:
+*
+*     ... list functions, with brief descriptions (if needed)
+*
+*/</span>
+</code></pre></div></div>
+
+<p><strong><em>Start-of-function comments.</em></strong>
+Write a header for each function.
+This comment should describe the <em>contract</em> between the caller and the function: describe what the function does, the meaning of its parameters, the meaning of its return value (if any), and assumptions about the responsibilities of the caller and the function.
+For example, if a function</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>       <span class="kt">float</span> <span class="n">sqrt</span><span class="p">(</span><span class="kt">float</span> <span class="n">number</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>requires its argument to be positive, document it.
+Similarly, specify any constraints on the output.
+List all error conditions and what the function does with them.
+List any side effects.
+Be explicit about memory allocation: if the function returns a pointer to space from <code class="highlighter-rouge">malloc</code>, who is responsible for calling <code class="highlighter-rouge">free</code>?</p>
+
+<p>If the function algorithm is not obvious, describe it (often a good idea).
+Also, if you borrow the algorithm from another source, credit the source and author.</p>
+
+<p><strong><em>Paragraph comments.</em></strong>
+Often procedures can be divided into a series of steps, such as initialization, reading data, writing output.
+Place a small comment before each such section describing what it does.</p>
+
+<p><strong><em>End-of-line comments.</em></strong>
+Place a brief comment at the end of those lines where needed to clarify the code.
+Don’t overdo it, but use them to call the reader’s attention to subtleties in the code.
+Align the comments so that all the comments for a function begin in the same column, although this column can vary for different functions.</p>
+
+<h3 id="spacing">Spacing:</h3>
+
+<p>Place a space after keywords like <code class="highlighter-rouge">if</code>, <code class="highlighter-rouge">else</code>, <code class="highlighter-rouge">for</code>, <code class="highlighter-rouge">while</code>, <code class="highlighter-rouge">do</code>, <code class="highlighter-rouge">switch</code>, etc., after commas in function calls, after semicolons in a for loop, between a right parenthesis and a left bracket, and around binary operators (except <code class="highlighter-rouge">.</code> and <code class="highlighter-rouge">,</code> and <code class="highlighter-rouge">-&gt;</code>).
+Remember that assignment is a binary operator.
+I usually do not put spaces between a function name and its parameter list, or an array name and its subscripts.
+For example,</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">);</span>
+   <span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="indenting">Indenting:</h3>
+
+<p>Let your text editor help you auto-indent your code.
+Often, trouble with auto-indentation is a clue to your own syntax mistake (such as forgetting brackets).</p>
+
+<p>When you create or open a file, emacs will recognize C by the filename extension <code class="highlighter-rouge">.c</code> or <code class="highlighter-rouge">.h</code> and switch to “C mode”; you’ll see this mode on the emacs status line.
+In C mode, hitting the TAB key while the cursor is on a given line indents it to the correct level, <em>assuming that the preceding non blank line has been indented correctly</em>.
+Ending a line with a left bracket and hitting return will automatically indent the next line appropriately.
+Also, a line beginning with a right bracket will indent to the correct level.
+Finally, typing <code class="highlighter-rouge">//</code> on a new line will create a comment and indent it to the line of code.</p>
+
+<h2 id="dynamic-memory-allocation">Dynamic memory allocation</h2>
+
+<p>Avoid sprinking calls to <code class="highlighter-rouge">malloc()</code> and <code class="highlighter-rouge">free()</code> throughout your code.
+Instead, think about the kinds of things you need to create and destroy, and write type-specific wrapper for each such type.
+For example, if your program manipulates things of type <code class="highlighter-rouge">struct listnode</code>, you would write two functions:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">struct</span> <span class="n">listnode</span> <span class="o">*</span><span class="n">listnode_new</span><span class="p">(...);</span>
+    <span class="kt">void</span> <span class="n">listnode_delete</span><span class="p">(</span><span class="k">struct</span> <span class="n">listnode</span> <span class="o">*</span><span class="n">node</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>The first function calls <code class="highlighter-rouge">malloc(sizeof(struct listnode)</code> and initializes all of its contents, perhaps using parameters passed by the caller.
+The second calls <code class="highlighter-rouge">free(node)</code>.
+Both involve careful error-checking code.
+See example <a href="/engs50/Examples/names6.c">names6.c</a>.</p>
+
+<p>There are many advantages to this approach:</p>
+
+<ul>
+  <li>The mainline code is more readable, because it’s clear what <code class="highlighter-rouge">listnode_new()</code> is doing.</li>
+  <li>Code involving <code class="highlighter-rouge">malloc</code> can sometimes be tricky, and you isolate that trickiness in one spot and focus on getting it right once.</li>
+  <li>Some new types might need multiple <code class="highlighter-rouge">malloc</code> calls, as in our linked-list example <a href="/engs50/Examples/names6.c">names6.c</a>.
+All those <code class="highlighter-rouge">malloc</code> calls (and corresponding <code class="highlighter-rouge">free</code> calls) can be in the <code class="highlighter-rouge">new</code>/<code class="highlighter-rouge">free</code> functions.</li>
+  <li>The <code class="highlighter-rouge">new</code> function acts like a ‘constructor’ in object-oriented languages and can ensure the newly returned memory is initialized, or at least, not random bytes.</li>
+  <li>You can insert debugging output or reference-counting logic, or set debugger breakpoints, in these <code class="highlighter-rouge">new</code>/<code class="highlighter-rouge">free</code> functions and immediately have that feature apply to <em>all</em> occurrences of your program’s work with this type.</li>
+</ul>
+
+<h2 id="program-structure">Program structure</h2>
+
+<p>Although C allows us to be very flexible with where we put declarations, a standard layout makes it easier to read the code.
+A good convention is:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+ *  Start-of-file-comments
+ */</span>
+
+<span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+</span><span class="p">.</span> <span class="p">.</span> <span class="p">.</span>
+
+<span class="c1">// global type and constant definitions
+</span><span class="k">const</span> <span class="kt">float</span> <span class="n">PI</span> <span class="o">=</span> <span class="mi">3</span><span class="p">.</span><span class="mi">1416</span><span class="p">;</span>
+<span class="p">.</span> <span class="p">.</span> <span class="p">.</span>
+
+<span class="c1">// function prototypes
+</span><span class="kt">void</span> <span class="n">push</span><span class="p">(</span><span class="kt">int</span> <span class="n">item</span><span class="p">);</span>
+
+<span class="cm">/* ***************************
+ *  Start-of-function-comments
+ */</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="c1">// local const, type and variable declarations
+</span>	<span class="c1">// body of code
+</span><span class="p">}</span>
+
+<span class="cm">/* ***************************
+ *  Start-of-function-comments
+ */</span>
+<span class="kt">void</span> <span class="nf">push</span><span class="p">(</span><span class="kt">int</span> <span class="n">item</span><span class="p">)</span> <span class="p">{</span>
+	<span class="c1">// local const, type and variable declarations
+</span>	<span class="c1">// function body
+</span><span class="p">}</span>
+</code></pre></div></div>
+<p>Although you can declare variables at anytime before they are used, it is sometimes best to place all declarations at the beginning of the function.
+That way a reader can easily find them.
+There are times when it is convenient or prudent to do otherwise; we’ll come back to this issue.</p>
+
+<p>It is also a good idea to break large programs up into multiple files.
+For example, a ‘stack’ module may be declared in ‘stack.h’, defined in ‘stack.c’, and used in ‘main.c’.</p>
+
+<h2 id="simplicity">Simplicity</h2>
+
+<p>This single most important thing you can do to write good code is to keep it simple.
+As William of Occam said in the 14th century: “Do not multiply entities without necessity.” Simplicity has many aspects; a few of these include:</p>
+
+<p><strong>Make all functions small, coherent and specific.</strong>
+Every function should do exactly one thing.
+A good rule of thumb is that you should be able to describe what a function does in a single sentence.
+Generally, C functions occupy less than a page, with most functions occupying 10-30 lines.</p>
+
+<p><strong>Use small parameter lists.</strong>
+Avoid extremely long parameter lists.
+If you find the parameters to a function growing, ask yourself if the function is trying to do too much, or if the function is too vague in its intent.</p>
+
+<p><strong>Avoid deeply nested blocks.</strong>
+Structures such as <code class="highlighter-rouge">if</code>, <code class="highlighter-rouge">for</code> and <code class="highlighter-rouge">while</code> define blocks of code; blocks can contain other blocks.
+Try not to nest blocks too deeply.
+Any function with more than a couple levels of nesting can be confusing.
+If you find yourself with deeply nested structures, consider either simplifying the structure or defining functions to handle some of the nested parts.</p>
+
+<p><strong>Use the simplest algorithm that meets your needs.</strong>
+Einstein once said: “Things should be as simple as possible, but no simpler.” This is good advice for selecting an algorithm.
+There are a great many extremely clever, complex algorithms in computer science.
+Make an effort to know them and use the algorithm that meets your needs for efficiency.
+Do not shun complex algorithms, but do not choose them without reason.</p>
+
+<p><strong>Be consistent.</strong>
+Consistency can come in many forms.
+A few of these include:</p>
+
+<ul>
+  <li>Try to be consistent in numbers and types of function parameters.
+If two functions have a similar function, try to give them similar sets of parameters.</li>
+  <li>Try to be consistent in your use of loops and other program constructs.</li>
+  <li>Use consistent naming and commenting styles.</li>
+</ul>
+
+<p><strong>Don’t be clever.</strong>
+Samuel Johnson once said (I may not be quoting him exactly) “When you find something particularly clever in your writing, strike it out.” C offers many constructs, such as conditional expressions, unary operators, etc.
+that make it possible to write extremely compact, dense unreadable code.
+Use these features, but also ask yourself: “Will another programmer understand what I mean here?”</p>
+
+<h2 id="practice-defensive-programming">Practice defensive programming!</h2>
+
+<p>It is important you write C programs defensively.
+That is, you need to check the input the program receives, make sure it is as expected (in range, correct datatype, length of strings, etc.), and, if it is not acceptable, provide appropriate message(s) back to the user in terms of the program usage.
+The user should <strong>never</strong> be able to cause your program to adversely impact any aspect of the system it’s running on, including system files, other users’ files or processes, or network access.</p>
+
+<ul>
+  <li>Make sure command-line arguments and function parameters have legal values.</li>
+  <li>Check the results of all calls to standard libraries or the operating system.
+For example, check all memory allocations (<code class="highlighter-rouge">malloc</code>) to detect out-of-memory conditions.</li>
+  <li>Check all data obtained from users or other programs.</li>
+  <li>Check limit conditions on loops and arrays.
+For example, what happens if you try to access a value that is out of bounds?</li>
+</ul>
+
+<p>When you detect an error condition, first consider ways to modify the
+code to prevent the error from happening in the first place.  If that
+is not possible, ask if there is a way the code can recover from the
+error.  If there is no reasonable way of recovering, print an error
+message and exit the program.</p>
+
+<p>In short, if someone can crash your program, you lose points, whether
+in this class or in a future job.</p>
+
+<h2 id="required-compiler-options">Required compiler options</h2>
+
+<p>For <strong>all</strong> C programming assignments in this class, you must use (at
+a minimum) the following <code class="highlighter-rouge">gcc</code> compile options:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    gcc <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-Wall</span> <span class="nt">-pedantic</span> ... program.c ...
+</code></pre></div></div>
+
+<p>All programs <strong>must</strong> compile without errors or warnings.</p>
+
+<p>These instruct the compiler to compile for the C11 language standard,
+display all possible warnings, and to issue warnings if any non-ISO
+standard C features proided by <code class="highlighter-rouge">gcc</code> are used, respectively.  You will
+likely need to add other options to these; for example, if you use
+mathematics functions, you need to <code class="highlighter-rouge">#include &lt;math.h&gt;</code> in your C
+program and add <code class="highlighter-rouge">-lm</code> to the command line.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

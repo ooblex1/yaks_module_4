@@ -165,7 +165,6 @@ void compareDocQ(queue_t *temp, queue_t *wordstruct_q){
 //updates final doc queue with passed doc queue; used for OR operations
 void compareDocQOr(queue_t *final_q, queue_t *q_to_add) {
 	doc_t *final_doc, *doc_to_add;
-	queue_t *backup=qopen();
 
 	while ((doc_to_add = qget(q_to_add))!=NULL) {
 		final_doc = qsearch(final_q,searchQueue,doc_to_add);
@@ -228,7 +227,8 @@ void generateResult(char** words,hashtable_t *ht,int max) {
 	bool orflag=false;
 	
 	//queue of docs
-	queue_t *temp_q;
+	queue_t *temp_q = qopen();
+	queue_t *temp_q2 = qopen();
 	
 	//copy the first word in temp_q
 	char *first_word = words[0];
@@ -247,7 +247,6 @@ void generateResult(char** words,hashtable_t *ht,int max) {
 				temp_q = qopen();
 			} else {
 				orflag = true;
-				queue_t *temp_q2 = qopen();
 				temp_q2 = temp_q;
 				qclose(temp_q);
 				temp_q = qopen();

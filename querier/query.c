@@ -2,7 +2,7 @@
 /* query.c --- 
  * 
  * 
- * Author: Aadhya N. Kocha Ye Zhang
+ * Author: Aadhya N. Kocha Ye Zhang Kevin Larkin
  * Created: Thu Oct 29 22:14:18 2020 (-0400)
  * Version: 
  * 
@@ -19,6 +19,9 @@
 #include "pageio.h"
 #include "indexio.h"
 
+//global output and pagedir variables
+static FILE *out;
+static char pagedir[50];
 
 void normalizeWord(char *word){
     //check if more than 3 characters
@@ -101,31 +104,33 @@ bool searchQueueCount(void* elementp, const void* keyp){
     return (current_doc->count == *page_key);
 }
 
+//prints rank & other output for passed document to appropriate output destination
+void fprintfcount(void *elmt) {
+	if (elmt!=NULL) {
+		doc_t *doc_exist = (doc_t*)elmt;
+		fprintf(out, "rank:%d:doc:%d;", doc_exist->count, doc_exist->document);
 
-void printcount(void *elmt) {
-    if (elmt != NULL) {
-        doc_t *doc_exist = (doc_t*)elmt;
-        printf("rank:%d:doc:%d;", doc_exist->count, doc_exist->document);
+		FILE *fp;
+		char url[100];
+		char page_id[10];
+		char path[20];
 
-        //finding url
-        char *pagedir = "../crawler/pages3/";
+		int id = doc_exist->document;
+		sprintf(page_id,"%d",id);
+		strcpy(path,pagedir);
+		strcat(path,"/");
+		strcat(path,page_id);
 
-        FILE *fp;
-        char url[100];
-        char page_id[10];
-        char path[20];
+		fp = fopen(path,"r");
+		if (fp==NULL) {
+			printf("ERROR: Page is unreadeable\n");
+			exit(EXIT_FAILURE);
+		}
+		fscanf(fp,"%s\n",url);
 
-        int id = doc_exist->document;
-        sprintf(page_id,"%d",id);
-        strcpy(path,pagedir);
-        strcat(path,page_id);
-        fp = fopen(path,"r");
-        fscanf(fp,"%s\n",url);
-
-        printf("url:%s\n", url);
-
-        fclose(fp);
-    }
+		fprintf(out, "url:%s\n", url);
+		fclose(fp);
+	}
 }
 
 void copyDoc(doc_t *source,doc_t *destination){
@@ -147,33 +152,34 @@ queue_t *copyDocQ(queue_t *source, queue_t *destination){
             qput(destination, dup);
             qput(backup_q, current);
     }
-    //qconcat(source,backup_q);
     qclose(source);
-    //source=backup_q;
     return backup_q;
 }
 
 //compare doc and only leaves documents that has overlaps
 queue_t *compareDocQ(queue_t *temp, queue_t *wordstruct_q){
-    doc_t *retrived;
-    queue_t *backup;
-    backup=qopen();
-    doc_t *current;
-    while ((current = qget(temp) )!= NULL){
-        retrived = qsearch(wordstruct_q,searchQueue,current);
-        if (retrived == NULL){
-            free(current);
-        }else{
-            if (current->count > retrived->count){
-                current->count = retrived->count;
-            }
-            qput(backup, current);
-        }
-    }
-    //qconcat(temp,backup);
-    qclose(temp);
-    //temp = backup;
-    return(backup);
+	doc_t *retrived, *test;
+	queue_t *backup;
+	backup=qopen();
+	doc_t *current;
+	while ((current = qget(temp) )!= NULL){
+		retrived = qsearch(wordstruct_q,searchQueue,current);
+		if (retrived == NULL){
+			free(current);
+		}else{
+			if (current->count > retrived->count){
+				current->count = retrived->count;
+			}
+			qput(backup, current);
+		}
+	}
+	if ((test=(doc_t *)qget(backup))==NULL) {
+		fprintf(out,"No query terms found!\n");
+	} else {
+		qput(backup,(void *)test);
+	}
+	qclose(temp);
+	return(backup);
 }
 
 
@@ -198,7 +204,6 @@ int compareRank(const void * a, const void * b) {
 }
 
 //rank the final queue
-
 void sort(queue_t *final_q){
     int ranks[500];
     doc_t *current;
@@ -207,9 +212,6 @@ void sort(queue_t *final_q){
 
     //put all counts in an array
     int i = 0;
-
-    //qapply(final_q, printcount);
-    //printf("------------\n");
 
     while ((current = qget(final_q) )!= NULL){
         ranks[i] = current->count;
@@ -220,7 +222,6 @@ void sort(queue_t *final_q){
     //rank the array
     if (i>0){
         qsort(ranks,i,sizeof(int),compareRank);
-        //printf("%d\n", i);
         doc_t *retrived;
         for(int j = 0; j < i; j++){
             int rank_int = ranks[j];
@@ -233,12 +234,9 @@ void sort(queue_t *final_q){
     qclose(backup_rank);
 }
 
-
-
-
 void generateResult(char** words,hashtable_t *ht,int max) {
 
-    //queue of docs
+    //queues of docs
     queue_t *temp_q = NULL;
     queue_t *final_q;
     final_q = qopen();
@@ -271,10 +269,8 @@ void generateResult(char** words,hashtable_t *ht,int max) {
                     j++;
                 }
                 i=j;
-            }
-            
+            }   
         }
-
     }
 
     if (temp_q != NULL){
@@ -282,12 +278,10 @@ void generateResult(char** words,hashtable_t *ht,int max) {
         qclose(temp_q);
     }
 
-
     sort(final_q);
-    qapply(final_q,printcount);
-    
+		qapply(final_q,fprintfcount);
+		
     qclose(final_q);
-
 }
 
 void delete(void *p){
@@ -298,44 +292,89 @@ void delete(void *p){
     }
 }
 
-int main() {
-    char input[500];
-    char** words;
-    //queue_t *result_final;  //queue of docs for result, step 4
-    hashtable_t *ht;  //for index
-    printf("> ");
-    ht = indexload("../queryfiles/query_depth3"); //temporary name
-    while((fgets(input,500,stdin)) != NULL) {
-        if (!validate(input)) {
-            printf("invalid query!\n");
-            printf("> ");
-            continue;
-        }
-        if (strlen(input)<=1) {
-            printf("> ");
-            continue;
-        }
-        input[strlen(input)-1] = '\0';
-        int maxwords = strlen(input)/2;
-        words = (char**)calloc(maxwords,sizeof(char*));
-        int limit = parse(input,words);
+void usage(void) {
+	printf("usage: query <pageDirectory> <indexFile> [-q] [< <queriesFile>] [> <myoutput>]\n");
+}
 
-        if (limit < 0){
-            free(words);
-            printf("invalid query!\n");
-            printf("> ");
-            continue;
-        }        
-        
+int main(int argc, char *argv[]) {
+	char input[500], page1[50], indexfile[50];
+	char** words;
+	hashtable_t *ht;  //for index
+	FILE *p1p, *ip, *in=stdin;
+	bool quiet=false;
+	out=stdout;
 
-        generateResult(words,ht,limit);
+	//argument checks & processing
+	if (argc!=3 && argc!=6) {
+		usage();
+		exit(EXIT_FAILURE);
+	}
+	strcpy(pagedir,argv[1]);
+	strcpy(page1,pagedir);
+	strcat(page1,"/1");
+	strcpy(indexfile,argv[2]);
+	if (access(pagedir, F_OK)!=0) {
+		printf("ERROR: Directory inaccessible\n");
+		exit(EXIT_FAILURE);
+	}
+	if ((p1p=fopen(page1, "r"))==NULL) {
+		printf("ERROR: Directory has not been crawled, invalid pages directory, and/or unreadable file\n");
+		exit(EXIT_FAILURE);
+	}
+	fclose(p1p);
+	if ((ip=fopen(indexfile, "r"))==NULL) {
+		printf("ERROR: Index file not writeable or does not exist\n");
+		exit(EXIT_FAILURE);
+	}
+	fclose(ip);
+	if (argc>3) {
+		if (strcmp(argv[3],"-q")==0) {
+			quiet=true;
+			in = fopen(argv[4], "r");
+			out = fopen(argv[5], "w");
+			if (in==NULL || out==NULL) {
+				printf("ERROR: Failed to open queriesFile to read and/or myoutput to write\n");
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			usage();
+			exit(EXIT_FAILURE);
+		}
+	}
 
-        free(words);
-        printf("> ");
-    }
-
-    happly(ht,delete);
-    hclose(ht);
-
-    return 0;
+	//main body
+	fprintf(out,"> ");
+	ht = indexload(indexfile);
+	while((fgets(input,500,in)) != NULL) {
+		if (!validate(input)) {
+			fprintf(out,"invalid query!\n");
+			fprintf(out,"> ");
+			continue;
+		}
+		if (strlen(input)<=1) {
+			fprintf(out,"invalid query!");
+			fprintf(out,"> ");
+			continue;
+		}
+		input[strlen(input)-1] = '\0';
+		int maxwords = strlen(input)/2;
+		words = (char**)calloc(maxwords,sizeof(char*));
+		int limit = parse(input,words);
+		if (limit < 0){
+			free(words);
+			fprintf(out,"invalid query!\n");
+			fprintf(out,"> ");
+			continue;
+		}        
+		generateResult(words,ht,limit);
+		free(words);
+		fprintf(out,"> ");
+	}
+	if (quiet) {
+		fclose(in);
+		fclose(out);
+	}
+	happly(ht,delete);
+	hclose(ht);
+	return 0;
 }

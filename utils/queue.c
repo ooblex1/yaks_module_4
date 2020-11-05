@@ -180,6 +180,7 @@ void* qremove(queue_t *qp,
 				pivot_t *temp = p->next;
 				p->next = temp -> next;
 				free(temp);
+				break;
 			}else{
 				p=p->next;
 			}

@@ -31,9 +31,14 @@ void normalizeWord(char *word){
 }
 
 bool validate(char* line) {
+	printf("yo\n");
     for(int i=0;i<strlen(line);i++){
-        if (isalpha(line[i]) == 0 && isspace(line[i] == 0)) {
-            return false;
+			if (line[i] == '\t'){
+				line[i] = ' ';
+			}
+			if (isalpha(line[i]) == 0 && isspace(line[i]) == 0){
+				printf("not alpha\n");
+				return false;
         }
     }
     return true;
@@ -43,7 +48,10 @@ bool validate(char* line) {
 int parse(char* line, char** word) {
     char* token;
     token = strtok(line," ");
-    normalizeWord(token);
+		if (token==NULL) {
+			return -1;
+		}
+		normalizeWord(token);
     if (strcmp(token,"and") == 0 || strcmp(token,"or") == 0){
         printf("first word can not be and/or\n");
         return -1;

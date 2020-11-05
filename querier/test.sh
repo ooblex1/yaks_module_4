@@ -4,13 +4,13 @@
 
 ./query ./ # number of arg test 
 
-./query ./ ../indexer/index_for_query # not valid crawler dir test
+./query ./ ../indexer/query_depth3 # not valid crawler dir test
 
 ./query ./ file   # unreadable file test 
 echo "error queries begin"
-valgrind ./query ../crawler/pages ../indexer/index_for_query < error-queries   # prof's error tests
+valgrind ./query ../crawler/pages3 ../indexer/query_depth3 < error-queries   # prof's error tests
 echo "error queries done"
-valgrind query ../crawler/pages ../indexer/index_for_query -q good-queries.txt myoutput  # run quietly test with professor's queries 
+valgrind query ../crawler/pages3 ../indexer/query_depth3 -q good-queries.txt myoutput  # run quietly test with professor's queries 
 
 
 

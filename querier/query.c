@@ -158,7 +158,7 @@ queue_t *copyDocQ(queue_t *source, queue_t *destination){
 
 //compare doc and only leaves documents that has overlaps
 queue_t *compareDocQ(queue_t *temp, queue_t *wordstruct_q){
-	doc_t *retrived, *test;
+	doc_t *retrived;
 	queue_t *backup;
 	backup=qopen();
 	doc_t *current;
@@ -173,11 +173,13 @@ queue_t *compareDocQ(queue_t *temp, queue_t *wordstruct_q){
 			qput(backup, current);
 		}
 	}
+	/*
 	if ((test=(doc_t *)qget(backup))==NULL) {
 		fprintf(out,"No query terms found!\n");
 	} else {
 		qput(backup,(void *)test);
 	}
+	*/
 	qclose(temp);
 	return(backup);
 }

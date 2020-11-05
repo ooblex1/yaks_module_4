@@ -22,10 +22,8 @@
 
 void normalizeWord(char *word){
     //check if more than 3 characters
-    if(strlen(word)>=3){
-        for(int i=0; word[i]!= '\0'; i++){
-            word[i] = tolower(word[i]);
-        }
+    for(int i=0; word[i]!= '\0'; i++){
+        word[i] = tolower(word[i]);
     }
 }
 
@@ -38,35 +36,39 @@ bool validate(char* line) {
     return true;
 }
 
-/*
-bool isFirstLastCorrect(char** word, int limit){
-    char* first_word = word[1];
-
-    //check first word
-    if (strcmp(first_word,"and")==0 ||strcmp(first_word,"or")==0){
-        return false;
-    }
-
-    //check last word
-    char* last_word = word[limit-1];
-    if (strcmp(last_word,"and")==0 ||strcmp(last_word,"or")==0){
-        return false;
-    }
-
-    return true;
-}
-*/
 
 int parse(char* line, char** word) {
     char* token;
     token = strtok(line," ");
-    int i = 0;
+    normalizeWord(token);
+    if (strcmp(token,"and") == 0 || strcmp(token,"or") == 0){
+        printf("first word can not be and/or\n");
+        return -1;
+    }
+    int i = 1;
+    word[0] = token;
     while (token != NULL) {
         normalizeWord(token); //cant recognize from indexer.c
         word[i] = token;
         token = strtok(NULL," ");
+
+        if (strcmp(word[i-1],"and") == 0 || strcmp(word[i-1],"or") == 0){
+            if (strcmp(word[i],"and") == 0 || strcmp(word[i],"or") == 0){
+                printf("can't have consecutive ands /ors\n");
+                return -1;
+            }
+        }
+
+
         i++;
+
     }
+
+    if (strcmp(word[i-1],"and") == 0 || strcmp(word[i-1],"or") == 0){
+        printf("last word can not be and/or\n");
+        return -1;
+    }
+
     return i;
 }
 
@@ -89,6 +91,18 @@ bool searchQueue(void* elementp, const void* keyp){
     doc_t* current_doc = (doc_t*) elementp;
     return (current_doc->document == *page_key);
 }
+
+
+//search queue of doc_t for the count
+bool searchQueueCount(void* elementp, const void* keyp){
+    if (elementp == NULL){
+        return NULL;
+    }
+    int* page_key = (int*)keyp;
+    doc_t* current_doc = (doc_t*) elementp;
+    return (current_doc->count == *page_key);
+}
+
 
 void printcount(void *elmt) {
     if (elmt != NULL) {
@@ -168,11 +182,12 @@ int compareRank(const void * a, const void * b) {
 }
 
 //rank the final queue
-/*
-void rankfinal(queue_t *final_q){
+
+void sort(queue_t *final_q){
     int ranks[500];
     doc_t *current;
     queue_t *backup_rank;
+    backup_rank = qopen();
 
     //put all counts in an array
     int i = 0;
@@ -183,30 +198,24 @@ void rankfinal(queue_t *final_q){
     }
 
     //rank the array
-    qsort(ranks,i,sizeof(int),compareRank);
-
-    //debug printing code
     
-    int loop;
+    if (i>0){
+        qsort(ranks,i,sizeof(int),compareRank);
 
-    for(loop = 0; loop < 10; loop++){
-      printf("%d ", ranks[loop]);
+        doc_t *retrived;
+        for(int j = 0; j < i; j++){
+            retrived = qremove(backup_rank,searchQueueCount,(void *)&ranks[j]);
+            if (retrived != NULL){
+                qput(final_q, retrived);
+            }
+        }
     }
     
-
-    int j = 0;
-    for(j = 0; j < 10; j++){
-      printf("%d ", ranks[loop]);
-    }
-
     
-
-
     qclose(backup_rank);
 
-
 }
-*/
+
 
 
 
@@ -219,6 +228,11 @@ void generateResult(char** words,hashtable_t *ht,int max) {
     char *first_word = words[0];
     temp_q = qopen();
     wordDoc_t *word_struct_1 = hsearch(ht,search,first_word,strlen(first_word));
+    if (word_struct_1 == NULL) {
+        printf("the word doesn't exist!\n");
+        qclose(temp_q);
+        return;
+    }
 
     copyDocQ(word_struct_1->doc_q, temp_q);
 
@@ -229,11 +243,15 @@ void generateResult(char** words,hashtable_t *ht,int max) {
             wordDoc_t *word_struct = hsearch(ht,search,current_word,strlen(current_word));
             if (word_struct != NULL) { //if the word exists in any document                
                 compareDocQ(temp_q, word_struct->doc_q);             
+            } else{
+                printf("the word doesn't exist!\n");
+                qclose(temp_q);
+                return;
             }
         }
     }
 
-    //rankfinal(temp_q);
+    sort(temp_q);
     qapply(temp_q,printcount);
     qclose(temp_q);
 
@@ -257,6 +275,7 @@ int main() {
     while((fgets(input,500,stdin)) != NULL) {
         if (!validate(input)) {
             printf("invalid query!\n");
+            printf("> ");
             continue;
         }
         if (strlen(input)<=1) {
@@ -268,13 +287,12 @@ int main() {
         words = (char**)calloc(maxwords,sizeof(char*));
         int limit = parse(input,words);
 
-        /*
-        if (!isFirstLastCorrect(words, limit)){
-            printf("first and last word can not be and/or");
+        if (limit < 0){
+            free(words);
+            printf("invalid query!\n");
+            printf("> ");
             continue;
-        }
-        */
-        
+        }        
         
 
         generateResult(words,ht,limit);

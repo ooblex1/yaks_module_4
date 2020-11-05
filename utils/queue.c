@@ -61,6 +61,10 @@ int32_t qput(queue_t *qp, void *ep) {
 	pivot_t *p;
 	int result = 0;
 	
+	if (q == NULL){
+		return 1;
+	}
+
 	p = (pivot_t *)malloc(sizeof(pivot_t));
 	if (p == NULL) {
 		printf("memory allocation failed");
@@ -153,79 +157,36 @@ void* qsearch(queue_t *qp, bool (*searchfn)(void *ep, const void *keyp),
 void* qremove(queue_t *qp,
 							bool (*searchfn)(void *ep, const void *keyp),
 							const void *skeyp) {
-	pivot_t *p = NULL, *temp1 = NULL;
-	void *temp2 = NULL;
-	int xx = 0, yy = 0, nf = 1;
-	guide_t *q = NULL;
-	
-	if (qp == NULL) {
-		printf("Queue is empty.\n");
-		temp2 = NULL;
-		nf = 0;
-	} else {
-		q = (guide_t *)qp;
-		
-		if (q == NULL || q->front == NULL || q->back == NULL) {
-			printf("Queue is empty.\n");
-			temp2 = NULL;
-			nf = 0;
-		} else {
-			if (q->front->next == NULL) {
-				if (searchfn(q->front->e, skeyp)) {
-					temp1 = q->front;
-					temp2 = q->front->e;
-					
-					q->front = NULL;
-					q->back = NULL;
-					
-					nf = 0;
-				}
-			} else {
-				for (p = q->front; p->next != NULL && xx != 1; p = p->next) {
-					if (p == q->front && searchfn(p->e, skeyp)) {
-						temp1 = p;
-						temp2 = p->e;
-						
-						q->front = q->front->next;
-						
-						nf = 0;
-						xx = 1;
-					}
-					
-					if (searchfn(p->next->e, skeyp)) {
-						temp1 = p->next;
-						temp2 = p->next->e;
-						
-						if (p->next == q->back) {
-							yy = 1;
-						} else {
-							p->next = p->next->next;
-						}
-						
-						nf = 0;
-						xx = 1;
-					}
-				}
+	if (qp == NULL || searchfn == NULL || skeyp == NULL){
+		return NULL;
+	}
+
+	void *data = NULL;
+	guide_t *q1 = (guide_t *)qp;
+
+	if (q1->front == NULL){
+		return NULL;
+	}
+
+	if (searchfn(q1->front->e,skeyp) ){
+		data = q1->front->e;
+		pivot_t *temp = q1->front;
+		q1->front = q1->front->next;
+		free(temp);
+	}else{
+		for (pivot_t *p = q1->front; p->next != NULL; ){
+			if (searchfn(p->next->e,skeyp)){
+				data = p->next->e;
+				pivot_t *temp = p->next;
+				p->next = temp -> next;
+				free(temp);
+			}else{
+				p=p->next;
 			}
 		}
 	}
-	
-	if (nf == 1) {
-		printf("Element not found in queue.\n");
-		temp2 = NULL;
-	}
+	return data;
 
-	if (temp1 != NULL) {
-		temp1->next = NULL;
-		free(temp1);
-		temp1 = NULL;
-	}
-
-	if (yy == 1) {
-		q->back = NULL;
-	}
-
-	return temp2;
 }
 
 void qconcat(queue_t *qp1, queue_t *qp2) {

@@ -70,6 +70,7 @@ int parse(char* line, char** word) {
     return i;
 }
 
+
 bool search(void *elmt, const void *key) {
     if (elmt == NULL){
         return NULL;
@@ -92,7 +93,26 @@ bool searchQueue(void* elementp, const void* keyp){
 void printcount(void *elmt) {
     if (elmt != NULL) {
         doc_t *doc_exist = (doc_t*)elmt;
-        printf("rank:%d:doc:%d\n", doc_exist->count, doc_exist->document);
+        printf("rank:%d:doc:%d;", doc_exist->count, doc_exist->document);
+
+        //finding url
+        char *pagedir = "../crawler/pages1/";
+
+        FILE *fp;
+        char url[100];
+        char page_id[10];
+        char path[20];
+
+        int id = doc_exist->document;
+        sprintf(page_id,"%d",id);
+        strcpy(path,pagedir);
+        strcat(path,page_id);
+        fp = fopen(path,"r");
+        fscanf(fp,"%s\n",url);
+
+        printf("url:%s\n", url);
+
+        fclose(fp);
     }
 }
 
@@ -142,23 +162,52 @@ void compareDocQ(queue_t *temp, queue_t *wordstruct_q){
     //temp = backup;
 }
 
-/*
+
+int compareRank(const void * a, const void * b) {
+   return ( *(int*)b - *(int*)a );
+}
+
 //rank the final queue
+/*
 void rankfinal(queue_t *final_q){
     int ranks[500];
     doc_t *current;
+    queue_t *backup_rank;
 
     //put all counts in an array
-    i = 0;
+    int i = 0;
     while ((current = qget(final_q) )!= NULL){
         ranks[i] = current->count;
+        qput(backup_rank,current);
         i++;
     }
 
     //rank the array
+    qsort(ranks,i,sizeof(int),compareRank);
+
+    //debug printing code
+    
+    int loop;
+
+    for(loop = 0; loop < 10; loop++){
+      printf("%d ", ranks[loop]);
+    }
+    
+
+    int j = 0;
+    for(j = 0; j < 10; j++){
+      printf("%d ", ranks[loop]);
+    }
+
+    
+
+
+    qclose(backup_rank);
+
 
 }
 */
+
 
 
 void generateResult(char** words,hashtable_t *ht,int max) {
@@ -225,6 +274,8 @@ int main() {
             continue;
         }
         */
+        
+        
 
         generateResult(words,ht,limit);
 

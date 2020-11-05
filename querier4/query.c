@@ -190,23 +190,18 @@ void compareDocQ(queue_t *temp, queue_t *wordstruct_q){
 	//temp = backup;
 }
 
-void compareDocQOr(queue_t *temp, queue_t *wordstruct_q) {
-	doc_t *retrived;
-	queue_t *backup;
-	backup=qopen();
-	doc_t *current;
-	while ((current = qget(temp) )!= NULL){
-		retrived = qsearch(wordstruct_q,searchQueue,current);
-		if (retrived == NULL){
-			free(current);
-		}else{
-			if (current->count > retrived->count){
-				current->count = retrived->count;
-			}
-			qput(backup, current);
+void compareDocQOr(queue_t *q_to_add, queue_t *final_q) {
+	doc_t *final_doc, *doc_to_add;
+	queue_t *backup=qopen();
+	
+	while ((doc_to_add = qget(q_to_add) )!= NULL){
+		final_doc = qsearch(final_q,searchQueue,doc_to_add);
+		if (final_doc != NULL) {
+			final_doc->count += doc_to_add->count;
+		} else {
+			qput(final_q,(void *)doc_to_add);
 		}
 	}
-	qconcat(temp,backup);
 }
 
 /*
@@ -275,7 +270,7 @@ void generateResult(char** words,hashtable_t *ht,int max,bool hasor) {
 					compareDocQ(temp_q, word_struct->doc_q);             
 				}
 			} else {
-				
+				compareDocQOr(
 			}
 		}
 	}

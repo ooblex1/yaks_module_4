@@ -1,0 +1,11 @@
+modularity reuse or couple or cohesion
+git or gitlab or version control or clearcase or torvalds
+testing and fuzz
+crawl update
+professor
+professor and taylor
+professor and taylor or date
+professor and taylor bibaswan
+bugs riot or testing trawler
+bugs riot mandelbugs and compiler or policies or motivational or cohesion or linux
+

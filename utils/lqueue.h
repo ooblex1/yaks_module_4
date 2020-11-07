@@ -12,8 +12,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include "queue.h"
 
-typedef struct lqueue_t;
+typedef struct lqueue {
+	queue_t *q;
+	pthread_mutex_t *m;
+} lqueue_t;
 
 //open a new queue that has a mutex lock
 lqueue_t *lqopen(void);

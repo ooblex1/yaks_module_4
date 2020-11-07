@@ -1,4 +1,3 @@
-#pragma once
 /* lqueue.c --- private implementation of the locked-queue module
  * 
  * 
@@ -10,22 +9,18 @@
  * 
  */
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include "queue.h"
 #include "lqueue.h"
 
-typedef struct lqueue {
-	queue_t *q;
-	pthread_mutex_t *m;
-} lqueue_t;
-
 static void lock(lqueue_t *lqp) {
-	pthread_mutex_lock(&(lqp->m));
+	pthread_mutex_lock(lqp->m);
 }
 
 static void unlock(lqueue_t *lqp) {
-	pthread_mutex_unlock(&(lqp->m));
+	pthread_mutex_unlock(lqp->m);
 }
 
 //open a new queue that has a mutex lock
@@ -37,7 +32,8 @@ lqueue_t *lqopen(void) {
 	
 	//open queue, then initialize mutex
 	lqp->q = qopen();
-	pthread_mutex_init(&(lqp->m),NULL);
+	pthread_mutex_init(lqp->m,NULL);
+	lqp->m=NULL;
 
 	return lqp;
 }

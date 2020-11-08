@@ -8,6 +8,7 @@
  * Description: For ENGS50 Module 7 Step 1
  * 
  */
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -32,8 +33,8 @@ lqueue_t *lqopen(void) {
 	
 	//open queue, then initialize mutex
 	lqp->q = qopen();
+	lqp->m=(pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
 	pthread_mutex_init(lqp->m,NULL);
-	lqp->m=NULL;
 
 	return lqp;
 }
@@ -85,6 +86,7 @@ void lqclose(lqueue_t *lqp) {
 		if (lqp->q!=NULL)
 			qclose(lqp->q);
 		if (lqp->m!=NULL) {
+			pthread_mutex_destroy(lqp->m);
 			free(lqp->m);
 			lqp->m = NULL;
 		}

@@ -1,0 +1,20 @@
+CFLAGS=-Wall -pedantic -std=c11 -I. -g
+OFILES=queue.o hash.o webpage.o pageio.o indexio.o lqueue.o
+
+all:	$(OFILES)
+			ar cr ../lib/libutils.a $(OFILES)
+
+%.o:	%.c %.h
+			gcc $(CFLAGS) -c $<
+
+lqtest1:	lqtest1.o lqueue.o queue.o
+					gcc $(CFLAGS) lqtest1.o lqueue.o queue.o -o lqtest1
+
+lqtest2:	lqtest2.o lqueue.o queue.o
+					gcc $(CFLAGS) lqtest2.o lqueue.o queue.o -o lqtest2
+
+lqtest3:	lqtest3.o lqueue.o queue.o
+					gcc $(CFLAGS) lqtest3.o lqueue.o queue.o -o lqtest3 -lpthread
+
+clean:	
+			rm -f *.o lqtest1 lqtest2 lqtest3

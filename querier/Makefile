@@ -6,5 +6,6 @@ all: query
 query:    
 		gcc $(CFLAGS) query.c $(LIBS) -o $@
 
+
 clean:
 		rm -f query

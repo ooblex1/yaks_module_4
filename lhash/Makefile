@@ -1,21 +1,16 @@
-CFLAGS=-Wall -pedantic -std=c11 -I. -g
+CFLAGS=-Wall -pedantic -std=c11 -I../utils -L../lib -g
+LIBS=-lutils -lcurl
 
-all:     	lhtest1 lhtest2 lhtest3 lhtest4
+all:     	testH testQ
 
 %.o:     	%.c %.h
 			gcc $(CFLAGS) -c $<
 
-lhtest1: 	lhtest1.o lhash.o queue.o hash.o
-			gcc $(CFLAGS) $^ -o $@ -lpthread
+testH: 	    
+			gcc $(CFLAGS) testH.o $(LIBS) -o $@ -pthread
 
-lhtest2: 	lhtest2.o lhash.o queue.o hash.o
-			gcc $(CFLAGS) $^ -o $@ -lpthread
-
-lhtest3: 	lhtest3.o lhash.o queue.o hash.o
-			gcc $(CFLAGS) $^ -o $@ -lpthread
-
-lhtest4: 	lhtest4.o lhash.o queue.o hash.o
-			gcc $(CFLAGS) $^ -o $@ -lpthread
+testQ: 	    
+			gcc $(CFLAGS) testQ.o $(LIBS) -o testQ -pthread
 
 clean:
-			rm -f *.o lhtest1 lhtest2 lhtest3 lhtest4
+			rm -f queue.o lhash.o hash.o lqueue.o testH testQ

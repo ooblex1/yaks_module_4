@@ -1,0 +1,285 @@
+https://thayer.github.io/engs50/Notes/debug/extra/
+3
+17157
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Extra - More gdb and profiling performance with gprof</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/debug/extra/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Extra - More gdb and profiling performance with gprof</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="using-gdb-to-debug-core-files">Using gdb to debug “core” files</h3>
+
+<p>Something you will likely encounter in your programming endevors is the notorious “core dump.” A core dump is really nothing more than a record of the working memory of a program at a specific point in time; usually this point in time is when a program does something bad and the computer doesn’t know how to handle the issue.
+The computer simply raises its hands and says “I’m done.
+I killed the program and dumped a bunch of information in a file for you to review if you want.” In cs50 a common notice is the “segfault” or “segmentation fault” which refers to accessing invalid memory.</p>
+
+<p>It just so happens that gdb can take core dump files as input.
+Generally speaking, you can start gdb with no arguments, or with the name of an exectuable as an argument.
+You can also start gdb with both an executable program <em>and</em> a core file specified:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>gdb program core
+</code></pre></div></div>
+
+<p><strong>Important:</strong> Linux has recently changed the way core dumps are produced.
+Traditionally, when your program crashed with a ‘segmentation fault’ or certain other errors, Unix would “dump core”.
+That is, it wrote a snapshot copy of the process’s memory into a file called <code class="highlighter-rouge">core</code> in the current working directory.
+These files are <em>huge</em>.
+Programmers (or users) often don’t notice them, and the file system becomes littered with droppings.
+<em>Huge</em> droppings.
+So Linux now dumps core files in a central location, where they can be managed, and cleaned up.
+To find your core files, type</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>coredumpctl list
+</code></pre></div></div>
+
+<p>And to use one of those core files with gdb, say, the one associated with dead process 20421,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>coredumpctl gdb 20421
+</code></pre></div></div>
+
+<p>For more information, read the department’s wiki <a href="https://wiki.cs.dartmouth.edu/faq/doku.php/users_faq:coredump">page about core dumps</a>.</p>
+
+<p>In this class it is usually sufficient to debug the program directly and you really shouldn’t need to concern yourself with debugging <code class="highlighter-rouge">core</code> files directly.
+There are advantages to debugging a <code class="highlighter-rouge">core</code> file, however, since it generally captures state such as the values of the processor registers at the time of the core dump, information about the processor, flags that are set in your OS (i.e., OS configurations), and so forth.</p>
+
+<h3 id="the-gprof-tool">The <code class="highlighter-rouge">gprof</code> Tool</h3>
+
+<p><strong><em>NOTE: In these notes there are many references to the “crawler.” This program will be coded by you in a future assignment.</em></strong></p>
+
+<p>The <code class="highlighter-rouge">gprof</code> tool is used to profile the runtime performance of code.
+Many times you might be confident that the code is bug free because there are no <em>functional</em> problems.
+However, the code could be worthless if it does not meet its performance requirements.
+The <code class="highlighter-rouge">gprof</code> tool is an execution profiling tool that is useful when tracking down performance problems.</p>
+
+<p><strong>Warning.</strong> <code class="highlighter-rouge">gprof</code> doesn’t always work well on MacOS.
+Log on to a machine in the lab to try it out.</p>
+
+<p>Anecdotal evidence.
+Many time programmers focus on getting the code to work functionally and then think about speed up.
+This is not always the most productive approach to design or systems development.
+Best to design for speed if needed (e.g., use a hash table instead of searching a long double linked list).</p>
+
+<blockquote>
+  <p><strong>An Anecdote from Andrew Campbell:</strong>
+I recall once working as a consultant on improving the performance of a radio router.
+The performance of the system coded in Ada was appalling and someone`s head was about to roll.
+I spend probably two weeks just studying the code of a very large system - difficult to keep that all in your head.
+Profiling the code highlighted the cost of a system that had been desiged and coded with an excessive number of tasks and rendezvous.
+The cost of interprocess communications was high.
+What did I do? It was not nice.
+Turned the system into one large task and replaced all interprocess communications (IPC) (which represented system calls) with my library that implemented the IPC API.
+I changed a couple 100 lines of code in a system of 20,000 lines of code.
+The improvement was massive.
+Packets could be forwarded from one radio input to the output radio in under 100 msec which was down from 1 second!
+I was king for the day, or week.
+I made my changes, tested them locally, desk checked the code closely - and, it ran first time!
+The guy who designed the system wanted me to fail - I could feel it.
+But when that router ran first time, well, that is a moment I will always remember.
+My reward? I got to design the next system.
+The problem was essentially a performance bug.
+The changes were simple once the problem was identified.
+I took a very radical approach that ran against OO design.
+But that is what was needed.
+A router that forwarded packets at 1 second intervals was not going to fly with the customer.</p>
+</blockquote>
+
+<p>To run the <code class="highlighter-rouge">gprof</code> tool, first use the <code class="highlighter-rouge">-pg</code> switch in the compiler flags:</p>
+
+<div class="language-makefile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Filename: Makefile
+# Description: The make file is to build up the crawler.
+</span>
+<span class="nv">CC</span><span class="o">=</span>gcc
+<span class="nv">CFLAGS</span><span class="o">=</span><span class="nt">-Wall</span> <span class="nt">-pg</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11
+<span class="nv">SOURCES</span><span class="o">=</span>./list.h ./list.c ./crawler.c ../util/hash.c ../util/html.c
+</code></pre></div></div>
+
+<p>Once you have done a build with <code class="highlighter-rouge">-pg</code> then run the application.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">pwd</span>
+/net/nusers/campbell/cs50/l16/lab4/src/crawler
+
+<span class="nv">$ </span>./crawler www.cs.dartmouth.edu ../../data/ 2
+</code></pre></div></div>
+
+<p>Now you are ready to run the <code class="highlighter-rouge">gprof</code> tool:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>gprof crawler gmon.out <span class="o">&gt;</span> profile
+</code></pre></div></div>
+
+<p>An excerpt from the output of the profile is below.
+You can learn a lot about where your program is spending time by studying this output.
+There is a reasonable amount of documentation included in the report which will help the interested person navigate the report’s output, and there’s also lots more in the <code class="highlighter-rouge">man</code> pages.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    Flat profile:
+
+    Each sample counts as 0.01 seconds.
+      %   cumulative   self              self     total
+     <span class="nb">time   </span>seconds   seconds    calls  us/call  us/call  name
+     35.75      0.05     0.05      203   246.54   246.54  removeWhiteSpace
+     14.30      0.07     0.02    43714     0.46     0.46  hash1
+     14.30      0.09     0.02    22186     0.90     3.16  GetNextURL
+      7.15      0.10     0.01    21533     0.46     0.46  NormalizeURL
+      7.15      0.11     0.01     1351     7.41     7.94  DAdd
+      7.15      0.12     0.01     1351     7.41     7.41  getAddressFromTheLinksToBeVisited
+      7.15      0.13     0.01      203    49.31   394.47  extractURLs
+      7.15      0.14     0.01      203    49.31   237.36  updateListLinkToBeVisited
+      0.00      0.14     0.00    43714     0.00     0.46  make_hash
+      0.00      0.14     0.00    21147     0.00     0.91  GetDataWithKey
+      0.00      0.14     0.00    19795     0.00     1.45  addElement
+      0.00      0.14     0.00     1351     0.00     1.38  setURLasVisited
+      0.00      0.14     0.00      208     0.00     0.00  getPage
+      0.00      0.14     0.00      203     0.00     0.00  ReadFileToMemoryOrDie
+      0.00      0.14     0.00      203     0.00     0.00  file_length
+      0.00      0.14     0.00        1     0.00     0.00  CleanDictionary
+      0.00      0.14     0.00        1     0.00     0.00  InitDictionary
+      0.00      0.14     0.00        1     0.00     0.00  IsDirectory
+      0.00      0.14     0.00        1     0.00     0.00  cleanup
+      0.00      0.14     0.00        1     0.00     0.00  initList
+
+     %         the percentage of the total running <span class="nb">time </span>of the
+    <span class="nb">time       </span>program used by this <span class="k">function</span><span class="nb">.</span>
+
+    cumulative a running sum of the number of seconds accounted
+     seconds   <span class="k">for </span>by this <span class="k">function </span>and those listed above it.
+
+     self      the number of seconds accounted <span class="k">for </span>by this
+    seconds    <span class="k">function </span>alone.  This is the major sort <span class="k">for </span>this
+               listing.
+
+    calls      the number of <span class="nb">times </span>this <span class="k">function </span>was invoked, <span class="k">if
+               </span>this <span class="k">function </span>is profiled, <span class="k">else </span>blank.
+
+     self      the average number of milliseconds spent <span class="k">in </span>this
+    ms/call    <span class="k">function </span>per call, <span class="k">if </span>this <span class="k">function </span>is profiled,
+               <span class="k">else </span>blank.
+
+     total     the average number of milliseconds spent <span class="k">in </span>this
+    ms/call    <span class="k">function </span>and its descendents per call, <span class="k">if </span>this
+               <span class="k">function </span>is profiled, <span class="k">else </span>blank.
+
+    name       the name of the <span class="k">function</span><span class="nb">.</span>  This is the minor sort
+               <span class="k">for </span>this listing. The index shows the location of
+               the <span class="k">function in </span>the gprof listing. If the index is
+               <span class="k">in </span>parenthesis it shows where it would appear <span class="k">in
+               </span>the gprof listing <span class="k">if </span>it were to be printed.
+    ^L
+                         Call graph <span class="o">(</span>explanation follows<span class="o">)</span>
+
+
+    granularity: each sample hit covers 2 byte<span class="o">(</span>s<span class="o">)</span> <span class="k">for </span>7.14% of 0.14 seconds
+
+    index % <span class="nb">time    </span>self  children    called     name
+                                                     
+    <span class="o">[</span>1]    100.0    0.00    0.14                 main <span class="o">[</span>1]
+                    0.01    0.07     203/203         extractURLs <span class="o">[</span>2]
+                    0.01    0.04     203/203         updateListLinkToBeVisited <span class="o">[</span>5]
+                    0.01    0.00    1351/1351        getAddressFromTheLinksToBeVisited <span class="o">[</span>12]
+                    0.00    0.00    1351/1351        setURLasVisited <span class="o">[</span>13]
+                    0.00    0.00     208/208         getPage <span class="o">[</span>14]
+                    0.00    0.00       1/1           IsDirectory <span class="o">[</span>19]
+                    0.00    0.00       1/1           initList <span class="o">[</span>21]
+                    0.00    0.00       1/1           cleanup <span class="o">[</span>20]
+    <span class="nt">-----------------------------------------------</span>
+                    0.01    0.07     203/203         main <span class="o">[</span>1]
+    <span class="o">[</span>2]     57.1    0.01    0.07     203         extractURLs <span class="o">[</span>2]
+                    0.02    0.05   22186/22186       GetNextURL <span class="o">[</span>3]
+    <span class="nt">-----------------------------------------------</span>
+    <span class="nt">-----------------------------------------------</span>
+                                    1676             GetNextURL <span class="o">[</span>3]
+                    0.02    0.05   22186/22186       extractURLs <span class="o">[</span>2]
+    <span class="o">[</span>3]     50.0    0.02    0.05   22186+1676    GetNextURL <span class="o">[</span>3]
+                    0.05    0.00     203/203         removeWhiteSpace <span class="o">[</span>4]
+                                    1676             GetNextURL <span class="o">[</span>3]
+    <span class="nt">-----------------------------------------------</span>
+                    0.05    0.00     203/203         GetNextURL <span class="o">[</span>3]
+    <span class="o">[</span>4]     35.7    0.05    0.00     203         removeWhiteSpace <span class="o">[</span>4]
+    <span class="nt">-----------------------------------------------</span>
+                    0.01    0.04     203/203         main <span class="o">[</span>1]
+    <span class="o">[</span>5]     34.4    0.01    0.04     203         updateListLinkToBeVisited <span class="o">[</span>5]
+                    0.00    0.03   19794/19795       addElement <span class="o">[</span>6]
+                    0.01    0.00   20182/21533       NormalizeURL <span class="o">[</span>11]
+    <span class="nt">-----------------------------------------------</span>
+                    0.00    0.00       1/19795       setURLasVisited <span class="o">[</span>13]
+                    0.00    0.03   19794/19795       updateListLinkToBeVisited <span class="o">[</span>5]
+    <span class="o">[</span>6]     20.5    0.00    0.03   19795         addElement <span class="o">[</span>6]
+                    0.00    0.02   19795/21147       GetDataWithKey <span class="o">[</span>9]
+                    0.01    0.00    1351/1351        DAdd <span class="o">[</span>10]
+    <span class="nt">-----------------------------------------------</span>
+                    0.02    0.00   43714/43714       make_hash <span class="o">[</span>8]
+    <span class="o">[</span>7]     14.3    0.02    0.00   43714         hash1 <span class="o">[</span>7]
+    <span class="nt">-----------------------------------------------</span>
+
+    ... 152 lines omitted
+</code></pre></div></div>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

@@ -1,0 +1,240 @@
+https://thayer.github.io/engs50/Notes/makefiles/preprocessor.html
+3
+14648
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Extra - the C preprocessor</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/makefiles/preprocessor.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Extra - the C preprocessor</h1>
+  </header>
+
+  <div class="post-content">
+    <p>You will notice that a few lines, typically near the beginning of a C program, begin with the character <code class="highlighter-rouge">#</code>, aka ‘hash’, ‘pound’, or ‘sharp’.
+These lines are “C preprocessor directives” and are actually instructions (directives) to a special program called the “C preprocessor”.
+As its name suggests, the C preprocessor processes the text of a C program <em>before</em> the C compiler sees it.
+The preprocessor directives (all beginning with <code class="highlighter-rouge">#</code>) should begin in column 1 (the 1st column) of any source line on which they appear.</p>
+
+<p>The C preprocessor is very powerful but we will use it only for very specific purposes.
+Most of the other common uses for preprocessor directives are either beyond the scope of this course, or unnecessary (and bad style) in modern C.</p>
+
+<h2 id="header-file-inclusion">Header file inclusion</h2>
+
+<p>The <code class="highlighter-rouge">#include</code> directive, often pronounced “pound include”, should appear at the beginning of a C program.
+It is used to literally copy the entire contents of another file at the point of the <code class="highlighter-rouge">#include</code> directive.
+A common <code class="highlighter-rouge">#include</code> directive, seen at the beginning of most C files, is</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="cp">#include &lt;stdio.h&gt;
+</span></code></pre></div></div>
+
+<p>This directive indicates that the contents of the file named <code class="highlighter-rouge">stdio.h</code> should be included at this point (the directive is replaced with the contents).
+There is no limit to the number of lines that may be included with this directive and, in fact, the contents of the included file may contain other <code class="highlighter-rouge">#include</code> directives which are handled in the same way.
+We say that the inclusions are nested and, of course, care should be taken to avoid duplicate or, even worse, recursive nestings!</p>
+
+<p>The example using <code class="highlighter-rouge">&lt;stdio.h&gt;</code>, above, demonstrates two important points.
+The filename itself appears between the characters <code class="highlighter-rouge">&lt; &gt;</code>.
+The use of these characters indicates that the enclosed filename should be found in the standard include directory <code class="highlighter-rouge">/usr/include</code>.
+The required file is then <code class="highlighter-rouge">/usr/include/stdio.h</code>.</p>
+
+<p>The standard include files are used to consistently provide system-wide data structures or declarations that are required in many different files.
+By having the standard include files centrally located and globally available, all C programmers are guaranteed of using the same data structures and declarations that they (all) require.</p>
+
+<p>Alternatively, the <code class="highlighter-rouge">" "</code> characters may also be used, as in the following example:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="cp">#include "readline.h"
+</span></code></pre></div></div>
+
+<p>to include the contents of the file <code class="highlighter-rouge">readline.h</code> at the correct point in the C program.
+Because double-quotes are used, the file is sought in the present working directory, that is <code class="highlighter-rouge">./readline.h</code>.
+The filename in double-quotes can actually be a pathname, if your source code is spread over several directories; for example,</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="cp">#include "includes/readline.h"
+</span></code></pre></div></div>
+
+<p>In both of the above examples the indicated filename had the <code class="highlighter-rouge">.h</code> extension.
+Whereas we have previously said that the extension of <code class="highlighter-rouge">.c</code> is expected by the C compiler, the use of <code class="highlighter-rouge">.h</code> is only a convention within UNIX.
+The <code class="highlighter-rouge">.h</code> indicates that the file is a <em>header file</em>, because they generally contain information required at the head (beginning) of a C program.
+Header files typically (and should) contain only <em>declarations</em> of C constructs, like data types, data structures, and constants used throughout the C program.
+In particular, <strong>include files should contain only <em>declarations</em>, and no <em>definitions</em>, of variables or functions.</strong></p>
+
+<p>You can also give the compiler a command-line flag to identify a directory where it can search for non-standard include files.
+If, for example, you moved your <code class="highlighter-rouge">includes</code> directory up a level, you might write</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="cp">#include "readline.h"
+</span></code></pre></div></div>
+<p>but then tell the compiler where to look for such files:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mygcc <span class="nt">-I</span> ../includes    <span class="nt">-c</span> readline.c
+</code></pre></div></div>
+
+<h2 id="conditional-compilation">Conditional compilation</h2>
+
+<p>Another often used feature of the C preprocessor is the use of “conditional compilation directives”.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#define DEBUG
+</span><span class="p">...</span>
+<span class="cp">#ifdef DEBUG
+</span> <span class="p">...</span> <span class="n">code</span> <span class="k">for</span> <span class="n">use</span> <span class="n">when</span> <span class="n">DEBUG</span> <span class="n">is</span> <span class="n">defined</span>
+<span class="cp">#else // DEBUG
+</span> <span class="p">...</span> <span class="n">code</span> <span class="k">for</span> <span class="n">use</span> <span class="n">when</span> <span class="n">DEBUG</span> <span class="n">is</span> <span class="n">not</span> <span class="n">defined</span>
+<span class="cp">#endif // DEBUG
+</span></code></pre></div></div>
+
+<p>The C preprocessor actually includes some code, and strips out other code, before passing it to the C compiler.
+In the above example, we define the preprocessor constant called <code class="highlighter-rouge">DEBUG</code>, and later test its value with <code class="highlighter-rouge">#ifdef</code>.
+Notice the use of comments on the <code class="highlighter-rouge">#else</code> and <code class="highlighter-rouge">#endif</code> lines to help readability.</p>
+
+<p>The above example is a common approach for debugging.
+Even better, remove the <code class="highlighter-rouge">#DEBUG</code> line and let that be determined by the programmer at compile time:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#ifdef DEBUG
+</span> <span class="p">...</span> <span class="n">code</span> <span class="k">for</span> <span class="n">use</span> <span class="n">when</span> <span class="n">DEBUG</span> <span class="n">is</span> <span class="n">defined</span>
+<span class="cp">#else // DEBUG
+</span> <span class="p">...</span> <span class="n">code</span> <span class="k">for</span> <span class="n">use</span> <span class="n">when</span> <span class="n">DEBUG</span> <span class="n">is</span> <span class="n">not</span> <span class="n">defined</span>
+<span class="cp">#endif // DEBUG
+</span></code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  mygcc <span class="nt">-DDEBUG</span> program.c <span class="nt">-o</span> program
+</code></pre></div></div>
+
+<p>The program compiles (and behaves) differently with and without the compile-time switch <code class="highlighter-rouge">-DDEBUG</code>.</p>
+
+<h2 id="header-file-protection">Header file protection</h2>
+
+<p>The one place we really <em>must</em> use conditional compilation is in header files.
+Look at our example <a href="/engs50/Examples/readline.h">readline.h</a>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+ * readline.h - a utility function to safely read one line of input
+ * See readline.c for documentation.
+ *
+ * David Kotz, April 2016
+ */</span>
+
+<span class="cp">#ifndef __READLINE_H__
+#define __READLINE_H__
+</span>
+<span class="cp">#include &lt;stdbool.h&gt;
+</span>
+<span class="k">extern</span> <span class="n">bool</span> <span class="n">readline</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">len</span><span class="p">);</span>
+
+<span class="cp">#endif //  __READLINE_H__
+</span></code></pre></div></div>
+
+<p>If the constant <code class="highlighter-rouge">__READLINE_H__</code> is not yet defined (<code class="highlighter-rouge">#ifndef</code>) then incude the remainder of the file up to <code class="highlighter-rouge">#endif</code>.
+The first thing it does is to define that <code class="highlighter-rouge">__READLINE_H__</code>.
+Thus, if a C file happens to include <code class="highlighter-rouge">readline.h</code> twice, which can happen in complex programs when header files include other include files, the C compiler won’t see multiple copies of the included code.
+That is,</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include "readline.h"
+#include "readline.h"
+</span></code></pre></div></div>
+
+<p>does not translate to</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">extern</span> <span class="n">bool</span> <span class="n">readline</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">len</span><span class="p">);</span>
+<span class="k">extern</span> <span class="n">bool</span> <span class="n">readline</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">len</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>but just to</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">extern</span> <span class="n">bool</span> <span class="n">readline</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">len</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>The standard file <code class="highlighter-rouge">stdbool</code> protects itself this way, which is good, because a programmer may well write into her <code class="highlighter-rouge">.c</code> file something like</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;readline.h&gt;
+</span></code></pre></div></div>
+
+<p>and, because <code class="highlighter-rouge">readline.h</code> also includes <code class="highlighter-rouge">stdbool.h</code>, the latter might get imported several times without that protection.</p>
+
+<blockquote>
+  <p>Why do we care?
+Some include files can safely be repeated and the C compiler won’t care; actually, <code class="highlighter-rouge">readline.h</code> is one like that.
+But others, e.g., if they declare global constants, will cause the compiler to complain about multiply-defined variables.</p>
+</blockquote>
+
+<h3 id="testing-header-files">Testing header files</h3>
+
+<p>How can you be sure your header file has included all the relevant header files?
+Compile it!
+To compile the header file <code class="highlighter-rouge">foo.h</code> by itself,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mygcc <span class="nt">-c</span> foo.h
+</code></pre></div></div>
+
+<p>If there are any errors, it’s probaby because you forgot one of the include files.</p>
+
+<p>When done, <code class="highlighter-rouge">rm foo.gch</code> to clean up the compiler’s output.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

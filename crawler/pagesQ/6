@@ -1,0 +1,1168 @@
+https://thayer.github.io/engs50/Examples/
+1
+13069
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Examples</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Examples/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Examples</h1>
+  </header>
+
+  <div class="post-content">
+    <h1 id="click-to-download">Click to download</h1>
+
+<ul>
+
+    
+
+    
+        
+            <li><a href="/engs50/Examples/args.sh">args.sh</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/arguments.c">arguments.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/atoi-template.c">atoi-template.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/auto">auto</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/auto.c">auto.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/buffer-overflow.c">buffer-overflow.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/clean">clean</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/client-server-http-fork.zip">client-server-http-fork.zip</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/client-server-http.zip">client-server-http.zip</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/client-server-udp-select.zip">client-server-udp-select.zip</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/client-server-udp.zip">client-server-udp.zip</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/client-server.zip">client-server.zip</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/combined.c">combined.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/command.c">command.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/curse.c">curse.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/data-types.c">data-types.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/deadlock.c">deadlock.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/enum.c">enum.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/files-input.txt">files-input.txt</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/files.c">files.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/freadline.c">freadline.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/freadline.h">freadline.h</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/function-table.zip">function-table.zip</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/getchar.c">getchar.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime.sh">guessprime.sh</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime1.c">guessprime1.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime2.c">guessprime2.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime3.c">guessprime3.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime4.c">guessprime4.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime5.c">guessprime5.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime6.c">guessprime6.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime7.c">guessprime7.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime8.c">guessprime8.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprime9.c">guessprime9.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/guessprimefunction.sh">guessprimefunction.sh</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/increment.c">increment.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/life.c">life.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/lifeboard.txt">lifeboard.txt</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/madlib.c">madlib.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/madlib1.txt">madlib1.txt</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/madlib2.c">madlib2.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/madlib2.txt">madlib2.txt</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/memory.c">memory.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/memory.h">memory.h</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/mutex.c">mutex.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names-Makefile">names-Makefile</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names0.c">names0.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names1.c">names1.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names2.c">names2.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names3.c">names3.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names4.c">names4.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names5.c">names5.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names6.c">names6.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names7.c">names7.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names8.c">names8.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/names9.c">names9.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/namesB.c">namesB.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/nosort-getopt.c">nosort-getopt.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/nosort.c">nosort.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/operator.c">operator.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/overflow.c">overflow.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/password.c">password.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/pointer0.c">pointer0.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/pointer1.c">pointer1.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/pointer2.c">pointer2.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/pointer3.c">pointer3.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/print_i.c">print_i.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/random.c">random.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/readline.c">readline.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/readline.h">readline.h</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/readlinep.c">readlinep.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/readlinep.h">readlinep.h</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/scope.c">scope.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/section3-template.c">section3-template.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/set_iterate.makefile">set_iterate.makefile</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/set_iterate1.c">set_iterate1.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/set_iterate2.c">set_iterate2.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/seuss.zip">seuss.zip</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/shifter.sh">shifter.sh</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/static.c">static.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/stringcopy.c">stringcopy.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/strings.c">strings.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/subtemplate-README.txt">subtemplate-README.txt</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/subtemplate-TESTING.txt">subtemplate-TESTING.txt</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/subtemplate.c">subtemplate.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/trees.zip">trees.zip</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/unittest.h">unittest.h</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/unsafe.c">unsafe.c</a></li>
+        
+    
+
+    
+        
+            <li><a href="/engs50/Examples/unused.zip">unused.zip</a></li>
+        
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+</ul>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

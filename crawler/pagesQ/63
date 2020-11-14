@@ -1,0 +1,127 @@
+https://thayer.github.io/engs50/Notes/makefiles/headerfiles.html
+3
+6131
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Extra - C header files</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/makefiles/headerfiles.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Extra - C header files</h1>
+  </header>
+
+  <div class="post-content">
+    <p><strong><em>Examples are not yet updated for CS50 in 17S, but the concepts are still correct.</em></strong></p>
+
+<p>Let’s look at the contents and purpose of <code class="highlighter-rouge">readline.h</code>.
+That file was used in the recent examples:</p>
+
+<ul>
+  <li><a href="/engs50/Examples/names1.c">names1.c</a>: arrays of strings, reading and copying lines into an array.</li>
+  <li><a href="/engs50/Examples/names2.c">names2.c</a>: scanning a string and truncating it by overwriting a character with the null <code class="highlighter-rouge">\0</code> character.</li>
+</ul>
+
+<p>These use</p>
+
+<ul>
+  <li><a href="/engs50/Examples/readline.c">readline.c</a>: a C file defining the function <code class="highlighter-rouge">readline</code>, used by <code class="highlighter-rouge">names*.c</code>.</li>
+  <li><a href="/engs50/Examples/readline.h">readline.h</a>: a C ‘header’ file that provides prototypes needed by any C program wanting to use <code class="highlighter-rouge">readline</code>.</li>
+</ul>
+
+<p>Why did we need this include file, <code class="highlighter-rouge">readline.h</code>?
+Because we compiled <code class="highlighter-rouge">names.c</code> and <code class="highlighter-rouge">readline.c</code> separately.
+When we compiled <code class="highlighter-rouge">names.c</code>, we needed to declare the prototype for the function <code class="highlighter-rouge">readline</code>, just as we would have if <code class="highlighter-rouge">readline</code> had been defined within <code class="highlighter-rouge">names.c</code>.
+Because the function was <em>not</em> defined within <code class="highlighter-rouge">names.c</code>, though, the prototype needs to be prefixed with <code class="highlighter-rouge">extern</code>, indicating that the function is external to the current C file.
+The C compiler leaves that symbol (<code class="highlighter-rouge">readline</code>) unresolved, and hopes the linker will later be able to connect it to the actual function definition when <code class="highlighter-rouge">names.o</code> is linked with other object files.</p>
+
+<p>We could have simply typed the prototype into <code class="highlighter-rouge">names.c</code>, but we put it in a separate file <code class="highlighter-rouge">header.h</code>, and then used the special compiler directive <code class="highlighter-rouge">#include</code> to literally copy the contents of <code class="highlighter-rouge">header.h</code> into the C file at that point.
+(See the <a href="08x-preprocessor.html">lecture extra</a> about the C preprocessor.) Just in case the header file gets included multiple times, the pair of directives <code class="highlighter-rouge">#ifndef</code> (if not defined) and <code class="highlighter-rouge">#define</code> (define) ensure the body of this file is only processed once per C file.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* 
+ * readline.h - a utility function to safely read one line of input
+ * See readline.c for documentation.
+ *
+ * David Kotz, April 2016
+ */</span>
+
+<span class="cp">#ifndef __READLINE_H__
+#define __READLINE_H__
+</span>
+<span class="cp">#include &lt;stdbool.h&gt;
+</span>
+<span class="k">extern</span> <span class="n">bool</span> <span class="n">readline</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">len</span><span class="p">);</span>
+
+<span class="cp">#endif //  __READLINE_H__
+</span></code></pre></div></div>
+
+<p>We also include <code class="highlighter-rouge">header.h</code> in <code class="highlighter-rouge">readline.c</code>.
+This way, we write the prototype in only one place, and yet give the compiler information in both places where it is needed - and give the compiler a chance to help us catch any inconsistencies between the prototype and the function call in <code class="highlighter-rouge">names.c</code>, or between the prototype and the function definition in <code class="highlighter-rouge">readline.c</code>.</p>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

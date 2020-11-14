@@ -1,0 +1,212 @@
+https://thayer.github.io/engs50/Notes/design/activity.html
+3
+6112
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Activity - C preprocessor</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/design/activity.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Activity - C preprocessor</h1>
+  </header>
+
+  <div class="post-content">
+    <h3 id="goals">Goals</h3>
+
+<ul>
+  <li>to use the C preprocessor</li>
+  <li>to understand when linker might produce errors.</li>
+</ul>
+
+<h2 id="activity">Activity</h2>
+
+<p>Examine the source files in <a href="/engs50/Examples/seuss">~cs50/examples/seuss</a>, shown below.</p>
+
+<ol>
+  <li>Try to compile the program.
+Why do you get an error?
+is it the compiler or linker reporting the error?
+what could you do to fix it?</li>
+  <li>Run <code class="highlighter-rouge">gcc -E seuss.c</code>, which runs the <em>C preprocessor</em> only; this output is what the compiler would consume.
+Look at the output; ignore the <code class="highlighter-rouge">#</code> lines, which are annotations to help the compiler produce error messages that reference the original file name and line number.
+Notice how the preprocessor has copied everything from the include files right into the input, at the point where they are included in <code class="highlighter-rouge">seuss.c</code>, and then stripped out all the comments.</li>
+  <li>After class, re-read the <a href="/makefiles/preprocessor.html">Lecture extra about the C preprocessor</a>.</li>
+</ol>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* seuss.c - uses thing one and thing two. */</span>
+
+<span class="cp">#include "one.h"
+#include "two.h"
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">fun</span> <span class="o">=</span> <span class="n">thing_one</span><span class="p">()</span> <span class="o">+</span> <span class="n">thing_two</span><span class="p">();</span>
+  <span class="k">return</span> <span class="n">fun</span><span class="p">;</span> <span class="c1">// exit status
+</span><span class="p">}</span>
+</code></pre></div></div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/* one.h */
+
+int one = 1;
+extern int thing_one(void);
+</code></pre></div></div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/* two.h */
+
+int two = 2;
+extern int thing_two(void);
+</code></pre></div></div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/* one.c */
+
+#include "one.h"
+
+int thing_one(void)
+{
+  return one;
+}
+</code></pre></div></div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/* two.c */
+
+#include "two.h"
+
+int thing_two(void)
+{
+  return two;
+}
+</code></pre></div></div>
+
+<!--
+## Solution
+
+When you compile the program:
+
+```bash
+[cs50@flume ~/demo/seuss1]$ mygcc -c one.c
+[cs50@flume ~/demo/seuss1]$ mygcc -c two.c
+[cs50@flume ~/demo/seuss1]$ mygcc -c seuss.c
+[cs50@flume ~/demo/seuss1]$ mygcc seuss.o one.o two.o -o seuss
+one.o:(.data+0x0): multiple definition of `one'
+seuss.o:(.data+0x0): first defined here
+two.o:(.data+0x0): multiple definition of `two'
+seuss.o:/net/class/cs50/demo/seuss1/seuss.c:7: first defined here
+collect2: error: ld returned 1 exit status
+```
+
+The linker `ld` complains because the global variables `one` and `two` are multiply defined.
+This happens because the variables are defined (not just declared) in the respective `.h` files, and those `.h` files are included in the respective `.c` files *and* in `seuss.c`.
+
+The solution is to move those global variables out of the `.h` file into the respective `.c` files.
+They are only used in those files, anyway, so they should further be marked `static` (so they are invisible outside the file in which they are defined).
+Thus,
+
+```c
+/* seuss.c - uses thing one and thing two. */
+
+#include "one.h"
+#include "two.h"
+
+int main()
+{
+  int fun = thing_one() + thing_two();
+  return fun; // exit status
+}
+```
+```
+/* one.h */
+
+extern int thing_one(void);
+```
+```
+/* two.h */
+
+extern int thing_two(void);
+```
+```
+/* one.c */
+
+#include "one.h"
+static int one = 1;  // this line moved and made static
+
+int thing_one(void)
+{
+  return one;
+}
+```
+```
+/* two.c */
+
+#include "two.h"
+static int two = 2;  // this line moved and made static
+
+int thing_two(void)
+{
+  return two;
+}
+```
+-->
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

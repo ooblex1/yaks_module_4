@@ -1,0 +1,205 @@
+https://thayer.github.io/engs50/Notes/c2/
+2
+9262
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>The Standard C Libraries</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/c2/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">The Standard C Libraries</h1>
+  </header>
+
+  <div class="post-content">
+    <p>In this lecture, we continue our accelerated introduction to the C programming language.</p>
+
+<h3 id="goals">Goals</h3>
+
+<p>We learn several things today:</p>
+
+<ul>
+  <li>the standard I/O library, and a useful <code class="highlighter-rouge">readline()</code></li>
+  <li>opening and reading from files</li>
+  <li>arrays, and arrays of strings</li>
+  <li>command-line arguments</li>
+  <li>compiling code from multiple files into one program</li>
+</ul>
+
+<p>You may also want to read the “<a href="extra.html">lecture extra</a>”, which has lots more information that I do not have time to cover in class.</p>
+
+<h2 id="activity">Activity</h2>
+
+<p>Today’s classroom <a href="activity.html">activity</a> takes a look at the nature of C strings as arrays, and why you need to keep that in mind.</p>
+
+<h2 id="live-demos">Live demos</h2>
+
+<p>See my Terminal <a href="/engs50/Notes/c2/script.txt">script</a> from today’s class.</p>
+
+<ul>
+  <li><a href="/engs50/Examples/names1.c">names0.c</a>: (read a list of names into an array and print it back out)</li>
+  <li><a href="/engs50/Examples/names1.c">names1.c</a>: (pulls <code class="highlighter-rouge">readline()</code> out to <a href="/engs50/Examples/readline.c">readline.c</a> and <a href="/engs50/Examples/readline.h">readline.h</a>)</li>
+  <li><a href="/engs50/Examples/names2.c">names2.c</a>: (read from a file, if provided, instead of from stdin); leverages <a href="/engs50/Examples/freadline.c">freadline.c</a> and <a href="/engs50/Examples/freadline.h">freadline.h</a></li>
+</ul>
+
+<p><strong><em>Bonus example:</em></strong> <a href="/engs50/Examples/strings.c">strings.c</a>: how C strings work.
+We will not get to explore this example - but it is well worth playing with it on your own.</p>
+
+<h2 id="key-concepts">Key concepts</h2>
+
+<p><a href="/engs50/Examples/names1.c">names0.c</a>: (read a list of names into an array and print it back out)</p>
+
+<h3 id="names0c">names0.c</h3>
+
+<p><strong>preamble</strong></p>
+
+<ul>
+  <li><code class="highlighter-rouge">bool</code> data type and <code class="highlighter-rouge">stdbool.h</code></li>
+</ul>
+
+<p><strong>main</strong></p>
+
+<ul>
+  <li>the notion of <code class="highlighter-rouge">char*</code> representing a string, and that strings are arrays of characters</li>
+  <li>use of <code class="highlighter-rouge">const</code> for values that will never change.</li>
+  <li>declaration of <code class="highlighter-rouge">names</code> as two-dimensional array; think of it as a one-dimensional array of strings.</li>
+  <li><code class="highlighter-rouge">for</code> loop with three parts:
+    <ul>
+      <li>1: <code class="highlighter-rouge">n=0</code> initializer</li>
+      <li>2: two reasons to end (<code class="highlighter-rouge">names</code> is full, or file reaches EOF)</li>
+      <li>3: empty</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">printf</code> loop does not include <code class="highlighter-rouge">\n</code> because each name includes a newline character, per the contract with <code class="highlighter-rouge">readline</code>.</li>
+</ul>
+
+<p><strong>readline</strong></p>
+
+<ul>
+  <li>we could use <code class="highlighter-rouge">gets(s)</code> to read a line from stdin, but it can easily overwrite the space allocated to string <code class="highlighter-rouge">s</code></li>
+  <li>we could use <code class="highlighter-rouge">fgets(s, len, stdin)</code>, which will not overwrite a string <code class="highlighter-rouge">s</code> of size <code class="highlighter-rouge">len</code>, but may not read a whole line from the input.</li>
+  <li>let’s write our own <code class="highlighter-rouge">readline</code> function instead.</li>
+  <li>detailed comment describing the <em>contract</em> between caller and the function.</li>
+  <li><code class="highlighter-rouge">while</code> loop that runs until EOF or buffer is full. (why <code class="highlighter-rouge">pos &lt; len-1</code> instead of <code class="highlighter-rouge">pos &lt; len</code>?)</li>
+  <li>use of <code class="highlighter-rouge">pos++</code> notation to step through array.</li>
+  <li>need to null-terminate the string with <code class="highlighter-rouge">\0</code></li>
+  <li><code class="highlighter-rouge">return</code> from inside the loop.</li>
+  <li>need to strip excess characters from an over-length line, until we reach EOF or newline.</li>
+</ul>
+
+<h3 id="names1c">names1.c</h3>
+
+<p><a href="/engs50/Examples/names1.c">names1.c</a>: (pulls out <code class="highlighter-rouge">readline()</code> to <a href="/engs50/Examples/readline.c">readline.c</a> and <a href="/engs50/Examples/readline.h">readline.h</a>)</p>
+
+<p><strong>names1.c</strong></p>
+
+<ul>
+  <li><code class="highlighter-rouge">#include "readline.h"</code> - note the quotes, rather than brackets.
+this means it will be sought in the the current directory, rather than in a standard place where C libraries live.</li>
+</ul>
+
+<p><strong>readline.h</strong> - <em>textually included</em> in names1.c at the point where <code class="highlighter-rouge">#include</code> was used.</p>
+
+<ul>
+  <li>use of <code class="highlighter-rouge">extern</code> on the prototype to indicate this function will be provided in another .c file</li>
+  <li><code class="highlighter-rouge">readline</code> header comment is here, not in the .c file, so it is easily readable by users of this function.</li>
+  <li>use of <code class="highlighter-rouge">#ifndef</code> to protect against repeated inclusion of this file</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#ifndef __READLINE_H__
+#define __READLINE_H__
+...
+#endif //  __READLINE_H__
+</code></pre></div></div>
+
+<p><strong>readline.c</strong></p>
+
+<ul>
+  <li>also <code class="highlighter-rouge">#include "readline.h"</code> - not strictly necessary in this case, but it gives the compiler a chance to check that prototype (from .h file) matches the definition (from .c file).</li>
+</ul>
+
+<h3 id="names2c">names2.c</h3>
+
+<p><a href="/engs50/Examples/names2.c">names2.c</a>: (read from a file, if provided, instead of from stdin); leverages <a href="/engs50/Examples/freadline.c">freadline.c</a> and <a href="/engs50/Examples/freadline.h">freadline.h</a></p>
+
+<ul>
+  <li><code class="highlighter-rouge">main</code> takes arguments</li>
+  <li>code checks arguments for validity</li>
+  <li>use of <code class="highlighter-rouge">fopen</code> to open a file for reading (<code class="highlighter-rouge">"r"</code>)</li>
+  <li>error messages printed to <code class="highlighter-rouge">stderr</code> with <code class="highlighter-rouge">fprintf</code></li>
+  <li><code class="highlighter-rouge">fclose(fp)</code> later called to close the file</li>
+  <li><code class="highlighter-rouge">freadline</code> is like <code class="highlighter-rouge">readline</code> except it uses <code class="highlighter-rouge">getc(fp)</code> instead of <code class="highlighter-rouge">getchar()</code></li>
+  <li>note the type of <code class="highlighter-rouge">fp</code> is <code class="highlighter-rouge">FILE*</code>; it’s a pointer to an object of type FILE.
+More on that later.</li>
+</ul>
+
+<h2 id="activity-1">Activity</h2>
+
+<p>Today’s classroom <a href="activity.html">activity</a> explored what happens when you overwrite the end of a string.</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

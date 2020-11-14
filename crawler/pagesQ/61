@@ -1,0 +1,649 @@
+https://thayer.github.io/engs50/Notes/makefiles/extra/
+3
+39736
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Extra - The make utility</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/makefiles/extra/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Extra - The make utility</h1>
+  </header>
+
+  <div class="post-content">
+    <p><strong><em>This page written by Charles Palmer with examples from Ira Jenkins, but not updated for CS50 in 17S.</em></strong></p>
+
+<h2 id="the-make-utility-concept">The make utility concept</h2>
+
+<p>Recall the compilation process we discussed in an earlier class.
+Source files such as <code class="highlighter-rouge">weather.c</code> and <code class="highlighter-rouge">mycurl.c</code> are compiled into object files such as <code class="highlighter-rouge">weather.o</code> and <code class="highlighter-rouge">mycurl.o</code>, respectively.
+Each object file contains a compiled system dependent representation of the source file.
+The source files include the header files as part of the preprocessor phase of the compilation.
+The linker links the object files together to resolve the function calls and global variable references between them, and then does the same with any needed library functions and variables, and produces an executable.
+When invoked, the loader may then load the program into memory ready to run.</p>
+
+<p>Up until now we have been typing out the <code class="highlighter-rouge">gcc</code> command lines to build and executable:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gcc -Wall -pedantic -std=c11 -o weather weather.c mycurl.c
+</code></pre></div></div>
+
+<p>or more specifically, with our alias <code class="highlighter-rouge">mygcc</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mygcc -o weather weather.c mycurl.c
+</code></pre></div></div>
+
+<p>From now on we will use a better method for building systems.
+We will use the <code class="highlighter-rouge">make</code> software which automates the building of software systems.</p>
+
+<p>The <code class="highlighter-rouge">make</code> utility is essentially a command generator.
+You provide it with a file that describes the interdependencies among the files that are used to build a particular <em>target</em>, which can be an executable or other kind of file (it doesn’t have to be an executable!).
+<code class="highlighter-rouge">make</code> builds a dependency tree of all the files that the requested target depends on, determines whether any of the files have changed, and then issues the commands shown in the <code class="highlighter-rouge">Makefile</code> that will bring any dependent files up to date and then the target itself.</p>
+
+<p>You can view the <a href="http://www.gnu.org/software/make/manual/make.html">GNU documentation for <code class="highlighter-rouge">make</code></a>, the manual pages for <code class="highlighter-rouge">make</code>, Steve Talbot’s “oldie but goodie” book “<em>Managing projects with make</em>” which has been <a href="http://shop.oreilly.com/product/9780596006105.do">updated</a> in 2004 by Robert Mecklenburg for GNU <code class="highlighter-rouge">make</code>, or any of the variety of online tutorials for <code class="highlighter-rouge">make</code> for more information.</p>
+
+<p>Note: There are three popular <code class="highlighter-rouge">make</code>-like utilities for Java programs that you may encounter: Ant, Maven, and Gradle.
+They share many of the same ideas as <code class="highlighter-rouge">make</code>, but with a decidedly Java orientation.
+The bottom line is you can build Java systems with <code class="highlighter-rouge">make</code>, but these Java-specific alternatives are generally faster and offer more options.</p>
+
+<h2 id="makefile-basics">Makefile basics</h2>
+
+<p>A <code class="highlighter-rouge">Makefile</code> (which is a plain text file that you write that the <code class="highlighter-rouge">make</code> utility interprets) describe a set of rules that capture the various actions that must be performed to build a target.
+Targets can be specific files, most commonly an executable, a library, documentation, etc., or a more abstract thing, such as a specific system state, software repository inquiries, or any sequence of commands.
+These rules are captured in the <code class="highlighter-rouge">Makefile</code> that is typically found in the source file directory.</p>
+
+<p>Before we describe the <code class="highlighter-rouge">make</code> tool and give some examples of <code class="highlighter-rouge">Makefile</code>s lets talk about the reasons for moving to a more formal tool for compiling and linking our source code.</p>
+
+<p>First, it is tedious to keep typing out a list of files - maybe a large number of files - upon which several programs, such as compilers and linkers, need to operate.
+The <code class="highlighter-rouge">make</code> utility automates the compilation and linking process.
+With <code class="highlighter-rouge">make</code> you specify all the files that make up your project, and how they fit together, and <code class="highlighter-rouge">make</code> takes care of the rest.
+The key function of the <code class="highlighter-rouge">make</code> utility is that it determines if any files (for us, typically <code class="highlighter-rouge">*.c</code> and <code class="highlighter-rouge">*.h</code> files) have changed since the last build (where build here means the new executable that would be created by <code class="highlighter-rouge">make</code>).
+If the target file you want make to build depends on any files which have been updated, make then ensures those files are recompiled.</p>
+
+<p>Here’s an example of such a dependency tree where the top of the tree represents the target <code class="highlighter-rouge">myApp</code> which depends upon those files below it, and they, in turn, depend upon the files below them.</p>
+
+<p><img src="dependencyTree.png" alt="" /></p>
+
+<p>In this example, the ovals represent files that the programmer created using an editor, downloaded from github, or received from another programmer.
+The rectangles represent files that are the result of some processing that is performed upon one of the programmer-generated files.
+Files that have a <code class="highlighter-rouge">.o</code> extension result from the compiler being run on a <code class="highlighter-rouge">.c</code> file that might use a <code class="highlighter-rouge">.h</code> file.
+Some <code class="highlighter-rouge">.c</code> files might include several <code class="highlighter-rouge">.h</code> files because it uses functions defined in other <code class="highlighter-rouge">.c</code> files.
+In addition, a <code class="highlighter-rouge">.c</code> file might call functions that are kept in a common library, so the <code class="highlighter-rouge">.c</code> file will include the <code class="highlighter-rouge">.h</code> file associated with that library.</p>
+
+<p>When one of the files changes, how do you determine which ones needs to be recompiled to bring the target executable file up to date?
+For example, if <code class="highlighter-rouge">hash.h</code> changes, then the files that depend on it must be rebuilt.
+In this case, those would be <code class="highlighter-rouge">myApp.o</code> and <code class="highlighter-rouge">hash.o</code>, and then <code class="highlighter-rouge">myApp</code> itself.</p>
+
+<p>This is both efficient and can save a significant amount of time.
+The lecturer has worked on many projects where a complete rebuild for a large project took several hours.
+You may find you are recompiling a project every few minutes because of the enhancements and fixes you are making.
+Clearly, a good goal of developers of a large project is to only recompile the necessary files and not waste time recompiling those files that have not changed or have no dependencies on files that have changed.</p>
+
+<p>So how do we translate this dependency tree into something <code class="highlighter-rouge">make</code> can handle?
+The make utility uses files called “<code class="highlighter-rouge">Makefiles</code>” to guide its work.
+We can describe the above dependency tree in <a href="/engs50/Notes/makefiles/extra/Makefile1.txt">Makefile1</a>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#  Makefile1
+CC = gcc
+CFLAGS = -Wall -pedantic -std=c11
+UTILDIR=../util/
+UTILFLAG=-ltseutil
+UTILLIB=$(UTILDIR)libmylib.a
+UTILC=$(UTILDIR)file1.c $(UTILDIR)file2.c $(UTILDIR)file3.c $(UTILDIR)file4.c
+UTILH=$(UTILC:.c=.h)
+
+# luckily, make has comments too!
+
+myApp:  myApp.o html.o hash.o $(UTILLIB)
+        $(CC) $(CFLAGS) -o myApp myApp.o html.o hash.o -lmylib
+
+myApp.o: myApp.c myApp.h html.h hash.h mylib.h
+        $(CC) $(CFLAGS) -c myApp.c
+
+html.o: html.c html.h
+        $(CC) $(CFLAGS) -c html.c
+
+hash.o: hash.c hash.h mylib.h
+        $(CC) $(CFLAGS) -c hash.c
+
+$(UTILLIB): $(UTILC) $(UTILH)
+        cd $(UTILDIR); make
+
+clean:
+        rm -f *~
+        rm -f *#
+        rm -f ./myApp
+        rm -f *.o
+        cd $(UTILDIR); make clean
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">Makefile</code> includes a number of variable definitions and dependency rules.
+Variables (where you see `` <code class="highlighter-rouge">=</code> ‘’) can be used to define a list of directories to search, a set of files, the compiler and options to use, etc.
+Make rules can be very simple or include complicated collections of shell commands.
+The <code class="highlighter-rouge">make</code> utility supports defined variables, conditionals and some other very sophisticated features.</p>
+
+<p>There are lots of things going on here.</p>
+
+<p>First you see some <code class="highlighter-rouge">make</code> macro (constant) definitions:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">CC</code> - defines the name of the C compiler to be used and defaults to <code class="highlighter-rouge">cc</code> or <code class="highlighter-rouge">gcc</code>. In this case <code class="highlighter-rouge">gcc</code> is defined.</li>
+  <li><code class="highlighter-rouge">CFLAGS</code> - defines a set of options passed to the compiler for all source file compilation.
+In our case we specify the same options we have used throughout the course:
+ <code class="highlighter-rouge">-Wall -pedantic -std=c11</code>.
+ We could also specify other options, like the include path to include standard directories (<code class="highlighter-rouge">-I</code>) or debugging (<code class="highlighter-rouge">-g -ggdb</code>) if we wish.</li>
+  <li><code class="highlighter-rouge">UTILDIR</code> - defines where the utility library is maintained</li>
+  <li><code class="highlighter-rouge">UTILFLAG</code> - defines the switch to give to gcc to link with that library</li>
+  <li><code class="highlighter-rouge">UTILC</code> - defines the list of <code class="highlighter-rouge">.c</code> files that are compiled into that library</li>
+  <li><code class="highlighter-rouge">UTILH</code> - defines (via a very tricky macro expansion) the list of <code class="highlighter-rouge">.h</code> files that are used by the <code class="highlighter-rouge">.c</code> files that make up the library.</li>
+</ul>
+
+<p>Similar to the shell, these macros can be used by specifying their name within <code class="highlighter-rouge">$(</code> and <code class="highlighter-rouge">)</code>, as in <code class="highlighter-rouge">$(CC)</code>.</p>
+
+<p>After those definitions we see the target specifications.
+The strings before the ‘<code class="highlighter-rouge">:</code>’ are the <em>targets</em> of the <code class="highlighter-rouge">Makefile</code>.
+They are the things that this <code class="highlighter-rouge">Makefile</code> can produce.
+After the ‘<code class="highlighter-rouge">:</code>’ is the list of files or other targets upon which that target “depends”.
+After that target and dependency line, the following lines <em>that begin with a tab character</em> are executed in order to bring that target “up to date.”</p>
+
+<p>Yes, the tab character is a little annoying, but that’s the way it is.
+An author expressed it well in the entry for <code class="highlighter-rouge">make</code> in Wikipedia:</p>
+
+<blockquote>
+  <p>``The syntax used by Make gives tab, a whitespace character, a different meaning from the space character.
+This is problematic, since there is usually no visual difference between a tab and a number of space characters.
+Thus, the syntax of make is often subject to criticism.’’</p>
+
+  <p>Citation: http://en.wikipedia.org</p>
+</blockquote>
+
+<p>So, if you cut and paste a <code class="highlighter-rouge">Makefile</code> from these <code class="highlighter-rouge">html</code> lecture notes into an editor, you will likely have problems with the tab characters and make will not execute correctly.
+Instead, if you click on the supplied link and download the file it will arrive intact.</p>
+
+<p>In all of the example Makefiles presented here, actions start with a tab and not spaces.
+All other formatting uses single spaces.</p>
+
+<p>If you are in the same directory of a <code class="highlighter-rouge">Makefile</code> and enter “<code class="highlighter-rouge">make</code>”, (with no parameters) the utility will read the Makefile, check the first target it reads, and, if it is “out of date”, try to execute the commands that are specified.</p>
+
+<p>Let’s have an example.
+Suppose the <code class="highlighter-rouge">html.c</code> file has changed since the last time <code class="highlighter-rouge">myApp</code> was built.
+Then <code class="highlighter-rouge">myApp</code> is out of date.
+If the Makefile is in the current directory, you can simply run <code class="highlighter-rouge">make</code> and these commands will be executed:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-c</span> hash.c
+    gcc <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-o</span> myApp myApp.o html.o hash.o <span class="nt">-lmylib</span>
+</code></pre></div></div>
+
+<p>If any of the commands <code class="highlighter-rouge">make</code> is executing exits with a non-zero return code, <code class="highlighter-rouge">make</code> will then:</p>
+
+<ul>
+  <li>erase the current target it was working on</li>
+  <li>issue a message</li>
+  <li>exit with a non-zero return code without trying to build anything else</li>
+</ul>
+
+<p>Often you will see other uses of macros in the <code class="highlighter-rouge">Makefile</code>.</p>
+
+<p>Here’s another sample <code class="highlighter-rouge">Makefile</code> which is a variation on the previous example.
+<a href="/engs50/Notes/makefiles/extra/Makefile2.txt">Makefile2</a></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Makefile2
+CC = gcc
+CFLAGS = -Wall -pedantic -std=c11
+UTILDIR=../util/
+UTILFLAG=-lmylib
+UTILLIB=$(UTILDIR)libmylib.a
+UTILC=$(UTILDIR)file1.c $(UTILDIR)file2.comments $(UTILDIR)file3.c $(UTILDIR)file4.c
+UTILH=$(UTILC:.c=.h)
+
+# my project details
+EXEC = myApp
+OBJS = myApp.o html.o hash.o
+SRCS = myApp.c html.c hash.c myApp.h html.h hash.h
+
+# luckily, make has comments too!
+
+$(EXEC): $(OBJS) $(UTILLIB)
+        $(CC) $(CFLAGS) -o $(EXEC) $(OBJS) $(UTILFLAG)
+
+$(OBJS): $(SRCS)
+        $(CC) $(CFLAGS) -c $(SRCS)
+
+debug: $(SRCS)
+        $(CC) $(CFLAGS) -g -ggdb -c $(SRCS)
+        $(CC) $(CFLAGS) -g -ggdb -o $(EXEC) $(OBJS) $(UTILFLAG)
+
+$(UTILLIB): $(UTILC) $(UTILH)
+        cd $(UTILDIR); make
+
+clean:
+        rm -f *~
+        rm -f *#
+        rm -f ./myApp
+        rm -f *.o
+        cd $(UTILDIR); make clean
+</code></pre></div></div>
+
+<p>Here we see some new macros being used:</p>
+
+<p><code class="highlighter-rouge">EXEC</code> - which, defines the name of the executable file.</p>
+
+<p><code class="highlighter-rouge">SRCS</code> - which defines the list of source files.</p>
+
+<p><code class="highlighter-rouge">OBJS</code> - which defines the list of object files.</p>
+
+<p>The Makefile default action when simply typing <code class="highlighter-rouge">make</code> builds the first target it finds, namely, the <code class="highlighter-rouge">myApp</code> executable.
+If the programmer types <code class="highlighter-rouge">make debug</code> then <code class="highlighter-rouge">make</code> will build the first target (<code class="highlighter-rouge">myApp</code>) with the <code class="highlighter-rouge">-g -ggdb</code> options which allows the GNU debugger (<code class="highlighter-rouge">gdb</code>) to be run on the executable.</p>
+
+<p>The example Makefile above defines the set of rules and dependencies to follow in order to build the executable <code class="highlighter-rouge">myApp</code>.
+To make the <code class="highlighter-rouge">EXEC</code> you need the <code class="highlighter-rouge">OBJS</code>.
+To get the <code class="highlighter-rouge">OBJS</code> you need the <code class="highlighter-rouge">SRCS</code>.</p>
+
+<p>Another common target defined in makefiles is <code class="highlighter-rouge">clean</code>.
+It is an example of a target that does not result in a new file being created or updated.
+Here, the <code class="highlighter-rouge">clean</code> target has no dependencies and, thus, can be thought of as “always out of date”.
+If you enter “<code class="highlighter-rouge">make clean</code>” the <code class="highlighter-rouge">make</code> utility will skip to the <code class="highlighter-rouge">clean</code> target and, seeing no dependencies, proceed directly to the associated commands.</p>
+
+<p>The idea of a “<code class="highlighter-rouge">clean</code>” target is a good one, but it’s surprisingly hard to get right.
+As is often the case with software, there are many little files that get created here and there, and often a developer will update the real targets and dependencies part of the <code class="highlighter-rouge">Makefile</code> without checking to see if he also needs to update the “<code class="highlighter-rouge">clean</code>” target’s commands.
+This is an example of <em><a href="http://www.cmcrossroads.com/article/make-clean-usmans-law">Usman’s law</a>.</em>
+One solution to this challenge is described there as:</p>
+
+<blockquote>
+  <p>*“Because of the pitfalls of <code class="highlighter-rouge">make clean</code>, the best way is not to
+ have a ` make clean`.
+The most reliable method is as follows:</p>
+  <ol>
+    <li>The project Makefile must write its output to a sub-directory of the directory it is in.</li>
+    <li>To make clean you go up one directory and delete the entire hierarchy.
+ Then to make again you create a new directory, check out the sources, enter the directory and run make.”*</li>
+  </ol>
+</blockquote>
+
+<h2 id="make-command-usage"><code class="highlighter-rouge">make</code> command usage</h2>
+
+<p>Here are some of the command line arguments you can use with make.
+To see all of them, use <code class="highlighter-rouge">man make</code></p>
+
+<p><code class="highlighter-rouge">-f file</code>
+use <code class="highlighter-rouge">file</code> as the <code class="highlighter-rouge">Makefile</code></p>
+
+<p><code class="highlighter-rouge">-d</code>
+produce debugging information while running</p>
+
+<p><code class="highlighter-rouge">-k</code>
+while a particular target and the things that depend on it might have failed, continue trying to make the other dependencies of these targets anyway.</p>
+
+<p><code class="highlighter-rouge">-n</code>
+Determine which commands need to be run, but don’t actually execute any of them, just print them.</p>
+
+<p><code class="highlighter-rouge">-B</code>
+unconditionally make all targets</p>
+
+<h3 id="how-does-make-respond">How does make respond?</h3>
+
+<p>Assuming you have no errors in your Makefile, when you invoke the make utility one of four things will happen:</p>
+
+<ol>
+  <li>
+    <p>when it has nothing to do, make responds with the following and halts:</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>'target' is up to date
+</code></pre></div>    </div>
+  </li>
+  <li>a bunch of commands are executed to try to do what you asked, continuing until either an error occurs (e.g., compile error) or all of the commands are executed.</li>
+  <li>
+    <p>when it doesn’t know what to do, make responds with the following and halts:</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Don't know how to make some-target
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>sometimes if make can’t decide what to do, it responds with nothing.
+This is usually due to a missing component file.
+For example, if you have</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>target:  main.o
+</code></pre></div>    </div>
+
+    <p>and then enter <code class="highlighter-rouge">make target</code>, make will try to find some way to check if <code class="highlighter-rouge">main.o</code> is up to date. If</p>
+
+    <ul>
+      <li>a guess of how to make <code class="highlighter-rouge">main.o</code> depends upon a file that doesn’t exist, or</li>
+      <li>the file <code class="highlighter-rouge">main.o</code> does exist, or</li>
+      <li><code class="highlighter-rouge">target</code> either doesn’t exist or is out of date with respect to <code class="highlighter-rouge">main.o</code></li>
+    </ul>
+
+    <p>then the <code class="highlighter-rouge">make</code> command will either remain totally silent (old systems) or respond with something like:</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make: *** No rule to make target `mainline.o', needed by `target`.  Stop.
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h2 id="more-on-macros">More on macros</h2>
+
+<p>Any symbol that is defined in a Makefile like this</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NAME = VALUE
+</code></pre></div></div>
+
+<p>is called a macro.
+Once defined, you can expand them using</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>... $(NAME) ...
+</code></pre></div></div>
+
+<p>Any environment variables that were set prior to your running make are automatically made available during the execution of make: <a href="/engs50/Notes/makefiles/extra/Makefile4.txt">Makefile4</a></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Makefile 4
+top:    middle
+        @echo "building the top"
+
+middle: whoami
+        @echo "building the middle"
+whoami:
+        @echo "make invoked by User "$(USER)" running shell "$(SHELL)" ."
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="o">[</span>ccpalmer@swamp] <span class="nv">$ </span>make <span class="nt">-f</span> Makefile2
+    make invoked by User ccpalmer running shell /bin/sh <span class="nb">.</span>
+    building the middle
+    building the top
+    <span class="o">[</span>ccpalmer@swamp] <span class="nv">$ </span>
+</code></pre></div></div>
+
+<p>The make utility also provides some useful builtin macros:</p>
+
+<p><code class="highlighter-rouge">$@</code>
+name of the current target</p>
+
+<p><code class="highlighter-rouge">$?</code>
+The list of dependencies that are newer than the target</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    target:  a.c  b.c  c.c 
+            @echo <span class="s2">"working on "</span><span class="nv">$@</span><span class="s2">" due to updates to "</span><span class="nv">$?</span><span class="s2">" [ccpalmer@swamp] </span><span class="nv">$ </span><span class="s2">touch target
+    [ccpalmer@swamp] </span><span class="nv">$ </span><span class="s2">touch a.c c.c
+    [ccpalmer@swamp] </span><span class="nv">$ </span><span class="s2">make -f Makefile3
+    working on target due to updates to a.c c.c
+    [ccpalmer@swamp] </span><span class="nv">$ </span><span class="s2">
+</span></code></pre></div></div>
+
+<p>Note, of course, that the target doesn’t necessarily represent a file, but by using “touch target” we force creation of an empty file with the current timestamp.</p>
+
+<p><code class="highlighter-rouge">D</code>
+directory path, $(@D), $(&lt;D)</p>
+
+<p><code class="highlighter-rouge">F</code>
+file name, $(@F), $(&lt;F)</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>target.x:  a.c  b.c  c.c
+        @echo "working on "$@" due to updates to "$?
+        @echo "Dollar@ with D is : ["$(@D)"]"
+        @echo "Dollar@ with F is : ["$(@F)"]"
+[ccpalmer@swamp] $ touch target.x
+[ccpalmer@swamp] $ touch b.c c.c
+[ccpalmer@swamp] $ make -f Makefile3
+working on target.x due to updates to b.c c.c
+Dollar@ with D is : [.]
+Dollar@ with F is : [target.x]
+[ccpalmer@swamp] $
+</code></pre></div></div>
+
+<h2 id="suffix-rules">Suffix rules</h2>
+
+<p>To further reduce the complexity of your <code class="highlighter-rouge">Makefiles</code>, you can use make’s suffix rules.
+By suffix in this context, we’re talking about filetypes or extensions (e.g., <code class="highlighter-rouge">.c</code>, <code class="highlighter-rouge">.h</code>, <code class="highlighter-rouge">.o</code>, etc.).
+These rules are defined in the <code class="highlighter-rouge">Makefile</code> and show a default way of making a file with one suffix into a file with another suffix.
+For example, you might have in all of your makefiles some suffix rules like these:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.SUFFIXES     :   .o  .c  .s
+
+.c.o    :
+        $(CC) $(CFLAGS) -c $&lt;
+
+.s.o    :
+        $(AS) $ASFLAGS) -o $@ $&lt;
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">.SUFFIXES</code> line identifies which suffixes make should consider as special.
+After that, you see lines with two suffixes as a target, followed by statements of how to turn files with the first suffix into files with the second.</p>
+
+<p>In essence, these suffix rules provide a default means of producing one kind of file from another.
+If these defaults are sufficient, you won’t need to define specific targets for these targets.</p>
+
+<p>There are also some more builtin macros that are only available in suffix rules:</p>
+
+<p><code class="highlighter-rouge">$&lt;</code>
+The name of a dependency file, derived as if selected for use with an implicit rule.</p>
+
+<p><code class="highlighter-rouge">$*</code>
+The basename of the current target.
+That is, the name of the current target without its suffix.</p>
+
+<h2 id="more-cool-make-ideas-from-ask-mr-make-ccp--others">More cool make ideas (from <a href="http://blog.jgc.org/2010/01/update-list-of-my-gnu-make-articles.html">Ask Mr Make</a>, ccp, &amp; others)</h2>
+
+<h3 id="printing-out-make-variables">Printing out make variables</h3>
+
+<p>Sometimes you need to know what $X is while the makefile is being run.
+An easy way to print out its value is to add the rule</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MYVAR = 42
+target:
+        @echo "at the top"
+        @echo "it is = "$(MYVAR) 
+       
+print-%:
+        @echo $* = $($*)[cs50@tahoe] $ make -f p.mak
+at the top
+it is = 42
+[cs50@tahoe] $ make -f p.mak print-MYVAR
+MYVAR = 42
+[cs50@tahoe] $ 
+</code></pre></div></div>
+
+<p>Special capabilities</p>
+
+<ul>
+  <li>dont forget you can include shell commands in the makefile</li>
+  <li>makefiles can invoke other makefiles!</li>
+  <li>makefiles can create all the other makefiles for a system (see the <a href="http://www.porcupine.org/postfix-mirror/start.html">postfix project</a> for an excellent example).</li>
+</ul>
+
+<h3 id="non-compilation-makefiles">Non-compilation makefiles</h3>
+
+<p>You can use makefiles to solve many of your daily challenges involving a sequences of dependent actions:</p>
+
+<ul>
+  <li>running test shell scripts during development and regression testing (we will do this!)</li>
+  <li>creating documents with LaTeX (see the following example)</li>
+  <li>maintaining webpages (staging and live directories), including verifying accessibility compliance, style rules, etc.</li>
+  <li>automated documentation generation, including literate programming</li>
+  <li>sourcecode management</li>
+</ul>
+
+<h2 id="large-example-makefile">Large example Makefile</h2>
+
+<p>Here are some excerpts of the Makefile we use to build, test, and run our server for the Project.</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="c">#======================================
+</span>    <span class="c"># Makefile for app server 
+</span>    <span class="c">#
+</span>    <span class="c"># Author: Ira Ray Jenkins
+</span>    <span class="c"># Date: Sun May 11, 2014
+</span>    <span class="c"># Note: Gnumake is assumed
+</span>    <span class="c">#======================================
+</span>    <span class="c"># directories
+</span>    <span class="nv">INC_DIR</span> <span class="o">=</span> .
+    <span class="nv">SRC_DIR</span> <span class="o">=</span> src
+    <span class="nv">BLD_DIR</span> <span class="o">=</span> build
+    <span class="nv">BIN_DIR</span> <span class="o">=</span> bin
+    <span class="nv">TST_DIR</span> <span class="o">=</span> <span class="nb">test</span>
+
+    <span class="c"># compiler and flags
+</span>    <span class="nv">CC</span> <span class="o">=</span> gcc
+    <span class="nv">CFLAGS</span> <span class="o">=</span> <span class="nt">-std</span><span class="o">=</span>c11 <span class="nt">-Wall</span> <span class="nt">-pedantic</span> <span class="nt">-g</span>
+    <span class="nv">LIBS</span> <span class="o">=</span> <span class="nt">-lcrypto</span> <span class="nt">-lgd</span>
+    <span class="nv">INCS</span> <span class="o">=</span> <span class="nt">-I</span><span class="nv">$(INC_DIR)</span>/ <span class="nt">-I</span><span class="nv">$(SRC_DIR)</span>/
+
+    <span class="c"># what we're doing
+</span>    <span class="nv">HDR</span> <span class="o">=</span> <span class="nv">$(INC_DIR)</span>/app.h
+    <span class="nv">SRC</span> <span class="o">=</span> app.c file.c hash.c genstack.c
+    <span class="nv">OBJ</span> <span class="o">=</span> <span class="err">$</span><span class="o">(</span>patsubst <span class="nv">$(SRC_DIR)</span>/%.c,<span class="nv">$(BLD_DIR)</span>/%.o,<span class="nv">$(SRC)</span><span class="o">)</span>
+    <span class="nv">BIN</span> <span class="o">=</span> <span class="nv">$(BIN_DIR)</span>/appd
+
+    <span class="nv">TST_BINS</span> <span class="o">=</span> <span class="nv">$(BIN_DIR)</span>/app_test <span class="nv">$(BIN_DIR)</span>/genstack_test
+
+    <span class="c"># these targets do not produce real "targets"
+</span>    <span class="nl">.PHONY</span><span class="o">:</span> <span class="nf">clean setup test server start-server stop-server client</span>\
+<span class="nf">            start-client stop-client</span>
+
+    <span class="c"># ignore errors from these targets
+</span>    <span class="nl">.IGNORE</span><span class="o">:</span> <span class="nf">stop-server</span>
+
+    <span class="c"># Default target - the server
+</span>    <span class="nl">$(BIN)</span><span class="o">:</span> <span class="nf">setup $(OBJ) $(HDR)</span>
+        <span class="err">@echo</span> <span class="s2">"Building ur..."</span>
+        <span class="err">$(CC)</span> <span class="err">$(CFLAGS)</span> <span class="err">$(INCS)</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$(OBJ)</span> <span class="err">$(LIBS)</span>
+
+    <span class="c"># app_test
+</span>    <span class="nl">$(BIN_DIR)/app_test</span><span class="o">:</span> <span class="nf">setup $(BLD_DIR)/app_test.o $(BLD_DIR)/file.o </span>\
+<span class="nf">                                 $(BLD_DIR)/genstack.o $(HDR)</span>
+        <span class="err">@echo</span> <span class="s2">"Building $(@)..."</span>
+        <span class="err">$(CC)</span> <span class="err">$(CFLAGS)</span> <span class="err">$(INCS)</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$(BLD_DIR)/app_test.o</span> <span class="err">$(BLD_DIR)/file.o</span> <span class="err">\</span>
+                                 <span class="err">$(BLD_DIR)/genstack.o</span> <span class="err">$(LIBS)</span>
+        <span class="err">@$(BIN_DIR)/app_test</span>
+
+    <span class="c"># genstack_test
+</span>    <span class="nl">$(BIN_DIR)/genstack_test</span><span class="o">:</span> <span class="nf">setup $(BLD_DIR)/genstack_test.o $(BLD_DIR)/genstack.o $(HDR)</span>
+        <span class="err">@echo</span> <span class="s2">"Building $(@)..."</span>
+        <span class="err">$(CC)</span> <span class="err">$(CFLAGS)</span> <span class="err">$(INCS)</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$(BLD_DIR)/genstack_test.o</span> <span class="err">$(BLD_DIR)/genstack.o</span> <span class="err">$(LIBS)</span>
+        <span class="err">@$(BIN_DIR)/genstack_test</span>
+
+    <span class="c"># appc
+</span>    <span class="nl">$(BIN_DIR)/appc</span><span class="o">:</span> <span class="nf">setup $(BLD_DIR)/appc.o $(HDR)</span>
+        <span class="err">@echo</span> <span class="s2">"Building $(@)..."</span>
+        <span class="err">$(CC)</span> <span class="err">$(CFLAGS)</span> <span class="err">$(INCS)</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$(BLD_DIR)/appc.o</span> <span class="err">$(LIBS)</span>
+
+    <span class="c"># general rule for .o files with a .h
+</span>    <span class="nl">$(BLD_DIR)/%.o</span><span class="o">:</span> <span class="nf">$(SRC_DIR)/%.c $(SRC_DIR)/%.h $(HDR)</span>
+        <span class="err">@echo</span> <span class="s2">"Building $(@)..."</span>
+        <span class="err">$(CC)</span> <span class="err">$(CFLAGS)</span> <span class="err">$(INCS)</span> <span class="err">-c</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$&lt;</span> <span class="err">$(LIBS)</span>
+        <span class="err">@echo</span>
+
+    <span class="c"># general rule for .o files with no .h
+</span>    <span class="nl">$(BLD_DIR)/%.o</span><span class="o">:</span> <span class="nf">$(SRC_DIR)/%.c $(HDR)</span>
+        <span class="err">@echo</span> <span class="s2">"Building $(@)..."</span>
+        <span class="err">$(CC)</span> <span class="err">$(CFLAGS)</span> <span class="err">$(INCS)</span> <span class="err">-c</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$&lt;</span> <span class="err">$(LIBS)</span>
+        <span class="err">@echo</span>
+
+    <span class="nl">$(BLD_DIR)/%.o</span><span class="o">:</span> <span class="nf">$(TST_DIR)/%.c $(HDR)</span>
+        <span class="err">@echo</span> <span class="s2">"Building $(@)..."</span>
+        <span class="err">$(CC)</span> <span class="err">$(CFLAGS)</span> <span class="err">$(INCS)</span> <span class="err">-c</span> <span class="err">-o</span> <span class="err">$@</span> <span class="err">$&lt;</span> <span class="err">$(LIBS)</span>
+        <span class="err">@echo</span>
+
+    <span class="nl">test</span><span class="o">:</span> <span class="nf">$(TST_BINS)</span>
+
+    <span class="nl">client</span><span class="o">:</span> <span class="nf">$(BIN_DIR)/appc</span>
+
+    <span class="nl">start-client</span><span class="o">:</span> <span class="nf">client</span>
+        <span class="err">@$(BIN_DIR)/appc</span> <span class="err">4</span> <span class="err">5</span> <span class="err">pierce.cs.dartmouth.edu</span>
+
+    <span class="nl">stop-client</span><span class="o">:</span>
+        <span class="err">@killall</span> <span class="err">-q</span> <span class="err">appc</span>
+
+    <span class="nl">server</span><span class="o">:</span> <span class="nf">$(BIN)</span>
+
+    <span class="nl">start-server</span><span class="o">:</span> <span class="nf">$(BIN)</span>
+        <span class="err">@$(BIN)&amp;</span>
+
+    <span class="nl">stop-server</span><span class="o">:</span>
+        <span class="err">@killall</span> <span class="err">-q</span> <span class="err">appd</span>
+
+    <span class="nl">setup</span><span class="o">:</span>
+        <span class="err">@mkdir</span> <span class="err">-p</span> <span class="err">$(BIN_DIR)</span>
+        <span class="err">@mkdir</span> <span class="err">-p</span> <span class="err">$(BLD_DIR)</span>
+
+    <span class="c"># clean up the directories
+</span>    <span class="nl">clean</span><span class="o">:</span> <span class="nf">stop-server</span>
+        <span class="err">rm</span> <span class="err">-rf</span> <span class="err">*</span><span class="c"># core* *.png $(BLD_DIR) $(BIN_DIR) test/*log *.log
+</span></code></pre></div></div>
+
+<p>Notes on the above:</p>
+
+<ol>
+  <li>Normally make will echo each command it is running to the screen.
+By preceding a command with an ‘@’ you can prevent this echoing, but the command will run normally.</li>
+  <li><code class="highlighter-rouge">patsubst</code> changes strings that match the first arg, into strings that look like the second arg, with the third arg providing the list of strings.(Gnumake)</li>
+  <li><code class="highlighter-rouge"><span class="nl">.PHONY</span><span class="o">:</span></code> provides a list of targets that don’t correspond to actual files.
+For example, by using this directive in a makefile with a target <code class="highlighter-rouge">clean</code>, then even if there is a file named <code class="highlighter-rouge">clean</code> on the system it will not be considered and the <code class="highlighter-rouge">clean:</code> target will be made when needed or requested.</li>
+  <li><code class="highlighter-rouge">.IGNORE:</code> provides a list of targets for which errors should be ignored</li>
+</ol>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

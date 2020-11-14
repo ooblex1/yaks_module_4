@@ -1,0 +1,391 @@
+https://thayer.github.io/engs50/Notes/sockets/
+2
+26609
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Networking and Socket Programming</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/sockets/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Networking and Socket Programming</h1>
+  </header>
+
+  <div class="post-content">
+    <p>How do we build Internet applications?
+In this lecture, we will discuss the socket API and support for network communications between Internet hosts.
+Socket programming is the key API for programming distributed applications on the Internet.
+If you are interested in getting deeper into networking, take <em>CS60: Computer Networks</em>.</p>
+
+<p>Socket programming is a key skill needed for the final project.</p>
+
+<h3 id="goals">Goals</h3>
+
+<ul>
+  <li>to overview the client-server model</li>
+  <li>to provide a high-level understanding of TCP/IP</li>
+  <li>to introduce the Berkeley Sockets API for networking</li>
+</ul>
+
+<h2 id="the-client-server-model">The client-server model</h2>
+
+<p>The client-server model is one of the most commonly used communication paradigms in networked systems.
+A <em>server</em> is a long-running program that stands idle until some clients connect to the server and request service.
+Thus, it is the <em>client</em> who initiates communication with the <em>server</em>.
+Clients normally communicate with one server at a time, but most servers can communicate with multiple clients simultaneously.
+Clients need some advance knowledge of the server and its address, but the server does not need to know the address of (or even the existence of) the client prior to the connection being established.</p>
+
+<p>Client and servers communicate by means of multiple layers of network protocols.
+In this class we focus on the TCP/IP protocol suite.</p>
+
+<p>When the client and server are both connected to the same Local Area Network (LAN) it looks like the following:</p>
+
+<p><img src="/engs50/Notes/sockets/ethernetccp.jpg" alt="ethernet" /></p>
+
+<hr />
+
+<p>Although the diagram shows an Ethernet, the case of Wi-Fi is exactly analogous.</p>
+
+<p>The client and the server may be in different LANs, with both LANs connected to a Wide Area Network (WAN) by means of routers.
+The largest WAN is the Internet, but companies may have their own WANs.
+This scenario is depicted below:</p>
+
+<p><img src="/engs50/Notes/sockets/wan.jpg" alt="WAN" /></p>
+
+<hr />
+
+<p>The flow of information between the client and the server goes down the protocol stack on one side, then across the network and then up the protocol stack on the other side.</p>
+
+<h3 id="tcp">Transmission Control Protocol (TCP)</h3>
+
+<p>TCP provides a connection-oriented service, since it is based on <em>connections</em> between clients and servers.</p>
+
+<p>When the client contacts the server over TCP, it asks to ‘connect’ and the server must then ‘accept’ the connection.
+Once open, the connection between a ‘socket’ on the client and a ‘socket’ on the server acts as if there is a ‘stream’ of bytes flowing from client to server, and a ‘stream’ of bytes flowing from server to client.
+These ‘streams’ look and act almost exactly like the <code class="highlighter-rouge">stdin</code> and <code class="highlighter-rouge">stdout</code> streams you’re accustomed to - the client writes to its socket and the bytes stream over the connection to the server, who then reads bytes from its socket…
+and vice versa.</p>
+
+<p>TCP provides reliability.
+When a TCP client sends data to the server, it requires an acknowledgement in return.
+If an acknowledgement is not received, TCP automatically retransmits the data and waits for a longer period of time.
+These acknowledgements are all handled by the TCP layer of the protocol stack and are invisible to applications.</p>
+
+<h3 id="addresses">Socket addresses</h3>
+
+<p>The TCP protocol depends on the underlying IP protocol.
+TCP bundles bytes from the outbound stream into “packets” and asks the IP layer to ‘route’ those packets across the LAN or WAN to the destination, where the receiving TCP layer drops those bytes ito the inbound stream.
+In this class we use IP version 4 (IPv4) – the traditional, and still most common, version of IP.</p>
+
+<p>How does the sender identify the destination of the packets?
+with an IP address.
+In the Unix socket API (aka <em><a href="https://en.wikipedia.org/wiki/Berkeley_sockets">Berkeley sockets</a></em>) the IPv4 socket address structure is named <code class="highlighter-rouge">sockaddr_in</code> and is defined by including the <code class="highlighter-rouge">netinet/in.h</code> header file.
+(I have found it sufficient to include <code class="highlighter-rouge">netdb.h</code> for the client, or <code class="highlighter-rouge">arpa/inet.h</code> for the server, because there are many socket-related include files and they all appear to include each other.)</p>
+
+<p>The standard definition is the following:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">in_addr</span> <span class="p">{</span>
+  <span class="n">in_addr_t</span> <span class="n">s_addr</span><span class="p">;</span>  <span class="cm">/* 32-bit IPv4 network byte ordered address */</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="p">{</span>
+  <span class="kt">uint8_t</span>        <span class="n">sin_len</span><span class="p">;</span>     <span class="cm">/* length of structure (16) */</span>
+  <span class="n">sa_family_t</span>    <span class="n">sin_family</span><span class="p">;</span>  <span class="cm">/* AF_INET */</span>
+  <span class="n">in_port_t</span>      <span class="n">sin_port</span><span class="p">;</span>    <span class="cm">/* 16 bit TCP or UDP port number */</span>
+  <span class="k">struct</span> <span class="n">in_addr</span> <span class="n">sin_addr</span><span class="p">;</span>    <span class="cm">/* 32 bit IPv4 address */</span>
+  <span class="kt">char</span>           <span class="n">sin_zero</span><span class="p">[</span><span class="mi">8</span><span class="p">];</span> <span class="cm">/* not used, but always set to zero */</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">uint8_t</code> data type is an unsigned 8-bit integer.</p>
+
+<h3 id="byte-order">Host Byte Order to Network Byte Order conversion</h3>
+
+<p>There are two ways to store two- or four-byte integers in memory:</p>
+
+<ul>
+  <li>
+    <p><em>big endian</em>, with the <em>most-significant</em> byte first and bytes of <em>decreasing</em> significance as memory address increases.
+See <a href="https://en.wikipedia.org/wiki/Endianness#Big-endian">diagram</a>.</p>
+  </li>
+  <li>
+    <p><em>little endian</em>, with the <em>least-significant</em> byte first and bytes of <em>increasing</em> significance as memory address increases.
+See <a href="https://en.wikipedia.org/wiki/Endianness#Little-endian">diagram</a>.</p>
+  </li>
+</ul>
+
+<p>See Wikipedia about <em><a href="https://en.wikipedia.org/wiki/Endianness">Endianness</a></em>.</p>
+
+<p>We refer to these orders as the <em>host byte order</em>.
+For example, an Intel processor stores a 32-bit integer as four consecutive bytes in memory in the order 1-2-3-4, where 4 is the most significant byte, which is little endian.
+IBM PowerPC processors would store the integer in the byte order 4-3-2-1, which is big endian.</p>
+
+<p>Standard Internet protocols such as IP and TCP use big-endian byte ordering.</p>
+
+<p>The following functions are provided on all Unix platforms to aid you converting between <em>host</em> byte order (whatever it may be) and <em>network</em> byte order: on a big-endian host, these functions do nothing; on a little-endian machine, they swap the order of bytes.
+Code using these functions can thus be compiled on either a big-endian or little-endian machine and work correctly.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;netinet/in.h&gt;
+</span>
+<span class="kt">uint16_t</span> <span class="n">htons</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">host16bitvalue</span><span class="p">);</span> <span class="c1">// host to network short
+</span>
+<span class="kt">uint32_t</span> <span class="n">htonl</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">host32bitvalue</span><span class="p">);</span> <span class="c1">// host to network long
+</span>
+<span class="kt">uint16_t</span> <span class="n">ntohs</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">net16bitvalue</span><span class="p">);</span> <span class="c1">// network to host short
+</span>
+<span class="kt">uint32_t</span> <span class="n">ntohl</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">net32bitvalue</span><span class="p">);</span> <span class="c1">// network to host long
+</span></code></pre></div></div>
+
+<p>In network parlance, <em>short</em> means 16 bits and <em>long</em> means 32 bits.
+The first two functions return the value in <em>network byte order</em> (16 and 32 bit, respectively).
+The latter two functions return the value in <em>host byte order</em> (16 and 32 bit, respectively).</p>
+
+<p>The type <code class="highlighter-rouge">uint32_t</code> refers to an unsigned 32-bit integer.
+The type <code class="highlighter-rouge">uint16_t</code> refers to an unsigned 16-bit integer.
+The type <code class="highlighter-rouge">uint8_t</code> refers to an unsigned 8-bit integer.</p>
+
+<h2 id="api">TCP socket API</h2>
+
+<p>For more information about the socket API, read <em><a href="https://en.wikipedia.org/wiki/Berkeley_sockets">Berkeley sockets</a></em> (on Wikipedia) and the <code class="highlighter-rouge">man</code> pages for the functions you see used in below.</p>
+
+<p>The sequence of function calls for the client and a server participating in a TCP connection is presented below:</p>
+
+<p><img src="/engs50/Notes/sockets/TCPsockets.jpg" alt="Sockets" /></p>
+
+<hr />
+
+<p>As shown in the figure, the steps for establishing a TCP socket on the client side are the following:</p>
+
+<ul>
+  <li>Create a socket using the <code class="highlighter-rouge">socket()</code> function;</li>
+  <li>Connect the socket to the address of the server using the <code class="highlighter-rouge">connect()</code> function;</li>
+  <li>Send and receive data by means of the <code class="highlighter-rouge">write()</code> and <code class="highlighter-rouge">read()</code> functions.</li>
+</ul>
+
+<p>The steps involved in establishing a TCP socket on the server side are as follows:</p>
+
+<ul>
+  <li>Create a socket with the <code class="highlighter-rouge">socket()</code> function;</li>
+  <li>Bind the socket to an address using the <code class="highlighter-rouge">bind()</code> function;</li>
+  <li>Listen for connections with the <code class="highlighter-rouge">listen()</code> function;</li>
+  <li>Accept a connection with the <code class="highlighter-rouge">accept()</code> function system call.
+This call typically blocks until a client connects with the server.</li>
+  <li>Send and receive data by means of <code class="highlighter-rouge">write()</code> and <code class="highlighter-rouge">read()</code>.</li>
+</ul>
+
+<p>The actual determination of which side reads first, and which side writes first, depends on the particular protocol running atop TCP.</p>
+
+<h3 id="socket">The <code class="highlighter-rouge">socket()</code> function</h3>
+
+<p>The first step is to call the <code class="highlighter-rouge">socket()</code> function, specifying the type of communication protocol (TCP based on IPv4, TCP based on IPv6, UDP).</p>
+
+<p>The function is defined as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;sys/socket.h&gt;
+</span>
+<span class="kt">int</span> <span class="n">socket</span> <span class="p">(</span><span class="kt">int</span> <span class="n">family</span><span class="p">,</span> <span class="kt">int</span> <span class="n">type</span><span class="p">,</span> <span class="kt">int</span> <span class="n">protocol</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>where <code class="highlighter-rouge">family</code> specifies the protocol family (<code class="highlighter-rouge">AF_INET</code> for the IPv4 protocols), <code class="highlighter-rouge">type</code> is a constant described the type of socket (<code class="highlighter-rouge">SOCK_STREAM</code> for stream (TCP) sockets and <code class="highlighter-rouge">SOCK_DGRAM</code> for datagram (UDP) sockets), and <code class="highlighter-rouge">protocol</code> is a parameter that can be set to zero for this course.</p>
+
+<p>The function returns a non-negative integer (or <code class="highlighter-rouge">-1</code> on error).
+This number is a ‘file descriptor’.</p>
+
+<blockquote>
+  <p><strong><em>File descriptors:</em></strong> File descriptors are small non-negative integers that the kernel uses to identify the files being accessed by a particular process.
+Whenever it opens an existing file or creates a new file, the kernel returns a file descriptor that is used to read or write the file.
+<em>They are not the same thing as stdio ‘file pointers’.</em>
+ The stdio package ‘wraps’ file descriptors in its <code class="highlighter-rouge">FILE*</code> type to provide a more convenient API.
+By convention, file descriptor 0 is the ‘standard input’ (known in stdio as <code class="highlighter-rouge">stdin</code>),
+file descriptor 1 is the ‘standard output’ (wrapped by stdio as <code class="highlighter-rouge">stdout</code>), and
+file descriptor 2 is the ‘standard error’ (wrapped by stdio as <code class="highlighter-rouge">stderr</code>),</p>
+</blockquote>
+
+<h3 id="bind">The <code class="highlighter-rouge">bind()</code> function</h3>
+
+<p>The <code class="highlighter-rouge">bind()</code> assigns a local protocol address to a socket.
+With the Internet protocols, the address is the combination of an IPv4 address and a 16-bit TCP port number.</p>
+
+<p>The function is defined as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;sys/socket.h&gt;
+</span>
+<span class="kt">int</span> <span class="n">bind</span><span class="p">(</span><span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="n">servaddr</span><span class="p">,</span> <span class="n">socklen_t</span> <span class="n">addrlen</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>where <code class="highlighter-rouge">sockfd</code> is the socket descriptor, <code class="highlighter-rouge">servaddr</code> points to a socket address structure and <code class="highlighter-rouge">addrlen</code> is its length..</p>
+
+<p><code class="highlighter-rouge">bind()</code> returns <code class="highlighter-rouge">0</code> if it succeeds, <code class="highlighter-rouge">-1</code> on error.</p>
+
+<p>This use of the generic socket address <code class="highlighter-rouge">sockaddr</code> requires that any calls to these functions must cast the pointer to the protocol-specific address structure.
+For example for an IPv4 socket structure that we use in this class:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">serv</span><span class="p">;</span> <span class="cm">/* IPv4 socket address structure */</span>
+
+<span class="n">bind</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span> <span class="p">(</span><span class="k">struct</span> <span class="n">sockaddr</span><span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">serv</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">serv</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>A process can bind a specific IP address/port to its socket.
+Normally, a TCP client does not bind an IP address to its socket; the kernel chooses the source IP, based on the outgoing interface that is used, and assigns an unused port number.
+For a TCP server, <code class="highlighter-rouge">bind</code> is required and restricts the socket to receive incoming client connections destined to that IP address and port; that said, the server can pass a wildcard address to <code class="highlighter-rouge">bind</code> and allow the system to choose an address and unused port number.</p>
+
+<h3 id="listen">The <code class="highlighter-rouge">listen()</code> function</h3>
+
+<p>The <code class="highlighter-rouge">listen()</code> function converts an unconnected socket into a passive socket, indicating that the kernel should accept incoming connection requests directed to this socket.
+It is defined as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;sys/socket.h&gt;
+</span>
+<span class="kt">int</span> <span class="n">listen</span><span class="p">(</span><span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span> <span class="kt">int</span> <span class="n">backlog</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>where <code class="highlighter-rouge">sockfd</code> is the socket descriptor and <code class="highlighter-rouge">backlog</code> is the maximum number of connections the kernel should queue for this socket.
+The <code class="highlighter-rouge">backlog</code> argument provides an hint to the system of the number of outstanding connect requests that it should enqueue in behalf of the process.
+Once the queue is full, the system will reject additional connection requests.
+The <code class="highlighter-rouge">backlog</code> value must be chosen based on the expected load of the server.</p>
+
+<p>The function <code class="highlighter-rouge">listen()</code> returns <code class="highlighter-rouge">0</code> if it succeeds, <code class="highlighter-rouge">-1</code> on error.</p>
+
+<h3 id="connect">The <code class="highlighter-rouge">connect()</code> function</h3>
+
+<p>The <code class="highlighter-rouge">connect()</code> function is used by a TCP client to establish a connection with a TCP server.</p>
+
+<p>The function is defined as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;sys/socket.h&gt;
+</span>
+<span class="kt">int</span> <span class="n">connect</span> <span class="p">(</span><span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="n">servaddr</span><span class="p">,</span> <span class="n">socklen_t</span> <span class="n">addrlen</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>where <code class="highlighter-rouge">sockfd</code> is the socket descriptor returned by the call to <code class="highlighter-rouge">socket()</code> and <code class="highlighter-rouge">servaddr</code> points to a socket address structure and <code class="highlighter-rouge">addrlen</code> is its length.</p>
+
+<p>The function returns <code class="highlighter-rouge">0</code> if it succeeds in establishing a TCP connection, and <code class="highlighter-rouge">-1</code> otherwise.</p>
+
+<p>The client does not have to call <code class="highlighter-rouge">bind()</code> before calling this function: the client’s UNIX kernel will choose both an ephemeral port and the source IP if necessary.</p>
+
+<h3 id="accept">The <code class="highlighter-rouge">accept()</code> function</h3>
+
+<p>The <code class="highlighter-rouge">accept()</code> function is used to retrieve a connect request, create a new socket just like the original one, and allocate a new file descriptor for that socket.
+It is defined as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;sys/socket.h&gt;
+</span>
+<span class="kt">int</span> <span class="n">accept</span><span class="p">(</span><span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span> <span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="n">cliaddr</span><span class="p">,</span> <span class="n">socklen_t</span> <span class="o">*</span><span class="n">addrlen</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>where <code class="highlighter-rouge">sockfd</code> is a new file descriptor that is connected to the client that called the <code class="highlighter-rouge">connect()</code>.
+The <code class="highlighter-rouge">cliaddr</code> and <code class="highlighter-rouge">addrlen</code> arguments are used to return the protocol address of the client.
+The new socket descriptor has the same socket type and address family of the original socket.
+The original socket passed to <code class="highlighter-rouge">accept()</code> is not associated with the connection, but instead remains available to receive additional connect requests.
+The kernel creates one connected socket for each client connection that is accepted.</p>
+
+<p>If we don’t care about the client’s identity, we can set the <code class="highlighter-rouge">cliaddr</code> and <code class="highlighter-rouge">addrlen</code> to <code class="highlighter-rouge">NULL</code>.
+Otherwise, before calling the <code class="highlighter-rouge">accept()</code> function, the <code class="highlighter-rouge">cliaddr</code> parameter has to be set to a buffer large enough to hold the address and set the integer pointed by <code class="highlighter-rouge">addrlen</code> to the size of the buffer.</p>
+
+<h2 id="tcp-example">TCP client/server example</h2>
+
+<p>In this example, <a href="/engs50/Examples/client-server">client-server</a>, we see a basic TCP client that can talk to our basic TCP server.</p>
+
+<p>This code demonstrates</p>
+
+<ul>
+  <li>the server’s loop over clients, and handling each client in turn</li>
+  <li>the server-side flow: <code class="highlighter-rouge">socket</code>, <code class="highlighter-rouge">bind</code>, <code class="highlighter-rouge">listen</code>, <code class="highlighter-rouge">accept</code>, <code class="highlighter-rouge">read</code>, <code class="highlighter-rouge">close</code>
+7* the client-side flow: <code class="highlighter-rouge">socket</code>, <code class="highlighter-rouge">connect</code>, <code class="highlighter-rouge">write</code>, <code class="highlighter-rouge">close</code></li>
+  <li>the use of <code class="highlighter-rouge">getsockname()</code> to retrieve the port number bound to a socket</li>
+  <li>the use of <code class="highlighter-rouge">gethostbyname()</code> to find the IP address for a hostname</li>
+  <li>the use of 	<code class="highlighter-rouge">bzero()</code> to zero all bytes in a buffer</li>
+  <li>the use of 	<code class="highlighter-rouge">bcopy()</code> to copy all bytes from one buffer to another</li>
+  <li>a <code class="highlighter-rouge">read</code>/<code class="highlighter-rouge">write</code> loop, recognizing that <code class="highlighter-rouge">read</code> does not always fill the buffer</li>
+</ul>
+
+<!-- See the in-class script from [flume](/engs50/Notes/sockets/script-flume.txt) and [Mac](/engs50/Notes/sockets/script-mac.txt). -->
+
+<h2 id="http-example">HTTP-over-TCP client/server example</h2>
+
+<p>In this example, <a href="/engs50/Examples/client-server-http">client-server-http</a>, we enhance the basic example to support HTTP.
+The client can connect to our HTTP server, or to real HTTP servers.
+The server can serve our basic HTTP client, or real browsers.</p>
+
+<p>This code demonstrates</p>
+
+<ul>
+  <li>the HTTP protocol on both server and client side</li>
+  <li>the use of <code class="highlighter-rouge">fdopen()</code> to convert a ‘file descriptor’ into a ‘file pointer’ usable with stdio and our CS50 <code class="highlighter-rouge">file.c</code> module.</li>
+</ul>
+
+<!-- See again the in-class script from [flume](/engs50/Notes/sockets/script-flume.txt) and [Mac](/engs50/Notes/sockets/script-mac.txt). -->
+
+<h3 id="to-learn-more">To learn more</h3>
+
+<p>For more details about the handshake protocols see this excellent <a href="https://upload.wikimedia.org/wikipedia/commons/f/f6/Tcp_state_diagram_fixed_new.svg">TCP state diagram on Wikipedia</a></p>
+
+<h2 id="activity">Activity</h2>
+
+<p>In today’s <a href="activity.html">activity</a> your group will copy and install the example code and try it out!</p>
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

@@ -1,0 +1,773 @@
+https://thayer.github.io/engs50/Labs/Lab2/
+2
+31749
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Lab 2 - C and Bash</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Labs/Lab2/">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Lab 2 - C and Bash</h1>
+  </header>
+
+  <div class="post-content">
+    <p>This second lab is focused on three small C programs, and a regression-testing bash script.
+They start easy and get progressively more difficult.</p>
+
+<ul id="markdown-toc">
+  <li><a href="#reminder" id="markdown-toc-reminder">Reminder</a></li>
+  <li><a href="#preparation" id="markdown-toc-preparation">Preparation</a></li>
+  <li><a href="#assignment" id="markdown-toc-assignment">Assignment</a></li>
+  <li><a href="#regresssh" id="markdown-toc-regresssh">regress.sh</a></li>
+  <li><a href="#chillc" id="markdown-toc-chillc">chill.c</a></li>
+  <li><a href="#wordsc" id="markdown-toc-wordsc">words.c</a></li>
+  <li><a href="#histoc" id="markdown-toc-histoc">histo.c</a>    <ul>
+      <li><a href="#representing-a-histogram" id="markdown-toc-representing-a-histogram">Representing a histogram</a></li>
+    </ul>
+  </li>
+  <li><a href="#what-to-hand-in-and-how" id="markdown-toc-what-to-hand-in-and-how">What to hand in, and how</a></li>
+</ul>
+
+<h2 id="reminder">Reminder</h2>
+
+<p>Grading will focus on <a href="/engs50/Resources/CodingStyle.html">CS50 coding style</a> - including consistent formatting, selection of identifier names, and use of meaningful comments - in addition to correctness and testing.</p>
+
+<p><strong><em>Your C code must compile without producing any compiler warnings.</em></strong>  You will lose points if the compiler produces warnings when using our CS50-standard compiler flags.</p>
+
+<p><strong><em>If your submitted code fails to compile, or triggers a segmentation fault,</em></strong> we’ll notify you and give you an opportunity to repair and resubmit.
+(See <em><a href="/index.html#crashes">programs that crash</a>.</em>)</p>
+
+<h2 id="preparation">Preparation</h2>
+
+<p>Set up four directories for this lab:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">cd</span>
+<span class="nv">$ </span>mkdir <span class="nt">-p</span> cs50/labs/lab2
+<span class="nv">$ </span><span class="nb">cd </span>cs50/labs/lab2
+<span class="nv">$ </span>mkdir regress chill histo words
+</code></pre></div></div>
+
+<h2 id="assignment">Assignment</h2>
+
+<p>Please follow the <a href="/engs50/Resources/CodingStyle.html">CS50 coding style</a>.</p>
+
+<p>Design, write, document, and <strong>fully test</strong> the following three separate C programs and one bash script.</p>
+
+<p><strong><em>Point breakdown:</em></strong></p>
+
+<ul>
+  <li>(25 points) regress.sh</li>
+  <li>(25 points) chill.c</li>
+  <li>(25 points) words.c</li>
+  <li>(25 points) histo.c</li>
+</ul>
+
+<h2 id="regresssh">regress.sh</h2>
+
+<p><em>Regression testing</em> is important to any quality software-development
+process.  As a software project evolves, each new revision is tested
+against a thorough suite of test cases to ensure that the new revision
+still performs correctly where it had before.  As new functionality is
+added, new tests are added to the suite.</p>
+
+<p>Write a bash script <code class="highlighter-rouge">regress.sh</code> to perform regression testing.  Its
+command line looks like</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./regress.sh dirname testfilename...
+</code></pre></div></div>
+<ul>
+  <li>where <code class="highlighter-rouge">dirname</code> is the name of a directory containing test results, and</li>
+  <li>where each <code class="highlighter-rouge">testfilename</code> is the name of a file containing bash command(s) for one test case.</li>
+</ul>
+
+<p>The script verifies the validity of its arguments (exit with non-zero status on any error):</p>
+
+<ul>
+  <li>there must be at least two arguments;</li>
+  <li>if something by the name <code class="highlighter-rouge">dirname</code> exists, it must be a directory;</li>
+  <li>each <code class="highlighter-rouge">testfilename</code> must be a regular file and be readable.</li>
+</ul>
+
+<p>After checking its arguments, the script creates new directory whose name has the form YYYYMMDD.HHMMSS, representing the current date and time, in the current directory.
+(For example, <code class="highlighter-rouge">20170402.143702</code>.) If any error, exit with non-zero status.</p>
+
+<p>The script then runs each test case with bash, redirecting stdin from <code class="highlighter-rouge">/dev/null</code>, producing four files for each case:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">YYYYMMDD.HHMMSS/testfilename.test</code> - a copy of <code class="highlighter-rouge">testfilename</code></li>
+  <li><code class="highlighter-rouge">YYYYMMDD.HHMMSS/testfilename.status</code> - the exit status of <code class="highlighter-rouge">bash testfilename</code></li>
+  <li><code class="highlighter-rouge">YYYYMMDD.HHMMSS/testfilename.stdout</code> - the stdout from <code class="highlighter-rouge">bash testfilename</code></li>
+  <li><code class="highlighter-rouge">YYYYMMDD.HHMMSS/testfilename.stderr</code> - the stderr from <code class="highlighter-rouge">bash testfilename</code></li>
+</ul>
+
+<p>If the directory <code class="highlighter-rouge">dirname</code> <em>does not exist,</em> YYYYMMDD.HHMMSS is renamed <code class="highlighter-rouge">dirname</code>.
+Exit 0 if success, non-zero if any error.</p>
+
+<p>If the directory <code class="highlighter-rouge">dirname</code> <em>already exists,</em> YYYYMMDD.HHMMSS is compared with <code class="highlighter-rouge">dirname</code> to provide a brief listing of any differences - or the simple statement “no differences”.
+Exit 0 if no differences, non-zero if differences.</p>
+
+<p>In typical usage, the first time the developer runs <code class="highlighter-rouge">regress.sh</code>, the script creates a directory by name <code class="highlighter-rouge">dirname</code>; in subsequent runs, it compares the new test results with those from the prior run.
+Over time, directories YYYYMMDD.HHMMSS accumulate, providing a historical record of test results.</p>
+
+<h4 class="no_toc" id="exit">exit</h4>
+
+<p>Non-zero if any error, or any differences from the earlier <code class="highlighter-rouge">dirname</code> directory.</p>
+
+<p>Zero if <code class="highlighter-rouge">dirname</code> created successfully, or there were no differences from an existing <code class="highlighter-rouge">dirname</code>.</p>
+
+<h4 class="no_toc" id="example">Example</h4>
+
+<p>Suppose we used <code class="highlighter-rouge">regress.sh</code> to support development of the <code class="highlighter-rouge">shake.sh</code> solution.
+The directory contains the script and four test files, each with a one-line command.
+(Here <code class="highlighter-rouge">regress.sh</code> is elsewhere in the PATH.) We start out by listing the four test cases, then run <code class="highlighter-rouge">regress.sh</code> twice, then add a test case, then change a test case.
+Finally, we test some erroneous cases.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[lab2]$ ls
+shake.sh*	test0		test1		test2		test3
+[lab2]$ cat test?
+cat shake.sh
+./shake.sh
+./shake.sh love
+./shake.sh computer
+[lab2]$ regress.sh base test?
+20170402.143657
+saved test results in base
+[lab2]$ regress.sh base test?
+20170402.143702
+comparing 20170402.143702 with base...
+no differences.
+[lab2]$ echo ./shake.sh two words &gt; test4
+[lab2]$ regress.sh base test?
+20170402.143721
+comparing 20170402.143721 with base...
+Only in 20170402.143721: test4.status
+Only in 20170402.143721: test4.stderr
+Only in 20170402.143721: test4.stdout
+Only in 20170402.143721: test4.test
+[lab2]$ echo ./shake.sh rose &gt; test2
+[lab2]$ cat test?
+cat shake.sh
+./shake.sh
+./shake.sh rose
+./shake.sh computer
+./shake.sh two words
+[lab2]$ regress.sh base test?
+20170402.143806
+comparing 20170402.143806 with base...
+Files base/test2.stdout and 20170402.143806/test2.stdout differ
+Files base/test2.test and 20170402.143806/test2.test differ
+Only in 20170402.143806: test4.status
+Only in 20170402.143806: test4.stderr
+Only in 20170402.143806: test4.stdout
+Only in 20170402.143806: test4.test
+[lab2]$ ls
+20170402.143702/        shake.sh*               test3
+20170402.143721/        test0                   test4
+20170402.143806/        test1
+base/                   test2
+[lab2]$
+######## now some error cases
+[lab2]$ regress.sh
+usage: regress.sh dirname testfilename...
+[lab2]$ regress.sh base
+usage: regress.sh dirname testfilename...
+[lab2]$ regress.sh test?
+first argument ('test0') is not a directory
+[lab2]$ regress.sh /base test?
+20170402.144605
+mv: rename 20170402.144605 to /base: Permission denied
+failed to save test results in /base; they remain in 20170402.144605
+[lab2]$ regress.sh base testing
+test case 'testing' is not a file (or not readable)
+[lab2]$ regress.sh base base
+test case 'base' is not a file (or not readable)
+[lab2]$ chmod -r test?
+[lab2]$ regress.sh base test?
+test case 'test0' is not a file (or not readable)
+[lab2]$
+</code></pre></div></div>
+
+<p>Note above how we use the bash globbing syntax <code class="highlighter-rouge">?</code> to indicate a wildcard that matches any single character; thus, <code class="highlighter-rouge">test?</code> expands to</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>test0 test1 test2 test3 test4
+</code></pre></div></div>
+
+<p>Note how <code class="highlighter-rouge">test0</code> simply prints the current copy of <code class="highlighter-rouge">shake.sh</code>, which adds nicely to the historic record.</p>
+
+<blockquote>
+  <p>The name of test files is not important to <code class="highlighter-rouge">regress.sh</code>, but a development team may want to agree on a naming convention.
+For example, suppose you chose to name them all with extension <code class="highlighter-rouge">.test</code>.
+If you had saved the first run of <code class="highlighter-rouge">regress.sh</code> in a directory named <code class="highlighter-rouge">base</code>, you could then run future tests as</p>
+
+  <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./regress.sh base *.test
+</code></pre></div>  </div>
+</blockquote>
+
+<p>Just to be clear, each testfile contains bash command(s), and your
+<code class="highlighter-rouge">regress.sh</code> script should execute those commands by running bash and
+providing <code class="highlighter-rouge">testfilename</code> as an argument.  (Recall how we did the test
+cases for <code class="highlighter-rouge">shake.sh</code>.)  But you should run each test only <em>once</em>
+within any given run of <code class="highlighter-rouge">regress.sh</code> – not only is that more
+efficient, it’s possible that the commands within some test files
+might actually not be amenable to being run multiple times (e.g., if
+they have side effects like creating or removing files).</p>
+
+<p>It’s easily possible to redirect the stdin, stdout, and stderr, all in
+one run of a test - and to catch the exit status of that run.</p>
+
+<h4 class="no_toc" id="assumptions">Assumptions</h4>
+
+<p>Please expect that dirname names a directory that could be anywhere -
+not necessarily a subdirectory of the current working directory.
+(This assumption should not complicate your work.)</p>
+
+<p>Please assume that the testfilenames name files that <em>are</em> in the
+current directory.  (In principle, we should support testfiles from
+anywhere, but it’s a bit trickier; this assumption simplifies your
+work.  Your script need not validate the assumption - just assume it.)</p>
+
+<p>Please <em>do not assume</em> that the script itself, regress.sh, is in the
+current working directory.  (This assumption should not complicate
+your work.)</p>
+
+<h4 class="no_toc" id="hints">Hints</h4>
+
+<blockquote>
+  <p>Check out the <code class="highlighter-rouge">date</code> command and its <code class="highlighter-rouge">+</code> option.</p>
+
+  <p>Check out the <code class="highlighter-rouge"><span class="gh">diff --brief</span></code> command form.</p>
+
+  <p>Check out the <code class="highlighter-rouge">shift</code> built-in bash command and this <a href="/engs50/Examples/shifter.sh">example SHIFTING file</a>.</p>
+</blockquote>
+
+<h2 id="chillc">chill.c</h2>
+
+<p>Write a program to calculate “wind chill” based on the current
+temperature and wind speed.  The standard formula for this calculation
+is:</p>
+
+<pre><code class="language-Matlab">    Wind Chill = 35.74 + 0.6215T - 35.75(V^0.16) + 0.4275T(V^0.16)
+</code></pre>
+
+<p>where <code class="highlighter-rouge">T</code> is the temperature in degrees Fahrenheit (when less than 50)
+and <code class="highlighter-rouge">V</code> is the wind velocity in miles per hour.  The <code class="highlighter-rouge">^</code> character
+denotes exponentiation.  Note that the above formula is <em>not</em> in C
+programming language syntax.</p>
+
+<h4 class="no_toc" id="input">input</h4>
+
+<p>No input files; stdin is ignored.</p>
+
+<p>The user may run your program with no arguments, one argument, or two arguments as explained below.</p>
+
+<h4 class="no_toc" id="output-no-arguments">output: no arguments</h4>
+
+<p>If the user provides no arguments to your program, it should print out
+a table of temperatures (from -10 to +40 by 10’s) and and wind speeds
+(from 5 to 15 by 5’s).  Your output should look similar to the
+following, with nice columns and titles:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nv">$ </span>./chill
+    Temp    Wind    Chill
+    <span class="nt">----</span>    <span class="nt">----</span>    <span class="nt">-----</span>
+     <span class="nt">-10</span>       5    <span class="nt">-22</span>.3
+     <span class="nt">-10</span>      10    <span class="nt">-28</span>.3
+     <span class="nt">-10</span>      15    <span class="nt">-32</span>.2
+
+       0       5    <span class="nt">-10</span>.5
+       0      10    <span class="nt">-15</span>.9
+       0      15    <span class="nt">-19</span>.4
+
+      10       5     1.2
+      10      10    <span class="nt">-3</span>.5
+      10      15    <span class="nt">-6</span>.6
+
+      20       5     13.0
+      20      10     8.9
+      20      15     6.2
+
+      30       5     24.7
+      30      10     21.2
+      30      15     19.0
+
+      40       5     36.5
+      40      10     33.6
+      40      15     31.8
+</code></pre></div></div>
+
+<h4 class="no_toc" id="output-one-argument">output: one argument</h4>
+
+<p>If the user provides one argument, it will assumed to be a temperature (expressed as a floating-point number).
+If that temperature is less than 50, it is acceptable; <code class="highlighter-rouge">chill</code> then prints a table of wind speeds (from 5 to 15 by 5’s) and the calculated wind chills <em>for that temperature only</em>.
+Your program’s output for one argument should look like this:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nv">$ </span>./chill 32
+     Temp   Wind   Chill
+    <span class="nt">-----</span>   <span class="nt">----</span>   <span class="nt">-----</span>
+      32      5     27.1
+      32     10     23.7
+      32     15     21.6
+</code></pre></div></div>
+
+<h4 class="no_toc" id="output-two-arguments">output: two arguments</h4>
+
+<p>If the user provides two arguments, they will be temperature and
+velocity, respectively (expressed as floating-point numbers).  The
+temperature must be less than 50 and the velocity must be greater than
+or equal to 0.5.</p>
+
+<p>If the arguments are acceptable, then your program should calculate
+and print the wind chill for <em>that temperature and velocity only</em>.</p>
+
+<p>Your program’s output for two arguments should look like this:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nv">$ </span>./chill 5 20
+     Temp    Wind   Chill
+     <span class="nt">-----</span>   <span class="nt">----</span>   <span class="nt">-----</span>
+        5     20    <span class="nt">-15</span>.4
+</code></pre></div></div>
+
+<p>If either argument is out of range, your program should issue a
+message and exit.  Here’s an example:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nv">$ </span>./chill 55
+    Temperature must be less than 50 degrees Fahrenheit
+
+    <span class="nv">$ </span>./chill <span class="nt">-150</span> 
+    Temperature must be greater than <span class="nt">-139</span> Fahrenheit 
+    <span class="o">(</span>coldest recorded earth temperature, see https://en.wikipedia.org/wiki/Lowest_temperature_recorded_on_Earth<span class="o">)</span>
+
+    <span class="nv">$ </span>./chill 10 0
+    Wind velocity must be greater than or equal to 0.5 MPH
+</code></pre></div></div>
+
+<blockquote>
+  <p>In the preceding examples some values were printed as integers and some as decimal fractions.
+You may print everything in the format “x.y”, if you wish, but do not print more than one decimal place.
+Indeed, it may be wise to use this format when the user specifies temperature or windspeed, because the user may specify a non-integral value and it may be misleading to print it as an integer.</p>
+</blockquote>
+
+<h4 class="no_toc" id="output-more-than-two-arguments">output: more than two arguments</h4>
+
+<p>print a “usage” line and exit with error status.</p>
+
+<h4 class="no_toc" id="exit-1">exit</h4>
+
+<p>If the program terminates normally, it exits with a return code  of <code class="highlighter-rouge">0</code>.
+Otherwise, it terminates with a documented, non-zero return code.</p>
+
+<h4 class="no_toc" id="compiling">Compiling</h4>
+
+<p>You will likely need the math library.
+To use it, add
+<code class="highlighter-rouge">#include &lt;math.h&gt;</code>
+to your <code class="highlighter-rouge">chill.c</code> file, and add
+<code class="highlighter-rouge">-lm</code> to your <code class="highlighter-rouge">mygcc</code> command.
+(That is “dash ell emm”, which is short for “library math”.)</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mygcc chill.c <span class="nt">-lm</span> <span class="nt">-o</span> chill
+</code></pre></div></div>
+
+<h2 id="wordsc">words.c</h2>
+
+<p>Write a C program reminiscent of one of the pipelines we explored in Lab 1; specifically, a program called <code class="highlighter-rouge">words</code> that breaks its input into a series of words, one per line.
+It may take input from stdin, or from files whose names are listed as arguments.</p>
+
+<h4 class="no_toc" id="usage">usage</h4>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>words [filename]...
+</code></pre></div></div>
+
+<h4 class="no_toc" id="input-1">input</h4>
+
+<p>When no filenames are given on the command line, <code class="highlighter-rouge">words</code> reads from stdin.</p>
+
+<p>When one or more filenames are given on the command line, <code class="highlighter-rouge">words</code> reads from each file in sequence.</p>
+
+<p>If the special filename <code class="highlighter-rouge">-</code> is given as one of the filenames, the stdin is read at that point in the sequence.</p>
+
+<h4 class="no_toc" id="output">output</h4>
+
+<p>In any case, the stdout should consist of a sequence of lines, with
+exactly one word on each output line (i.e., each output line contains
+exactly one word and no other characters).  A “word” is a sequence of
+letters.</p>
+
+<blockquote>
+  <p>Although you may be tempted to think of the input as a sequence of lines, it may be helpful to think of it as a sequence of characters.</p>
+</blockquote>
+
+<blockquote>
+  <p>Note it is possible for the output to be empty, if there are no words in any of the input files.</p>
+</blockquote>
+
+<p>Any error messages are written to stderr.</p>
+
+<h4 class="no_toc" id="exit-2">exit</h4>
+
+<p>If the program terminates normally, it exits with a return code  of <code class="highlighter-rouge">0</code>.
+Otherwise, it terminates with a documented, non-zero return code.</p>
+
+<h4 class="no_toc" id="hints-1">hints</h4>
+
+<blockquote>
+  <p>Check out <code class="highlighter-rouge">man ctype</code> on a mac, or <code class="highlighter-rouge">man ctype.h</code> on a Linux system.</p>
+
+  <p>Consider a function that processes a file, given a <code class="highlighter-rouge">FILE*</code> as parameter.</p>
+
+  <p>Would it be easier to process the file(s) one character at a time?</p>
+</blockquote>
+
+<h2 id="histoc">histo.c</h2>
+
+<p>Write a program that reads a series of positive integers from stdin, and prints out a histogram.
+There should be 16 bins in your histogram.
+The catch?
+You don’t know in advance the <em>range</em> of input values; assume the integers range from 0 to some unknown positive maximum.
+Thus, you will need to dynamically scale the bin size for your histogram.
+An example is below.</p>
+
+<h4 class="no_toc" id="usage-1">Usage:</h4>
+
+<p>There are no command-line arguments.</p>
+
+<h4 class="no_toc" id="requirements">Requirements:</h4>
+
+<p>You must begin with bin size 1, and double it as needed so all
+positive integers observed on input fit within the histogram.</p>
+
+<p>You must have 16 bins.
+The number ‘16’ should appear only <em>once</em> in your code.</p>
+
+<h4 class="no_toc" id="input-2">input:</h4>
+
+<p>Input is read from stdin, whether from the keyboard, redirected from a
+file, or piped in from another command.  You can use a simple
+<code class="highlighter-rouge">scanf()</code> for this.  Assume the input contains only integers,
+separated by white space (space, tab, newline).  Assume the smallest
+integer is zero; ignore any negative integers.  If there is
+non-integer non-space content in the file, it is ok for the program to
+treat that as the end of input; the program should not crash, or enter
+an infinite loop – it should just silently behave as if there are no
+more integers.  (These assumptions make it easy to use <code class="highlighter-rouge">scanf</code> for
+your input.)</p>
+
+<p>As always, any other assumptions you make should be documented in your <code class="highlighter-rouge">README</code> file and your testing procedure should be documented in your <code class="highlighter-rouge">TESTING</code> file.</p>
+
+<h4 class="no_toc" id="output-1">output:</h4>
+
+<p>See examples below.</p>
+
+<h4 class="no_toc" id="exit-3">exit</h4>
+
+<p>This program has no arguments and does not check its input for errors, so it should always exit with zero status.</p>
+
+<h4 class="no_toc" id="examples">Examples:</h4>
+
+<p>Here we compile and run the program, and type a set of numbers (spread
+over three lines, but it doesn’t matter as long as we put space or
+newline between numbers), ending with <code class="highlighter-rouge">ctrl-D</code> on the beginning of a
+line.  (That sends EOF to the program.)  It then printed a histogram,
+nicely labeling each line with the range of values assigned to that
+bin, and printing a row of <code class="highlighter-rouge">*</code> to represent the count of values that
+fell into that bin.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ mygcc histo.c -o histo
+$ ./histo
+16 bins of size 1 for range [0,16)
+3 -4 5 1 7 0
+8 0 15 12 3 5
+3 3 3 3 3
+^D
+[ 0: 0] **
+[ 1: 1] *
+[ 2: 2]
+[ 3: 3] *******
+[ 4: 4]
+[ 5: 5] **
+[ 6: 6]
+[ 7: 7] *
+[ 8: 8] *
+[ 9: 9]
+[10:10]
+[11:11]
+[12:12] *
+[13:13]
+[14:14]
+[15:15] *
+$
+</code></pre></div></div>
+
+<p>The notation [a,b) includes all values <em>x</em> such that <em>a &lt;= x &lt; b</em>,
+that is, the range includes <em>a</em> but does not include <em>b</em>.  For
+example, [0,4) = {0, 1, 2, 3}.</p>
+
+<p>Now watch what happens if we input a number outside the original range
+of [0,16).</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ./histo
+16 bins of size 1 for range [0,16)
+3 -4 5 1 7 0
+8 0 15 12 3 5
+18
+16 bins of size 2 for range [0,32)
+19 20 30 7 12
+50
+16 bins of size 4 for range [0,64)
+34
+32
+19
+44
+^D
+[ 0: 3] *****
+[ 4: 7] ****
+[ 8:11] *
+[12:15] ***
+[16:19] ***
+[20:23] *
+[24:27]
+[28:31] *
+[32:35] **
+[36:39]
+[40:43]
+[44:47] *
+[48:51] *
+[52:55]
+[56:59]
+[60:63]
+$
+</code></pre></div></div>
+
+<p>Each time it sees a number outside the current range, it doubles the
+range and doubles the size of each bin.  (Notice also the [low:high]
+labels in the histogram; this notation includes both <em>low</em> and <em>high</em>
+and everything in between.) It might have to repeat the doubling if we
+put in a number well past the current bin size:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ./histo
+16 bins of size 1 for range [0,16)
+150
+16 bins of size 2 for range [0,32)
+16 bins of size 4 for range [0,64)
+16 bins of size 8 for range [0,128)
+16 bins of size 16 for range [0,256)
+^D
+[  0: 15]
+[ 16: 31]
+[ 32: 47]
+[ 48: 63]
+[ 64: 79]
+[ 80: 95]
+[ 96:111]
+[112:127]
+[128:143]
+[144:159] *
+[160:175]
+[176:191]
+[192:207]
+[208:223]
+[224:239]
+[240:255]
+$
+</code></pre></div></div>
+
+<p>Here’s an example using bash syntax to generate a list of numbers, and
+piping the output to <code class="highlighter-rouge">histo</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo {1..16} 150 | ./histo
+16 bins of size 1 for range [0,16)
+16 bins of size 2 for range [0,32)
+16 bins of size 4 for range [0,64)
+16 bins of size 8 for range [0,128)
+16 bins of size 16 for range [0,256)
+[  0: 15] ***************
+[ 16: 31] *
+[ 32: 47]
+[ 48: 63]
+[ 64: 79]
+[ 80: 95]
+[ 96:111]
+[112:127]
+[128:143]
+[144:159] *
+[160:175]
+[176:191]
+[192:207]
+[208:223]
+[224:239]
+[240:255]
+$
+</code></pre></div></div>
+
+<p>Although we scale the bin size (x axis), I’m not asking you to scale
+the bin count (y axis) for printing, which can lead to some really
+wide output:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo {1..100} 1500 | ./histo
+16 bins of size 1 for range [0,16)
+16 bins of size 2 for range [0,32)
+16 bins of size 4 for range [0,64)
+16 bins of size 8 for range [0,128)
+16 bins of size 16 for range [0,256)
+16 bins of size 32 for range [0,512)
+16 bins of size 64 for range [0,1024)
+16 bins of size 128 for range [0,2048)
+[   0: 127] ****************************************************************************************************
+[ 128: 255]
+[ 256: 383]
+[ 384: 511]
+[ 512: 639]
+[ 640: 767]
+[ 768: 895]
+[ 896:1023]
+[1024:1151]
+[1152:1279]
+[1280:1407]
+[1408:1535] *
+[1536:1663]
+[1664:1791]
+[1792:1919]
+[1920:2047]
+$
+</code></pre></div></div>
+
+<p>We took some pains to format the [low:high] range indicators for each
+row, using a fixed-width field just wide enough to hold the biggest
+number.  It’s a nice touch (read <code class="highlighter-rouge">man printf</code> for some clues) but it’s
+ok if you make a simpler assumption (e.g., always use 6-digit field
+width).</p>
+
+<h4 id="representing-a-histogram">Representing a histogram</h4>
+
+<p>You will need an array of 16 bins to represent the number of integers
+observed in each bin.  You’ll need to keep track of the bin size and
+the range of the histogram.  If you observe a value outside the range,
+you should double the bin size and range - but first you need to
+compress the current 16 bins into the first 8 bins.  You’ll likely
+need one loop to compute the new values for the lower half of the bins
+(each bin receiving the sum of two bins’ counts), and then another to
+assign the new value (0) to the upper half of the bins.</p>
+
+<p>(Again: the number ‘16’ may only occur <em>once</em> in your code; scattering
+hard-coded numbers around your code is bad style.)</p>
+
+<p>Notice that the number of bins, bin size, and histogram range are all
+powers of 2.</p>
+
+<h2 id="what-to-hand-in-and-how">What to hand in, and how</h2>
+
+<p>Make sure to compile and test your solutions on one of the machines in
+M210.  If you choose to develop your solutions on some other system,
+you are responsible to ensure that the work you submit runs correctly
+on a machine in M210 — which is where where we will test it!</p>
+
+<ul>
+  <li>
+    <p>In addition to your code, each of the four subdirectories of
+<code class="highlighter-rouge">lab2</code> must include two simple text files:</p>
+
+    <p>a.  <code class="highlighter-rouge">README</code>,
+     which describes how your program should be compiled and executed, along with an explanation of any assumptions you made about the assignment.
+See the <a href="/engs50/Examples/subtemplate-README.txt">example README file</a>.</p>
+
+    <p>b.  <code class="highlighter-rouge">TESTING</code>,
+     which describes how you tested the program, including test inputs and test scripts; these test inputs and test scripts should be included as files in the same directory.</p>
+  </li>
+</ul>
+
+<blockquote>
+  <p>See the <a href="/engs50/Examples/subtemplate-TESTING.txt">example TESTING file</a>; in that case we would not need to include testing inputs because they were CS50-provided files, or generated within the testing file itself.
+(We created this file in MacOS Terminal by choosing “Export Text As…” from the Shell menu when we had finished all the testing commands, we edited it with emacs to add the comments.</p>
+</blockquote>
+
+<p>When finished, you should have the following files:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lab2
+├── chill
+│   ├── README
+│   ├── TESTING
+│   └── chill.c
+├── histo
+│   ├── README
+│   ├── TESTING
+│   ├── histo.c
+├── regress
+│   ├── README
+│   ├── TESTING
+│   └── regress.sh
+└── words
+    ├── README
+    ├── TESTING
+    └── words.c
+</code></pre></div></div>
+
+<blockquote>
+  <p>This listing was produced by the <code class="highlighter-rouge">tree</code> command.  Neat, huh?</p>
+</blockquote>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+

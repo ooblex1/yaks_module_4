@@ -1,0 +1,717 @@
+https://thayer.github.io/engs50/Notes/c2/extra.html
+3
+59967
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Lecture Extra - The Standard C Libraries</title>
+  <meta name="description" content="In Engs 50 you will learn how to design & build large, reliable, maintainable, and understandable software systems.  In the process you will learn to program in C with Unix development tools.
+">
+
+  <link rel="shortcut icon" href="/engs50/50.png" />
+  <link rel="stylesheet" href="/engs50/css/main.css">
+  <link rel="canonical" href="/engs50/Notes/c2/extra.html">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+    <a class="site-title" href="/engs50/">
+      <img width=48 align=center src="/engs50/50.png" alt="icon">
+      Engs50 (CS50)
+    </a>
+
+    <nav class="site-nav">
+      [<a href="/engs50/Labs/">Labs</a>]
+      [<a href="/engs50/Notes/">Notes</a>]
+      [<a href="/engs50/Reading/">Reading</a>]
+      [<a href="/engs50/Resources/">Resources</a>]
+			[<a href="/engs50/Examples/">Examples</a>]
+   </nav>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Lecture Extra - The Standard C Libraries</h1>
+  </header>
+
+  <div class="post-content">
+    <p>These notes are meant to complement the “<a href="index.html">lecture</a>”.</p>
+
+<p><strong><em>Warning: the examples in (or cited by) this “lecture extra” may not follow CS50 programming style.”</em></strong></p>
+
+<h2 id="the-standard-io-library">The standard I/O library</h2>
+
+<p>The C language itself does not define any particular file or character-based input or output routines (nor any windowing routines), unlike Java.
+Instead any program may provide its own.
+Clearly this is a daunting task, and so the <em>standard C library</em> provides a collection of functions to perform file-based input and output.
+The standard I/O library functions provide efficient, buffered I/O to and from both terminals and files.</p>
+
+<p>C programs requiring standard I/O should include the line:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+</span></code></pre></div></div>
+
+<p>NOTE: the <code class="highlighter-rouge">#include</code> preprocessor directive simply instructs the compiler to go find the <code class="highlighter-rouge">stdio.h</code> file in the usual system place and include its contents at this point in the source stream.
+We’ll learn more about the preprocessor later.</p>
+
+<p>All transactions through the standard I/O functions require a <em>file pointer</em>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">;</span>
+
+  <span class="n">fp</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="s">"file.dat"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Although a ‘file pointer’ is, strictly speaking, a C pointer, we don’t care much about what it is - we simply pass this pointer to functions in the standard C library.</p>
+
+<blockquote>
+  <p>Some texts will refer to this pointer as a <em>file stream</em> (and C++ confused this term even more), but these should not be confused with nor be described as akin to Java’s “streams”.</p>
+</blockquote>
+
+<p>The standard I/O library (aka ‘stdio’) predefines three file pointers: <code class="highlighter-rouge">stdin</code>, <code class="highlighter-rouge">stdout</code>, and <code class="highlighter-rouge">stderr</code>, which are already opened for you (by the shell or other program that executed your C program) and which you can read, write, or manipulate using stdio functions.</p>
+
+<p>Several functions are provided to check the status of file operations on a given file pointer, including:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">feof</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>      <span class="cm">/* checks for end-of-file */</span>
+  <span class="n">ferror</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>    <span class="cm">/* checks for an error on a file */</span>
+</code></pre></div></div>
+
+<p>The standard I/O functions all return <code class="highlighter-rouge">NULL</code> or <code class="highlighter-rouge">1</code> (as appropriate) when an error is detected.
+For example:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="cp">#include &lt;stdio.h&gt;
+</span>
+  <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+
+    <span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">;</span>
+
+    <span class="k">if</span><span class="p">((</span><span class="n">fp</span><span class="o">=</span><span class="n">fopen</span><span class="p">(</span><span class="s">"/etc/passwd"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">))</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+       <span class="n">error</span> <span class="n">message</span> <span class="p">...</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+
+      <span class="cm">/* process the file */</span>
+      <span class="p">...</span>
+      <span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+</code></pre></div></div>
+<blockquote>
+  <p>In the preceding, notice how it embeds an assignment statement inside the condition of the <code class="highlighter-rouge">if</code> statement!
+That’s ok, because an assignment statement is an expression that itself has a value - the value that is assigned to the variable on the left-hand side - and that value is then used in the outer expression (here, a conditional expression testing equality).
+Thus, the <code class="highlighter-rouge">if</code> statement could have been written as</p>
+</blockquote>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">fp</span><span class="o">=</span><span class="n">fopen</span><span class="p">(</span><span class="s">"/etc/passwd"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">fp</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+	<span class="p">...</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>but such a construct appears so often that they are often combined.
+When the assignment is included in the <code class="highlighter-rouge">if</code> condition, it was wrapped in parentheses just to be sure that it’s treated as a whole, as the left-hand-side of the <code class="highlighter-rouge">==</code> comparison operator.</p>
+</blockquote>
+
+<p>The most frequently used functions in the C standard I/O library perform output of formatted data.
+We also see here the most frequent use of C’s acceptance of functions receiving a variable number of arguments:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">fprintf</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">(</span><span class="n">T</span><span class="p">)</span><span class="n">arg1</span><span class="p">,</span> <span class="p">(</span><span class="n">T</span><span class="p">)</span><span class="n">arg2</span><span class="p">,</span> <span class="p">...);</span>
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">fprintf</code> function is a generalization of <code class="highlighter-rouge">printf</code>.
+Put another way, <code class="highlighter-rouge">printf(format, arg...)</code> is shorthand for <code class="highlighter-rouge">fprintf(stdout, format, arg...)</code>.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   <span class="kt">int</span> <span class="n">class</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span>
+   <span class="kt">char</span> <span class="o">*</span><span class="n">department</span> <span class="o">=</span> <span class="s">"Computer Science"</span><span class="p">;</span>
+
+   <span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s">"Course: %s %02d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">department</span><span class="p">,</span> <span class="n">class</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Many standard I/O functions accept a <em>format specifier</em>, which is a string describing how the following arguments are to be interpreted.
+This mechanism is in contrast to Java’s <code class="highlighter-rouge">toString</code> facility in which each object knows how to output/display itself as a <code class="highlighter-rouge">String</code> object.
+There are many possible format specifiers, the most common ones being <code class="highlighter-rouge">c</code> for character values, <code class="highlighter-rouge">d</code> for decimal values, <code class="highlighter-rouge">f</code> for floating-point values, and <code class="highlighter-rouge">s</code> for character strings.
+Format specifiers may be preceded by a number of <em>format modifiers</em>, which may further specify their data type and may indicate the width of the required output (in characters).</p>
+
+<p>The C standard I/O library provides efficient “buffering”.
+This means that although it appears that the output has gone to the <code class="highlighter-rouge">FILE</code> pointer, it may still be held within an internal character buffer in the library (and will hence not be actually written to the hard disk or to the screen until more output is accumulated and the buffer becomes full).
+We often need to “flush” our output to allow us to <em>know</em> when the output will be written to disk or the screen:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="cm">/* ... format some output ...*/</span>
+  <span class="n">fflush</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>As you might expect, <code class="highlighter-rouge">FILE</code> pointers are automatically flushed when a file is closed or the process exits.</p>
+
+<p>As well as outputting to <code class="highlighter-rouge">FILE</code> pointers, we may also perform formatted output to a character array (a string), with a very similar series of functions:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   <span class="kt">int</span> <span class="n">class</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span>
+   <span class="kt">char</span> <span class="o">*</span><span class="n">department</span> <span class="o">=</span> <span class="s">"Computer Science"</span><span class="p">;</span>
+   <span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="n">BUFSIZ</span><span class="p">];</span>
+
+   <span class="n">sprintf</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="s">"Course: %s %02d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">department</span><span class="p">,</span> <span class="n">class</span><span class="p">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Security alert! What is the potential exposure in the code above?</p>
+</blockquote>
+
+<p>C’s standard I/O library may also be used to input values from <code class="highlighter-rouge">FILE</code> pointers and character arrays using <code class="highlighter-rouge">fscanf()</code> and <code class="highlighter-rouge">sscanf()</code>.
+Because we want the contents of C’s variables to be modified by the standard I/O functions, we need to pass them <em>by reference</em>, which in C is accomplished by passing the ‘address’ of the variables using the <code class="highlighter-rouge">&amp;</code> operator:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">fscanf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">format</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">arg1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">arg2</span><span class="p">,</span> <span class="p">...);</span>
+</code></pre></div></div>
+
+<p>like this:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="n">res</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="n">BUFSIZ</span><span class="p">];</span>
+  <span class="n">fscanf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s">"%d %d"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">i</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">res</span><span class="p">);</span>
+  <span class="n">sscanf</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="s">"%d %d"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">i</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">res</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>We’ll talk more about addresses and pointers in a couple of days.</p>
+
+<p>When using the C standard I/O functions, we must pay attention to the particular return values from those functions.
+The functions themselves may return <code class="highlighter-rouge">NULL</code> file pointers, the number of input items read, the number of characters written, or special non-zero values that indicate the end of a file or some other error condition.
+Always check the <code class="highlighter-rouge">man</code> page to be sure.
+Some of the special return values have constants defined in the system include files for convenience, improved code readability, and consistency.
+Here are some sample code snippets:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;  
+#define MAXLINE 80
+</span>
+  <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="n">sum</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">line</span><span class="p">[</span><span class="n">MAXLINE</span><span class="p">];</span>
+
+  <span class="k">for</span><span class="p">(;;)</span> <span class="p">{</span>
+    <span class="n">fgets</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="n">fp</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">feof</span><span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+       <span class="k">break</span><span class="p">;</span>
+
+    <span class="cm">/* ... process the line just read ...*/</span>
+
+  <span class="p">}</span>
+  <span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">numlines</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">fp</span><span class="o">=</span><span class="n">fopen</span><span class="p">(</span><span class="s">"thefile"</span><span class="p">,</span><span class="sc">'r'</span><span class="p">));</span> <span class="n">feof</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span> <span class="n">numlines</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="n">fgets</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">),</span> <span class="n">fp</span><span class="p">);</span>
+      <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+  <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">while</span><span class="p">(</span><span class="n">fscanf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s">"%d"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">i</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+     <span class="n">sum</span> <span class="o">+=</span> <span class="n">i</span><span class="p">;</span>
+  <span class="n">fclose</span><span class="p">(</span><span class="n">fp</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Here is a code snippet that uses <code class="highlighter-rouge">fopen(),</code> <code class="highlighter-rouge">fgets()</code>, <code class="highlighter-rouge">strlen()</code>, <code class="highlighter-rouge">printf()</code>, <code class="highlighter-rouge">sscanf()</code>, and <code class="highlighter-rouge">fclose()</code>.
+It reads frmo the file into to a character array, and then applies <code class="highlighter-rouge">sscanf()</code> to that array to extract information from the array into various variables.</p>
+
+<p><strong>Example: <a href="/engs50/Examples/files.c">files.c</a></strong></p>
+<blockquote>
+  <p>See the full C code in <a href="/engs50/Examples/files.c">files.c</a>
+and a sample input file <a href="/engs50/Examples/files-input.txt">input</a>.</p>
+</blockquote>
+
+<h2 id="why-not-to-use-gets--an-example-of-dangerous-code">Why not to use gets( ): an example of dangerous code</h2>
+
+<p>There is a saying - you learn from your mistakes, so make lots of them.
+There is another one: don’t make the same mistake twice.
+The use of the stdio function <code class="highlighter-rouge">gets()</code> is a mistake.
+Lots of programmers have made this mistake, and caused headaches for millions of computer users around the world.
+The lesson: <em>never use <code class="highlighter-rouge">gets()</code>.</em></p>
+
+<p>Let’s look at the following <code class="highlighter-rouge">buffer-overflow.c</code>, which could have been named <code class="highlighter-rouge">really-bad-code.c</code>.</p>
+
+<p>Apart of the use of <code class="highlighter-rouge">gets()</code>, this is a nice little string manipulation program that uses a number of other C library calls that are of interest.</p>
+
+<p><strong>Example: <a href="/engs50/Examples/buffer-overflow.c">buffer-overflow.c</a></strong></p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+   File:  buffer-overflow.c
+
+   Description: This is a bad program! But it's fun. The basic idea of
+                of the program to input and manipulate strings using
+                arrays of chars is fun. However, there is a serious flaw
+                in the program. The book uses the function gets(). This
+                is a seriously dangerous function call. DON'T USE IT.
+
+   Revised code taken from pg. 457 (Program 9.5) (Bronson) "First Book on ANSI C"
+
+*/</span>
+
+<span class="cp">#include &lt;stdio.h&gt;
+#include &lt;string.h&gt; </span><span class="cm">/* required for the string function library */</span><span class="cp">
+</span>
+<span class="cp">#define MAXELS 50
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+
+  <span class="kt">char</span> <span class="n">string1</span><span class="p">[</span><span class="n">MAXELS</span><span class="p">]</span> <span class="o">=</span> <span class="s">"Hello"</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">string2</span><span class="p">[</span><span class="n">MAXELS</span><span class="p">]</span> <span class="o">=</span> <span class="s">"Hello there"</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">n</span><span class="p">;</span>
+
+  <span class="n">n</span> <span class="o">=</span> <span class="n">strcmp</span><span class="p">(</span><span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%s is less than - %s</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">);</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%s is equal to - %s</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%s is greater than -  %s</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">);</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"The length of string1 is %d characters</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">strlen</span><span class="p">(</span><span class="n">string1</span><span class="p">));</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"The length of string2 is %d characters</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">strlen</span><span class="p">(</span><span class="n">string2</span><span class="p">));</span>
+
+  <span class="n">strcat</span><span class="p">(</span><span class="n">string1</span><span class="p">,</span><span class="s">" there World!"</span><span class="p">);</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"After concatenation, string1 contains the string value</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">string1</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"The length of this string is %d characters</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span>
+                                                   <span class="n">strlen</span><span class="p">(</span><span class="n">string1</span><span class="p">));</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"Please enter a line of text for string2, max %d characters: "</span><span class="p">,</span>
+                                                   <span class="k">sizeof</span><span class="p">(</span><span class="n">string2</span><span class="p">));</span>
+
+  <span class="cm">/* In the code below comment and uncomment the gets() code */</span>
+
+  <span class="n">gets</span><span class="p">(</span><span class="n">string2</span><span class="p">);</span>
+
+  <span class="cm">/* In the code below comment and uncomment the fgets() code segment */</span>
+
+  <span class="cm">/*  fgets(string2, sizeof(string2), stdin); */</span>
+
+  <span class="n">printf</span> <span class="p">(</span><span class="s">"Thanks for entering %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">string2</span><span class="p">);</span>
+
+  <span class="n">strcpy</span><span class="p">(</span><span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">);</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"After copying string2 to string1"</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">" the string value in string1 is:</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">string1</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"The length of string1 is %d characters</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span>
+                                                 <span class="n">strlen</span><span class="p">(</span><span class="n">string1</span><span class="p">));</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">The starting address of the string1 string is: %x</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+                                                 <span class="n">string1</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">The starting address of the string2 string is: %x</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+                                                 <span class="n">string2</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Let’s look at the output when running the program first with <code class="highlighter-rouge">gets()</code> and then with the safer <code class="highlighter-rouge">fgets()</code>.
+If we run the code with <code class="highlighter-rouge">gets()</code> we get a segmentation fault when entering 51 characters.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nv">$ </span>./buffer-overflow
+    Hello is less than - Hello there
+
+    The length of string1 is 5 characters
+    The length of string2 is 11 characters
+
+    After concatenation, string1 contains the string value
+    Hello there World!
+    The length of this string is 18 characters
+
+    warning: this program uses gets<span class="o">()</span>, which is unsafe.
+    Please enter a line of text <span class="k">for </span>string2, max 50 characters: 01234678901234567890123456789012345678901234567890
+    Thanks <span class="k">for </span>entering 01234678901234567890123456789012345678901234567890
+    Segmentation fault
+</code></pre></div></div>
+
+<p>If we comment out <code class="highlighter-rouge">gets()</code>, uncomment <code class="highlighter-rouge">fgets()</code>, and recompile we are safe:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nv">$ </span>./buffer-overflow
+    Hello is less than - Hello there
+
+    The length of string1 is 5 characters
+    The length of string2 is 11 characters
+
+    After concatenation, string1 contains the string value
+    Hello there World!
+    The length of this string is 18 characters
+
+    Please enter a line of text <span class="k">for </span>string2, max 50 characters:  01234678901234567890123456789012345678901234567890
+    Thanks <span class="k">for </span>entering  012346789012345678901234567890123456789012345678
+    After copying string2 to string1 the string value <span class="k">in </span>string1 is:
+     012346789012345678901234567890123456789012345678
+    The length of string1 is 49 characters
+
+
+    The starting address of the string1 string is: bffff87a
+
+    The starting address of the string2 string is: bffff848
+</code></pre></div></div>
+
+<p>This is a bad program!
+The basic idea of the program is to accept and manipulate strings using arrays of chars.
+However, there is a serious flaw in the program.
+Some older books use the function <code class="highlighter-rouge">gets()</code>; it is a seriously dangerous function call.
+<strong><em>Do not use gets()!</em></strong></p>
+
+<p>The program defines a buffer of 50 chars in length.
+The user types in characters from the keyboard and they are written to the buffer, i.e., <code class="highlighter-rouge">string1</code> and <code class="highlighter-rouge">string2</code>.</p>
+
+<p>The input parameter to <code class="highlighter-rouge">gets()</code> is the name of the array (which is a pointer - more on pointers later).
+The function does not know how long the array is!
+It is impossible to determine the length of <code class="highlighter-rouge">string1</code> and <code class="highlighter-rouge">string2</code> from a pointer alone.</p>
+
+<p>If we run the program and type in 50 characters, including the newline, all is safe.
+But if we type 51 or 60 or more characters, we over run or ‘overflow’ the buffer.
+We end up writing past the end of the array!
+This overflow can happen even without calling an unsafe function such as <code class="highlighter-rouge">gets()</code>, so it’s an important lesson to learn.
+Buffer overflows can have rather spectacular results!</p>
+
+<p>Bugs often happen at boundary conditions and one important boundary is the end of the array.
+If we overwrite <code class="highlighter-rouge">string1</code>, we might write into <code class="highlighter-rouge">string2</code>.
+Recall that, by convention, C strings are terminated by <code class="highlighter-rouge">\0</code> (aka <code class="highlighter-rouge">NULL</code>).
+If this character is overwritten then a piece of code operating on the array will keep on scanning until it finds a <code class="highlighter-rouge">\0</code>.</p>
+
+<p>If we run this code and type in more than 50 chars (as we did above) anything can happen; for example: 1) the code could work with no visible affect of the bug; 2) immediate segfault; 3) segfault later in the code stream; 3) mistakes happen in unrelated functions (e.g., strcat() in our code).</p>
+
+<p>Some books use <code class="highlighter-rouge">gets()</code> and promote its use.
+Just Say NO!
+Instead, use the safe <code class="highlighter-rouge">fgets()</code> as it is a buffer-safe function.
+Its prototype is:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="kt">char</span> <span class="o">*</span><span class="n">fgets</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">,</span> <span class="kt">FILE</span> <span class="o">*</span><span class="n">stream</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>It requires you to identify <em>which file</em>, yes, but more importantly, it requires you to identify the size of the character buffer into which it will write characters; <code class="highlighter-rouge">fgets</code> will not write more characters than the size of the buffer.</p>
+
+<p>Example:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">fgets</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">),</span> <span class="n">stdin</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">fgets()</code> function shall read bytes from stream into the array pointed to by <code class="highlighter-rouge">buf</code>, until <code class="highlighter-rouge">sizeof(buf)-1</code> bytes are read, or a newline is read and transferred to <code class="highlighter-rouge">buf</code>, or an end-of-file condition is encountered.
+The string is then terminated with a NULL byte.</p>
+
+<p>We replace <code class="highlighter-rouge">gets()</code> with <code class="highlighter-rouge">fgets()</code> in the above code and now we are safe.</p>
+
+<p>If you want to read in just characters from the screen one at a time you can use <code class="highlighter-rouge">getchar()</code>.
+But remember that if you enter a character on the keyboard and then hit return, the ‘newline’ character is also in the stream.
+Take a look at this code and run it.</p>
+
+<p><strong>Example: <a href="/engs50/Examples/getchar.c">getchar.c</a></strong></p>
+
+<h3 id="the-coperating-system-interface">The C/Operating system interface</h3>
+
+<p>Operating systems (such as Unix, Linux, MacOS X, and Windows 10) will always execute C programs by calling the function <code class="highlighter-rouge">main()</code> with two parameters:</p>
+
+<ol>
+  <li>an integer argument count (<code class="highlighter-rouge">argc</code>),</li>
+  <li>an array of pointers to character strings (<code class="highlighter-rouge">argv</code>)</li>
+</ol>
+
+<p>Notice that in many previous examples we’ve provided a <code class="highlighter-rouge">main()</code> without any parameters all.
+Remember that C does not check the length and types of parameter lists of functions which it does not know about ones that have not been prototyped.
+In addition, the function <code class="highlighter-rouge">main()</code> has no special significance to the C compiler.
+Only the linker requires <code class="highlighter-rouge">main()</code> as the apparent starting point of any program.
+Most C programs you see will look like this:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+</code></pre></div></div>
+
+<p>I prefer to declare them as constant so we let the C compiler help us avoid modifying these input parameters:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+</code></pre></div></div>
+
+<p>So how do you get “an array of pointers to char” out of a mouthful like <code class="highlighter-rouge">char *argv[]</code>?
+It’s all about operator precedence.</p>
+
+<p>The highest precedence of everything is variable names and literals.
+Then the next highest precedence thing is the subscripting operator <code class="highlighter-rouge">[ ]</code>.
+About halfway down the list of operators is the indirection operator <code class="highlighter-rouge">*</code>, so its precedence is lower than the subscripting operator.
+Thus, the above declaration is read as: <em>argv is an array of pointers to char</em>.</p>
+
+<p>The following program prints out its command line.
+Note that <code class="highlighter-rouge">argv[0]</code> is the command name and <code class="highlighter-rouge">argv[1]</code> … <code class="highlighter-rouge">argv[N]</code> are the command-line arguments (after any expansion or subsitutions done by the shell).</p>
+
+<p><strong>Example: <a href="/engs50/Examples/arguments.c">arguments.c</a></strong></p>
+
+<p>Look at the following snippet:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+
+  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"%d items were input on the command line</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argc</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">argc</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"argument %d is %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>cs50@flume] <span class="nv">$ </span>./arguments 1 two 3.1415 4 <span class="s2">"F i v e"</span>
+6 items were input on the <span class="nb">command </span>line
+argument 0 is ./arguments
+argument 1 is 1
+argument 2 is two
+argument 3 is 3.1415
+argument 4 is 4
+argument 5 is F i v e
+<span class="o">[</span>cs50@flume] <span class="err">$</span>
+</code></pre></div></div>
+
+<p>We declared <code class="highlighter-rouge">argv</code> as <em>array of pointers to char</em>.
+For any given argument <em>i</em>, <code class="highlighter-rouge">argv[i]</code> is one of those pointers; that is, <code class="highlighter-rouge">argv[i]</code> is of type <code class="highlighter-rouge">char*</code>.
+We can pass that pointer to functions like <code class="highlighter-rouge">printf</code>, wherever it expects a string.</p>
+
+<p>A more interesting snippet of code shows that the command line is stored as a set of string arguments in memory and that the address of the location of the first character for each string argument is stored in the <code class="highlighter-rouge">argv[]</code> array.</p>
+
+<p><strong><em>Example: <a href="/engs50/Examples/command.c">command.c</a></em></strong></p>
+
+<p>Lets look at the following snippet:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">The number of items on the command line is %d</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span><span class="n">argc</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">argc</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"argument %d is </span><span class="se">\"</span><span class="s">%s</span><span class="se">\"</span><span class="s">`</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"The address stored in argv[%d] is %p</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"The first character pointed to there is </span><span class="se">\'</span><span class="s">%c</span><span class="se">\'\n</span><span class="s">"</span><span class="p">,</span> <span class="o">*</span><span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>If you run the program you will see the following output -
+note that the hexadecimal address of the first character for each argument is printed out too.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>cs50@flume] <span class="nv">$ </span>./command hello cs50 ready to go skating?
+
+The number of items on the <span class="nb">command </span>line is 7
+
+argument 0 is <span class="s2">"./command"</span><span class="sb">`</span>
+The address stored <span class="k">in </span>argv[0] is 0x7fff5d056376
+The first character pointed to there is <span class="s1">'.'</span>
+argument 1 is <span class="s2">"hello"</span><span class="sb">`</span>
+The address stored <span class="k">in </span>argv[1] is 0x7fff5d056380
+The first character pointed to there is <span class="s1">'h'</span>
+argument 2 is <span class="s2">"cs50"</span><span class="sb">`</span>
+The address stored <span class="k">in </span>argv[2] is 0x7fff5d056386
+The first character pointed to there is <span class="s1">'c'</span>
+argument 3 is <span class="s2">"ready"</span><span class="sb">`</span>
+The address stored <span class="k">in </span>argv[3] is 0x7fff5d05638b
+The first character pointed to there is <span class="s1">'r'</span>
+argument 4 is <span class="s2">"to"</span><span class="sb">`</span>
+The address stored <span class="k">in </span>argv[4] is 0x7fff5d056391
+The first character pointed to there is <span class="s1">'t'</span>
+argument 5 is <span class="s2">"go"</span><span class="sb">`</span>
+The address stored <span class="k">in </span>argv[5] is 0x7fff5d056394
+The first character pointed to there is <span class="s1">'g'</span>
+argument 6 is <span class="s2">"skating?"</span><span class="sb">`</span>
+The address stored <span class="k">in </span>argv[6] is 0x7fff5d056397
+The first character pointed to there is <span class="s1">'s'</span>
+
+<span class="o">[</span>cs50@flume] <span class="err">$</span>
+</code></pre></div></div>
+
+<p>A common activity at the start of a C program is to search the argument list for command-line switches commencing with a dash character.
+The remaining command-line parameters are often assumed to be filenames.</p>
+
+<p><strong><em>Example: <a href="/engs50/Examples/nosort.c">nosort.c</a></em></strong></p>
+
+<p>The program below parses the command line of a <code class="highlighter-rouge">sort</code> command.
+It will process:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">nosort</span> <span class="o">-</span><span class="n">n</span>
+    <span class="n">nosort</span> <span class="o">-</span><span class="n">r</span>
+    <span class="n">nosort</span> <span class="o">-</span><span class="n">u</span>
+    <span class="n">nosort</span> <span class="o">-</span><span class="n">r</span> <span class="o">-</span><span class="n">u</span> <span class="o">-</span><span class="n">n</span>
+</code></pre></div></div>
+<p>Any variation of the above is also supported, but not:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">nosort</span> <span class="o">-</span><span class="n">run</span>
+</code></pre></div></div>
+
+<p>An example of defensive programming: If the user enters a bad option then the user is informed with a usage message:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="o">[</span>cs50@tahoe] ./nosort <span class="nt">-y</span>
+    Usage: bad option <span class="nt">-y</span>
+</code></pre></div></div>
+
+<p>The program <a href="/engs50/Examples/nosort.c">nosort.c</a> (no sort code is included, only the command line parsing) looks like this:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="o">/</span> <span class="n">The</span> <span class="n">program</span> <span class="n">parses</span> <span class="n">the</span> <span class="n">input</span> <span class="n">switches</span> <span class="n">to</span> <span class="n">sort</span>
+    <span class="c1">// supports command lines such as sort -r -u -n
+</span>    <span class="c1">// but not sort -run which you will need for
+</span>    <span class="c1">// the Lab3
+</span>
+    <span class="cp">#include&lt;stdio.h&gt;
+</span>
+    <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+
+      <span class="kt">int</span> <span class="n">unique</span><span class="p">,</span> <span class="n">reverse</span><span class="p">,</span> <span class="n">numsort</span><span class="p">;</span>
+      <span class="kt">char</span> <span class="o">*</span><span class="n">progname</span><span class="p">;</span>
+
+      <span class="n">progname</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+      <span class="n">numsort</span><span class="o">=</span><span class="n">reverse</span><span class="o">=</span><span class="n">unique</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+      <span class="c1">// run through the input commands looking 
+</span>      <span class="c1">// for switches
+</span>
+      <span class="k">while</span><span class="p">((</span><span class="n">argc</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="sc">'-'</span><span class="p">))</span> <span class="p">{</span>
+
+        <span class="c1">// argv[1][1] is the actual option
+</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="p">{</span>
+
+        <span class="k">case</span> <span class="sc">'r'</span><span class="p">:</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">"Switch is %c</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]);</span>
+            <span class="n">reverse</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="sc">'u'</span><span class="p">:</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">"Switch is %c</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]);</span>
+            <span class="n">unique</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="k">case</span> <span class="sc">'n'</span><span class="p">:</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">"Switch is %c</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]);</span>
+            <span class="n">numsort</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+
+        <span class="k">default</span><span class="o">:</span>
+             <span class="n">printf</span><span class="p">(</span><span class="s">"Error: bad option </span><span class="se">\'</span><span class="s">%c</span><span class="se">\'\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]);</span>
+             <span class="n">printf</span><span class="p">(</span><span class="s">"Usage:  %s [-r] [-u] [-n] </span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">progname</span><span class="p">);</span>
+             <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="c1">// decrement the number of arguments left
+</span>        <span class="c1">// increment the argv pointer to the next argument
+</span>
+          <span class="n">argc</span><span class="o">--</span><span class="p">;</span> <span class="n">argv</span><span class="o">++</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="n">printf</span><span class="p">(</span> <span class="s">"numsort=%d, unique=%d, reverse=%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">numsort</span><span class="p">,</span> <span class="n">unique</span><span class="p">,</span> <span class="n">reverse</span><span class="p">);</span>
+
+      <span class="c1">// other processing
+</span>
+      <span class="k">return</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="p">}</span>
+</code></pre></div></div>
+
+<p>The above demonstrates several things about C, and C idioms:</p>
+
+<ol>
+  <li>the <code class="highlighter-rouge">switch</code> statement and its component <code class="highlighter-rouge">case</code> and <code class="highlighter-rouge">break</code> statements.</li>
+  <li>the use of <code class="highlighter-rouge">argc--; argv++</code> as a way of stepping through an array.
+    <ul>
+      <li>Note: each time <code class="highlighter-rouge">argv</code> is incremented, it changes the base address on which a subscript like <code class="highlighter-rouge">[1]</code> is interpreted. In effect, subscripting is a form of ‘pointer arithmetic’, adding the necessary amount to the base pointer so as to find the address of the relevant item in the array.  More on that when we discuss pointers.</li>
+    </ul>
+  </li>
+  <li>the syntax for subscripting a two-dimensional array, like <code class="highlighter-rouge">argv[1][0]</code>.
+    <ul>
+      <li>Note: <code class="highlighter-rouge">argv</code> is not (strictly speaking) a two-dimensional array, and C does not (strictly speaking) support multi-dimensional arrays; the first subscript selects one of the <code class="highlighter-rouge">char*</code> pointers in the array-of-pointers that is <code class="highlighter-rouge">argv</code>; the second subscript selects one of the characters in the array of characters to which that pointer refers.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="getopt-">getopt( )</h2>
+
+<p><strong><em>Example: <a href="/engs50/Examples/nosort-getopt.c">nosort-getopt.c</a></em></strong></p>
+
+<p>Another way to process command-line arguments is to use the <code class="highlighter-rouge">getopt()</code> C library function, which is specifically designed to help parse switches in the common <code class="highlighter-rouge">-s</code> and <code class="highlighter-rouge">--switch</code> formats.
+See <code class="highlighter-rouge">man 3 getopt</code>.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// The program parses the input switches to sort
+// supports command lines such as sort -r -u -n
+// but not sort -run
+</span>
+<span class="cp">#include&lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;getopt.h&gt;  </span><span class="cm">/* how did we know to include this??? "man 3 getopt" */</span><span class="cp">
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+
+  <span class="kt">int</span> <span class="n">unique</span><span class="p">,</span> <span class="n">reverse</span><span class="p">,</span> <span class="n">numsort</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">ch</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">progname</span><span class="p">;</span>
+
+  <span class="n">progname</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+  <span class="c1">// run through the input commands looking 
+</span>  <span class="c1">// for switches using the handy-dandy getopt function!
+</span>
+  <span class="k">while</span> <span class="p">((</span><span class="n">ch</span> <span class="o">=</span> <span class="n">getopt</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="s">"run"</span><span class="p">))</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+  <span class="p">{</span>
+       <span class="k">switch</span> <span class="p">(</span><span class="n">ch</span><span class="p">)</span> 
+       <span class="p">{</span><span class="c1">//  while((argc &gt; 1) &amp;&amp; (argv[1][0] == '-')) {
+</span>
+       <span class="k">case</span> <span class="sc">'r'</span><span class="p">:</span> 
+            <span class="n">printf</span><span class="p">(</span><span class="s">"Switch is %c</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">ch</span><span class="p">);</span>
+            <span class="n">reverse</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+       <span class="k">case</span> <span class="sc">'u'</span><span class="p">:</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">"Switch is %c</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">ch</span><span class="p">);</span>
+            <span class="n">unique</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+       <span class="k">case</span> <span class="sc">'n'</span><span class="p">:</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">"Switch is %c</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">ch</span><span class="p">);</span>
+            <span class="n">numsort</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+            <span class="k">break</span><span class="p">;</span>
+
+       <span class="nl">default:</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">"Error: bad option </span><span class="se">\'</span><span class="s">%c</span><span class="se">\'\n</span><span class="s">"</span><span class="p">,</span> <span class="n">ch</span><span class="p">);</span>
+            <span class="n">printf</span><span class="p">(</span><span class="s">"Usage:  %s [-r] [-u] [-n] </span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">progname</span><span class="p">);</span>
+            <span class="k">break</span><span class="p">;</span>
+       <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="n">printf</span><span class="p">(</span> <span class="s">"numsort=%d, unique=%d, reverse=%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">numsort</span><span class="p">,</span> <span class="n">unique</span><span class="p">,</span> <span class="n">reverse</span><span class="p">);</span>
+
+  <span class="c1">// other processing
+</span>
+  <span class="k">return</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+
+  </div>
+
+</article>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Engs50 (CS50) -- Dartmouth College</h2>
+
+    <p> <font size=-1>
+    	This version of the course is based upon those designed by
+    	Professors Palmer, Kotz, Zhou, Campbell, and Balkcom.
+	I am deeply indebted to these outstanding educators.
+    -- <a href="https://engineering.dartmouth.edu/people/faculty/stephen-taylor/">Stephen Taylor</a>
+       </font>
+    </p>
+    <p><small>This page was last updated on <strong>2018-10-10</strong> at <strong>18:07</strong>.</small></p>
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>
+
